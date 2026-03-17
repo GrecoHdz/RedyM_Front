@@ -1,5 +1,7 @@
 <template>
   <div class="min-h-screen bg-[#070b14] text-gray-100 font-['Outfit'] overflow-x-hidden selection:bg-emerald-500/30 selection:text-emerald-400">
+    <!-- Page Loading Spinner -->
+    <LoadingSpinner :loading="isPageLoading" />
     
     <!-- Animated background -->
     <div class="fixed inset-0 -z-10 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-emerald-900/20 via-[#070b14] to-[#070b14]"></div>
@@ -172,6 +174,7 @@ const { $api } = useNuxtApp()
 const showModal = ref(false)
 const isLogin = ref(true)
 const loading = ref(false)
+const isPageLoading = ref(true)
 const errorMsg = ref('')
 
 // Status overlay
@@ -201,6 +204,13 @@ watch(showModal, (val) => {
   if (process.client) {
     document.body.style.overflow = val ? 'hidden' : ''
   }
+})
+
+onMounted(async () => {
+  // Simular carga inicial
+  setTimeout(() => {
+    isPageLoading.value = false
+  }, 900)
 })
 
 onUnmounted(() => {

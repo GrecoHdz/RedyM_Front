@@ -1,5 +1,8 @@
 <template>
   <div class="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white selection:bg-emerald-500/30 overflow-x-hidden">
+    <!-- Loading Spinner -->
+    <LoadingSpinner :loading="isLoading" />
+
     <!-- Main Header -->
     <MobileHeader :earnings="totalEarnings" />
 
@@ -226,8 +229,10 @@ import MobileHeader from '~/components/headers/MobileHeader.vue'
 import BottomNav from '~/components/footers/BottomNav.vue'
 import MediaCarousel from '~/components/ui/MediaCarousel.vue'
 import Toast from '~/components/ui/Toast.vue'
+import LoadingSpinner from '~/components/ui/LoadingSpinner.vue'
 
 const auth = useAuthStore()
+const isLoading = ref(true)
 const shortName = computed(() => auth.user?.nombre?.split(' ')[0] || 'Usuario')
 
 const toast = ref({ show: false, message: '', type: 'success' })
@@ -280,6 +285,11 @@ const handlePageShow = () => {
 onMounted(() => {
   document.addEventListener('visibilitychange', handlePageShow)
   window.addEventListener('focus', handlePageShow)
+  
+  // Simular carga de datos
+  setTimeout(() => {
+    isLoading.value = false
+  }, 800)
 })
 
 onUnmounted(() => {

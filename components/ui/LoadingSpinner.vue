@@ -1,40 +1,66 @@
 <template>
-  <div v-if="loading || success || error" class="fixed inset-0 z-[100] flex items-center justify-center p-4">
-    <div class="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
-    <div class="relative bg-[#0d121f] border border-white/10 rounded-3xl p-8 max-w-sm w-full shadow-2xl text-center">
+  <transition name="fade">
+    <div v-if="loading || success || error" class="fixed inset-0 flex items-center justify-center z-[999] bg-[#070b14] pointer-events-auto">
       
-      <!-- Spinner / Icon -->
-      <div class="mb-6 relative flex justify-center">
-        <div v-if="loading" class="w-16 h-16 border-4 border-emerald-500/20 border-t-emerald-500 rounded-full animate-spin"></div>
-        <div v-if="success" class="w-16 h-16 bg-emerald-500 rounded-full flex items-center justify-center animate-bounce">
-          <svg class="w-8 h-8 text-[#070b14]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+      <div class="relative transform scale-110">
+        <!-- Triple Ring Loading State -->
+        <div v-if="loading" class="relative w-24 h-24">
+          <!-- Outer Ring: Normal Spin -->
+          <div class="absolute inset-0 rounded-full border-t-[5px] border-l-[5px] border-emerald-500 animate-spin"></div>
+          <!-- Middle Ring: Reverse Spin -->
+          <div class="absolute inset-2 rounded-full border-t-[4px] border-r-[4px] border-teal-400 animate-spin-reverse"></div>
+          <!-- Inner Layer: App Logo -->
+          <div class="absolute inset-4 flex items-center justify-center">
+            <div class="w-10 h-10 bg-gradient-to-tr from-emerald-500 to-teal-400 rounded-xl flex items-center justify-center shadow-lg shadow-emerald-500/30 animate-pulse">
+              <span class="text-white font-black text-xl">R</span>
+            </div>
+          </div>
         </div>
-        <div v-if="error" class="w-16 h-16 bg-red-500 rounded-full flex items-center justify-center animate-shake">
-          <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12"/></svg>
+        
+        <!-- Success Icon -->
+        <div v-else-if="success" class="bg-emerald-500 w-20 h-20 rounded-3xl flex items-center justify-center shadow-2xl shadow-emerald-500/40 animate-bounce">
+          <svg class="w-12 h-12 text-[#070b14]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="4" d="M5 13l4 4L19 7" />
+          </svg>
+        </div>
+
+        <!-- Error Icon -->
+        <div v-else-if="error" class="bg-red-500 w-20 h-20 rounded-3xl flex items-center justify-center shadow-2xl shadow-red-500/40 animate-shake">
+          <svg class="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="4" d="M6 18L18 6M6 6l12 12" />
+          </svg>
         </div>
       </div>
-
-      <h3 class="text-xl font-bold text-white mb-2">
-        {{ success ? '¡Éxito!' : error ? 'Error' : 'Procesando...' }}
-      </h3>
-      <p class="text-gray-400 text-sm">
-        {{ message || (error ? 'Ocurrió un error inesperado' : 'Por favor espera un momento') }}
-      </p>
-
+      
     </div>
-  </div>
+  </transition>
 </template>
 
 <script setup>
 defineProps({
-  loading: Boolean,
-  success: Boolean,
-  error: Boolean,
-  message: String
+  loading: { type: Boolean, default: false },
+  success: { type: Boolean, default: false },
+  error: { type: Boolean, default: false }
 })
 </script>
 
 <style scoped>
+.fade-enter-active, .fade-leave-active {
+  transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.fade-enter-from, .fade-leave-to {
+  opacity: 0;
+}
+
+.animate-spin-reverse {
+  animation: spin-reverse 1.2s linear infinite;
+}
+
+@keyframes spin-reverse {
+  from { transform: rotate(360deg); }
+  to { transform: rotate(0deg); }
+}
+
 @keyframes shake {
   0%, 100% { transform: translateX(0); }
   25% { transform: translateX(-5px); }

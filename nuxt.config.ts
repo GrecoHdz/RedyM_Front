@@ -3,8 +3,37 @@ export default defineNuxtConfig({
   devtools: { enabled: false },
   modules: [
     '@nuxtjs/tailwindcss',
-    '@pinia/nuxt'
+    '@pinia/nuxt',
+    '@vite-pwa/nuxt'
   ],
+
+  pwa: {
+    manifest: {
+      name: 'RedYMercadeo',
+      short_name: 'RedYM',
+      description: 'Gana por interactuar',
+      theme_color: '#10b981',
+
+      icons: [
+        {
+          src: '/favicon.ico',
+          sizes: '64x64 32x32 24x24 16x16',
+          type: 'image/x-icon'
+        }
+      ]
+    },
+    workbox: {
+      navigateFallback: '/',
+      importScripts: ['/sw-push.js'],
+      globPatterns: ['**/*.{js,css,html,png,jpg,jpeg,svg,json,woff2,woff}'],
+    },
+    devOptions: {
+      enabled: true,
+      type: 'module'
+    }
+
+  },
+
 
   app: {
     head: {

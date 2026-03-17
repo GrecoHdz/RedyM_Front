@@ -1,5 +1,8 @@
 <template>
   <div class="min-h-screen bg-gray-50 dark:bg-gray-900 pb-safe">
+    <!-- Loading Spinner -->
+    <LoadingSpinner :loading="isLoading" />
+    
     <!-- Navbar y Search Sticky -->
     <header class="sticky top-0 z-40 bg-white/90 dark:bg-gray-900/90 backdrop-blur-md border-b border-gray-100 dark:border-gray-800 transition-all duration-300">
       <div class="px-4 pt-3 pb-3">
@@ -608,6 +611,7 @@ import { useDebounceFn } from '@vueuse/core'
 import { useHead, useCookie, useRouter } from '#imports'
 import Toast from '~/components/ui/Toast.vue'
 import { useAuthStore } from '~/middleware/auth.store'
+import LoadingSpinner from '~/components/ui/LoadingSpinner.vue'
 
 const { $api } = useNuxtApp()
 const config = useRuntimeConfig()
@@ -1179,7 +1183,11 @@ const copyToClipboard = async (text) => {
 
 onMounted(async () => {
    await Promise.all([fetchUserCredit(), cargarPaquetes(), cargarPaquetesUsuario()])
-   isLoading.value = false
+   
+   // Pequeño retardo para asegurar suavidad
+   setTimeout(() => {
+      isLoading.value = false
+   }, 600)
 })
 </script>
 

@@ -2,8 +2,7 @@
   <div class="min-h-screen bg-gray-50 dark:bg-gray-900">
     <!-- Loading Spinner -->
     <LoadingSpinner 
-      :loading="isLoading" 
-      :message="'Cargando Dashboard...'"
+      :loading="isLoading"  
     />
 
     <!-- Contenido principal (oculto hasta completar autenticación) -->

@@ -1,5 +1,8 @@
 <template>
   <div class="min-h-screen bg-[#070b14] text-gray-100 font-['Outfit'] selection:bg-emerald-500/30 selection:text-emerald-400">
+    <!-- Loading Spinner -->
+    <LoadingSpinner :loading="isLoading" />
+    
     <!-- Animated background (matching landing) -->
     <div class="fixed inset-0 -z-10 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-emerald-900/10 via-[#070b14] to-[#070b14]"></div>
     <div class="fixed inset-0 -z-10 opacity-20">
@@ -145,8 +148,10 @@
 import { useAuthStore } from '~/middleware/auth.store'
 import MobileHeader from '~/components/headers/MobileHeader.vue'
 import BottomNav from '~/components/footers/BottomNav.vue'
+import LoadingSpinner from '~/components/ui/LoadingSpinner.vue'
 
 const auth = useAuthStore()
+const isLoading = ref(true)
 
 const totalEarnings = ref(125.50)
 const totalReferrals = ref(24)
@@ -213,6 +218,11 @@ onMounted(async () => {
   } else {
     navigateTo('/')
   }
+  
+  // Pequeño retardo para suavizar
+  setTimeout(() => {
+    isLoading.value = false
+  }, 700)
 })
 
 useHead({
