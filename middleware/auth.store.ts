@@ -21,11 +21,13 @@ interface LoginCredentials {
 
 export const useAuthStore = defineStore('auth', () => {
   const user = ref<User | null>(null);
-  const tokenCookie = useCookie('token', {
+
+  const tokenCookie = useCookie<string | null>('token', {
     maxAge: 60 * 15, // 15 minutos
     sameSite: 'lax',
     secure: process.env.NODE_ENV === 'production',
   });
+
   const userCookie = useCookie<string | null>('user', {
     maxAge: 60 * 60 * 24 * 7, // 7 días
     sameSite: 'lax',
@@ -57,7 +59,7 @@ export const useAuthStore = defineStore('auth', () => {
 
     user.value = normalizedUser;
 
-    // Guardar datos mínimos en la cookie
+    // Guardar datos mínimos en la cookie (como JSON string para consistencia)
     const minimalUserData = {
       id_usuario: normalizedUser.id_usuario,
       nombre: normalizedUser.nombre,
@@ -123,9 +125,13 @@ export const useAuthStore = defineStore('auth', () => {
 
     if (userCookie.value) {
       try {
-        const userData = JSON.parse(userCookie.value);
+        // userCookie en ProHogar se guarda como string JSON
+        const userData = typeof userCookie.value === 'string'
+          ? JSON.parse(userCookie.value)
+          : userCookie.value;
         setUser(userData);
-      } catch {
+      } catch (e) {
+        console.warn('[auth.store] Error al parsear userCookie:', e);
         clearAuthState();
       }
     }
@@ -139,12 +145,22 @@ export const useAuthStore = defineStore('auth', () => {
 
     try {
       const config = useRuntimeConfig();
+      const headers: Record<string, string> = {
+        Authorization: `Bearer ${token.value}`
+      };
+
+      // 🛡️ Forward de cookies en SSR (Lo mantenemos porque es necesario para que funcione en el primer load)
+      if (process.server) {
+        const requestHeaders = useRequestHeaders(['cookie']);
+        if (requestHeaders.cookie) {
+          headers.cookie = requestHeaders.cookie;
+        }
+      }
+
       const response = await $fetch<User>('/auth/me', {
         baseURL: config.public.apiBase,
         credentials: 'include',
-        headers: {
-          Authorization: `Bearer ${token.value}`
-        }
+        headers
       });
 
       // 🔹 Normalizar el rol y estado
@@ -156,29 +172,58 @@ export const useAuthStore = defineStore('auth', () => {
 
       return setUser(normalizedUser);
     } catch (err) {
-      clearAuthState();
+      console.error('[auth.store] Error en fetchUser:', err);
+      // clearAuthState(); // No limpiar aquí para dar chance al refresh si es 401
       return null;
     }
   };
 
   const checkAuth = async (): Promise<boolean> => {
     try {
+      // 🔄 Sincronización de seguridad: Si la cookie física desapareció (ej. borrado manual)
+      // pero el estado en memoria aún la tiene, forzamos el borrado en memoria para disparar el refresh.
+      if (process.client) {
+        const physicalToken = useCookie('token').value;
+        if (!physicalToken && token.value) {
+          console.warn('[auth.store] ⚠️ Cookie de acceso no encontrada en almacenamiento. Sincronizando...');
+          setToken(null);
+        }
+      }
+
       if (!token.value) {
-        return await refreshToken();
+        console.log('[auth.store] 🔑 Sin token activo, intentando recuperación automática...');
+        const refreshed = await refreshToken();
+        if (refreshed) {
+          console.log('[auth.store] ✅ Sesión recuperada mediante Refresh Token.');
+        }
+        return refreshed;
       }
 
       // Intentar decodificar token
       let tokenPayload: any;
       try {
-        tokenPayload = JSON.parse(atob(token.value.split('.')[1]));
-      } catch {
+        const parts = token.value.split('.');
+        const payloadBase64 = parts[1];
+        if (!payloadBase64) return await refreshToken();
+
+        // Decodificación segura de Base64 (maneja caracteres UTF-8)
+        const base64 = payloadBase64.replace(/-/g, '+').replace(/_/g, '/');
+        const jsonPayload = decodeURIComponent(atob(base64).split('').map(c => {
+          return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+        }).join(''));
+
+        tokenPayload = JSON.parse(jsonPayload);
+      } catch (e) {
+        console.warn('[auth.store] Error decodificando token:', e);
         return await refreshToken();
       }
 
       const tokenExpiresIn = tokenPayload.exp * 1000 - Date.now();
+      console.log(`[auth.store] Token expira en: ${Math.round(tokenExpiresIn / 1000)}s`);
 
-      // Si el token está por expirar (menos de 2 min) o ya expiró
-      if (tokenExpiresIn <= 0 || tokenExpiresIn < 2 * 60 * 1000) {
+      // 🛡️ Aumentamos el margen a 5 minutos para manejar posibles desfases de reloj (Clock Drift)
+      if (tokenExpiresIn <= 0 || tokenExpiresIn < 5 * 60 * 1000) {
+        console.log('[auth.store] Token por expirar o expirado, intentando refresh...');
         const refreshed = await refreshToken();
         if (!refreshed) {
           clearAuthState();
@@ -186,8 +231,8 @@ export const useAuthStore = defineStore('auth', () => {
         }
       }
 
-      // Obtener usuario actualizado
-      const fetchedUser = await fetchUser();
+      // Obtener usuario actualizado si no existe en el estado
+      const fetchedUser = (user.value) ? user.value : await fetchUser();
 
       if (!fetchedUser) {
         clearAuthState();
@@ -196,13 +241,17 @@ export const useAuthStore = defineStore('auth', () => {
 
       return true;
     } catch (err) {
+      console.error('[auth.store] Error crítico en checkAuth:', err);
       clearAuthState();
       return false;
     }
   };
 
   const refreshToken = async (): Promise<boolean> => {
-    if (_refreshPromise) return _refreshPromise;
+    if (_refreshPromise) {
+      console.log('[auth.store] Usando promesa de refresh existente');
+      return _refreshPromise;
+    }
 
     _refreshPromise = (async () => {
       try {
@@ -213,28 +262,51 @@ export const useAuthStore = defineStore('auth', () => {
           'Accept': 'application/json'
         };
 
-        // No incluimos el token en el header para el refresh
-        const response = await $fetch('/auth/refresh-token', {
+        if (process.server) {
+          const requestHeaders = useRequestHeaders(['cookie']);
+          if (requestHeaders.cookie) {
+            headers.cookie = requestHeaders.cookie;
+          }
+        }
+
+        console.log('[auth.store] Solicitando /auth/refresh-token...');
+        const response = await $fetch.raw('/auth/refresh-token', {
           method: 'POST',
           baseURL: config.public.apiBase,
           credentials: 'include',
           headers
-        }) as { token?: string; user?: any };
+        });
 
-        if (response?.token) {
-          setToken(response.token);
+        // 🛡️ Forward de cookies DESDE el backend HACIA el navegador (SSR)
+        // Usamos splitSetCookie para manejar correctamente las comas en las fechas de expiración
+        if (process.server) {
+          const event = useRequestEvent();
+          const setCookieHeaders = response.headers.get('set-cookie');
+          if (setCookieHeaders && event) {
+            // El header 'set-cookie' puede contener múltiples cookies separadas por comas que NO son de fechas
+            // Nuxt/H3 no tiene un helper directo exportado aquí, pero podemos usar una regex común o reenviar el string
+            // La mayoría de los clientes (navegadores) manejan bien el reenvió directo si se hace correctamente.
+            const cookies = setCookieHeaders.split(/,(?=[^;]*=)/); // Split por coma que NO esté dentro de un valor de atributo
+            cookies.forEach(cookie => {
+              appendResponseHeader(event, 'set-cookie', cookie.trim());
+            });
+            console.log('🍪 [auth.store] Cookies de respuesta reenviadas al navegador (SSR)');
+          }
+        }
+
+        const data = response._data as { token?: string; user?: any };
+
+        if (data?.token) {
+          setToken(data.token);
 
           // Normalizar los datos del usuario
-          if (response.user) {
+          if (data.user) {
             const normalizedUser = {
-              ...response.user,
-              role: response.user.rol?.nombre_rol?.toLowerCase() || 'usuario',
-              estado: response.user.estado || 'activo'
+              ...data.user,
+              role: data.user.rol?.nombre_rol?.toLowerCase() || 'usuario',
+              estado: data.user.estado || 'activo'
             };
             setUser(normalizedUser);
-
-            // Forzar una actualización del usuario para asegurar que los datos estén actualizados
-            await fetchUser();
           }
 
           return true;
@@ -242,7 +314,12 @@ export const useAuthStore = defineStore('auth', () => {
 
         return false;
       } catch (err) {
-        clearAuthState();
+        // IMPORTANTE: Solo limpiar si el error es realmente un fallo de auth (401/403)
+        // y no un error de red o de servidor.
+        const status = (err as any).response?.status;
+        if (status === 401 || status === 403) {
+          clearAuthState();
+        }
         return false;
       } finally {
         _refreshPromise = null;
@@ -255,6 +332,19 @@ export const useAuthStore = defineStore('auth', () => {
   const userName = computed(() => user.value?.nombre || null);
   const userId = computed(() => user.value?.id_usuario || null);
 
+  const dashboardPath = computed(() => {
+    const role = user.value?.role?.toLowerCase();
+    switch (role) {
+      case 'admin': return '/admin/DashboardAdmin';
+      case 'tecnico': return '/tecnico/DashboardTecnico';
+      case 'usuario': return '/cliente/DashboardCliente';
+      case 'sa': return '/admin/DashboardAdmin';
+      default: return '/';
+    }
+  });
+
+  // Inicializar al crear el store
+  initAuth();
 
   return {
     user,
@@ -271,6 +361,7 @@ export const useAuthStore = defineStore('auth', () => {
     clearAuthState,
     fetchUser,
     userName,
-    userId
+    userId,
+    dashboardPath
   };
 });

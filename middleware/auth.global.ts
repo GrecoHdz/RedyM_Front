@@ -29,49 +29,27 @@ export default defineNuxtRouteMiddleware(async (to) => {
 
   // Verificar si la ruta actual es una ruta de restablecimiento de contraseña
   const isResetPasswordPath = currentPath.startsWith('/reset-password/');
+  const isPublicPath = publicPaths.includes(currentPath) || isResetPasswordPath;
 
-  // 1. Si es una ruta pública o de restablecimiento de contraseña, permitir acceso
-  if (publicPaths.includes(currentPath) || isResetPasswordPath) {
+  // 1. Siempre verificar estado de autenticación de forma robusta
+  const isAuthenticated = await auth.checkAuth();
+
+  // 2. Manejo de rutas públicas
+  if (isPublicPath) {
+    if (isAuthenticated) {
+      console.log(`[auth.global] 🔄 Sesión válida detectada, redirigiendo a: ${auth.dashboardPath}`);
+      return navigateTo(auth.dashboardPath, { replace: true });
+    }
     return;
   }
 
-  // 2. Obtener el dashboard correspondiente al rol
-  const getDashboardPath = (role: string | undefined): string => {
-    switch (role?.toLowerCase()) {
-      case 'admin': return '/admin/DashboardAdmin';
-      case 'tecnico': return '/tecnico/DashboardTecnico';
-      case 'usuario': return '/cliente/DashboardCliente';
-      case 'sa': return '/admin/DashboardAdmin';
-      default: return '/';
-    }
-  };
-
-  // 3. Verificar si hay token
-  if (!auth.token) {
-    try {
-      const refreshed = await auth.refreshToken();
-
-      if (!refreshed) {
-        if (currentPath !== '/') {
-          return navigateTo('/', { replace: true });
-        }
-        return;
-      }
-    } catch (error) {
-      console.error('❌ [auth.global] Error al renovar token:', error);
-      return navigateTo('/', { replace: true });
-    }
+  // 3. Manejo de rutas protegidas
+  if (!isAuthenticated) {
+    console.warn('[auth.global] ⚠️ Sesión inválida en ruta protegida, redirigiendo a login');
+    return navigateTo('/', { replace: true });
   }
 
-  // 4. Si no hay usuario, intentar cargarlo
-  if (!auth.user) {
-    try {
-      await auth.fetchUser();
-    } catch (error) {
-      console.error('❌ [auth.global] Error al cargar usuario:', error);
-      return navigateTo('/', { replace: true });
-    }
-  }
+  // A partir de aquí, el usuario está garantizado estar autenticado y tener datos de usuario
 
   // 5. Verificar si el usuario está deshabilitado
   if (auth.user?.estado === 'deshabilitado') {
@@ -85,7 +63,7 @@ export default defineNuxtRouteMiddleware(async (to) => {
   const userRole = (auth.user?.role?.toLowerCase() as UserRole) || 'usuario';
 
   // 7. Obtener el dashboard correspondiente al rol
-  const dashboardPath = getDashboardPath(userRole);
+  const dashboardPath = auth.dashboardPath;
 
   // 8. Si ya está en su dashboard, permitir acceso
   if (currentPath === dashboardPath) {
@@ -107,6 +85,7 @@ export default defineNuxtRouteMiddleware(async (to) => {
 
   // 11. Si la ruta no está permitida, redirigir al dashboard
   if (!isPathAllowed) {
+    console.warn(`[auth.global] 🚫 Ruta ${currentPath} no permitida para rol ${userRole}, redirigiendo a ${dashboardPath}`);
     return navigateTo(dashboardPath, { replace: true });
   }
 });
