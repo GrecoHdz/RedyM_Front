@@ -1,7 +1,7 @@
 <template>
-  <transition name="toast">
+  <transition name="toast" appear>
     <div v-if="show" :class="[
-      'fixed bottom-6 left-1/2 -translate-x-1/2 z-[110] px-6 py-4 rounded-2xl font-bold shadow-2xl flex items-center gap-3 min-w-[300px]',
+      'fixed top-6 right-6 z-[110] px-6 py-4 rounded-2xl font-bold shadow-2xl flex items-center gap-3 min-w-[300px] max-w-[75%] break-words',
       type === 'success' ? 'bg-emerald-500 text-[#070b14]' : 'bg-red-500 text-white'
     ]">
       <div v-if="type === 'success'" class="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">✓</div>
@@ -33,11 +33,22 @@ watch(() => props.show, (newVal) => {
       emit('close')
     }, props.duration)
   }
-})
+}, { immediate: true })
 </script>
 
 <style scoped>
-.toast-enter-active, .toast-leave-active { transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-.toast-enter-from { opacity: 0; transform: translateY(100px) translateX(-50%); }
-.toast-leave-to { opacity: 0; transform: translateY(100px) translateX(-50%) scale(0.8); }
+.toast-enter-active {
+  transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.toast-leave-active {
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.toast-enter-from {
+  opacity: 0;
+  transform: translateX(40px) scale(0.9);
+}
+.toast-leave-to {
+  opacity: 0;
+  transform: translateX(40px) scale(0.95);
+}
 </style>
