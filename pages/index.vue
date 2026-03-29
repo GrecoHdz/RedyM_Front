@@ -17,7 +17,7 @@
           <div class="w-9 h-9 sm:w-10 sm:h-10 bg-gradient-to-tr from-emerald-500 to-teal-400 rounded-xl flex items-center justify-center shadow-lg shadow-emerald-500/20">
             <span class="text-white font-black text-lg sm:text-xl">R</span>
           </div>
-          <span class="text-lg sm:text-xl font-bold tracking-tight text-white hidden sm:block">RedYMercadeo</span>
+          <span class="text-lg sm:text-xl font-bold tracking-tight text-white hidden sm:block">RedPlus</span>
         </div>
         
         <div class="flex items-center gap-3 sm:gap-4">
@@ -340,7 +340,7 @@ const triggerSuccess = (msg) => {
 }
 
 useHead({
-  title: 'RedYMercadeo | Monetiza tu tiempo',
+  title: 'RedPlus | Monetiza tu tiempo',
   meta: [
     { name: 'description', content: 'La red social que te paga por interactuar.' }
   ]

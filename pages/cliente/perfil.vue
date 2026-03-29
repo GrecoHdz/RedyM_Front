@@ -47,6 +47,18 @@
               </div>
             </div>
           </div>
+
+          <!-- Status Badge (Top Right) -->
+          <div v-if="user.identidad_url" class="absolute -top-2 -right-2 z-20">
+            <div 
+              class="px-2 py-1 rounded-lg text-[7px] font-black uppercase tracking-widest shadow-xl flex items-center gap-1 border-2 border-[#070b14] animate-bounce-slow"
+              :class="user.verificado ? 'bg-emerald-500 text-[#070b14]' : 'bg-amber-500 text-[#070b14]'"
+            >
+              <i class="fas" :class="user.verificado ? 'fa-check-double' : 'fa-clock'"></i>
+              {{ user.verificado ? 'Verificado' : 'Revisión' }}
+            </div>
+          </div>
+
           <button @click="isPhotoModalOpen = true" class="absolute -bottom-1 -right-1 w-8 h-8 bg-emerald-500 rounded-xl flex items-center justify-center shadow-lg border-2 border-[#070b14] active:scale-90 transition-transform hover:bg-emerald-400 z-10">
             <svg class="w-4 h-4 text-[#070b14]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812-1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
@@ -58,18 +70,22 @@
         <div class="mt-3 text-center">
           <div class="flex flex-col items-center gap-1">
             <h2 class="text-2xl font-black text-white leading-tight tracking-tight">{{ user.nombre || 'Usuario' }}</h2>
-            <div class="flex items-center gap-1.5">
+            <div class="flex items-center gap-1.5 h-6">
               <span 
-                class="px-2 py-0.5 rounded-md text-[8px] font-black uppercase tracking-widest border flex items-center gap-1"
-                :class="user.identidad_url ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-red-500/10 text-red-400 border-red-500/20'"
+                v-if="!user.verificado && !user.identidad_url"
+                @click="isIdentityModalOpen = true"
+                class="px-3 py-1 bg-red-500/10 text-red-400 border border-red-500/20 rounded-full text-[9px] font-black uppercase tracking-widest cursor-pointer hover:bg-red-500/20 transition-all flex items-center gap-2"
               >
-                <svg v-if="user.identidad_url" class="w-2.5 h-2.5 fill-current" viewBox="0 0 20 20">
-                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
-                </svg>
-                <svg v-else class="w-2.5 h-2.5 fill-current" viewBox="0 0 20 20">
-                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path>
-                </svg>
-                {{ user.identidad_url ? 'Verificado' : 'No Verificado' }}
+                <i class="fas fa-exclamation-triangle animate-pulse"></i>
+                Click para verificar
+              </span>
+              <span 
+                v-else
+                class="px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest flex items-center gap-2 transition-all"
+                :class="user.verificado ? 'bg-emerald-500/10 text-emerald-400' : 'bg-amber-500/10 text-amber-400'"
+              >
+                <i class="fas" :class="user.verificado ? 'fa-shield-alt' : 'fa-history'"></i>
+                {{ user.verificado ? 'Usuario Verificado' : 'Identidad en Revisión' }}
               </span>
             </div>
           </div> 
@@ -318,7 +334,7 @@
               🏢
             </div>
             <div>
-              <span class="block text-xs font-bold text-gray-200">Sobre RedYMercadeo</span>
+              <span class="block text-xs font-bold text-gray-200">Sobre RedPlus</span>
               <span class="block text-[8px] text-gray-500 font-medium capitalize">Info de la empresa</span>
             </div>
           </div>
@@ -342,7 +358,7 @@
       </section>
 
       <footer class="mt-8 text-center px-6">
-        <p class="text-[10px] font-bold text-gray-600 uppercase tracking-[0.3em]">RedYMercadeo v1.0.5</p>
+        <p class="text-[10px] font-bold text-gray-600 uppercase tracking-[0.3em]">RedPlus v1.0.5</p>
       </footer>
     </main>
 
@@ -518,7 +534,7 @@
           <div class="overflow-y-auto flex-1 pr-4 custom-scrollbar space-y-6 text-gray-400 text-sm">
             <section>
               <h4 class="text-white font-black uppercase text-xs mb-2 tracking-widest">1. Uso de la Plataforma</h4>
-              <p>RedYMercadeo es un ecosistema diseñado para maximizar tus ingresos mediante una red de servicios y referidos. Al usarla, aceptas ser un crack.</p>
+              <p>RedPlus es un ecosistema diseñado para maximizar tus ingresos mediante una red de servicios y referidos. Al usarla, aceptas ser un crack.</p>
             </section>
             <section>
               <h4 class="text-white font-black uppercase text-xs mb-2 tracking-widest">2. Membresías</h4>
@@ -526,7 +542,7 @@
             </section>
             <section>
               <h4 class="text-white font-black uppercase text-xs mb-2 tracking-widest">3. Garantías</h4>
-              <p>Todos los servicios gestionados tienen el respaldo de RedYMercadeo por 1 mes completo.</p>
+              <p>Todos los servicios gestionados tienen el respaldo de RedPlus por 1 mes completo.</p>
             </section>
           </div>
           <button @click="isTerminosModalOpen = false" class="w-full mt-8 py-4 bg-white text-[#070b14] font-black uppercase tracking-widest rounded-2xl active:scale-95 transition-all">He leído todo</button>
@@ -539,13 +555,13 @@
       <div v-if="isAcercaModalOpen" @click.self="isAcercaModalOpen = false" class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
         <div class="bg-[#0f172a] border border-white/10 rounded-[2.5rem] p-8 w-full max-w-sm shadow-2xl animate-modal-in text-center">
           <div class="w-20 h-20 bg-gradient-to-tr from-emerald-500 to-teal-400 rounded-3xl flex items-center justify-center mx-auto mb-6 text-3xl shadow-xl shadow-emerald-900/40">🚀</div>
-          <h3 class="text-2xl font-black text-white mb-2 tracking-tight uppercase">RedYMercadeo</h3>
+          <h3 class="text-2xl font-black text-white mb-2 tracking-tight uppercase">RedPlus</h3>
           <p class="text-[10px] text-emerald-500 font-black uppercase tracking-[0.3em] mb-6">Innova • Conecta • Gana</p>
           <p class="text-sm text-gray-400 mb-8 leading-relaxed">Somos la red de servicios y mercadeo más grande de la región, enfocada en la libertad financiera y soluciones digitales.</p>
           <div class="space-y-3 mb-8">
             <div class="flex items-center justify-center gap-3 text-xs text-gray-300 font-bold">
               <span>📧</span>
-              <span class="lowercase">{{ contactInfo.find(c => c.type === 'email')?.value || 'info@redymercadeo.com' }}</span>
+              <span class="lowercase">{{ contactInfo.find(c => c.type === 'email')?.value || 'info@RedPlus.com' }}</span>
             </div>
             <div class="flex items-center justify-center gap-3 text-xs text-gray-300 font-bold">
               <span>📱</span>
@@ -613,6 +629,7 @@ const user = ref({
   identidad: userCookie.value?.identidad || '',
   identidad_url: userCookie.value?.identidad_url || null,
   identidad_public_id: userCookie.value?.identidad_public_id || null,
+  verificado: userCookie.value?.verificado || false,
   fecha_registro: userCookie.value?.fecha_registro || null
 })
 const originalUserData = ref({...user.value})
@@ -705,6 +722,7 @@ const fetchUserData = async () => {
         imagen_url: u.imagen_url,
         identidad_url: u.identidad_url,
         identidad_public_id: u.identidad_public_id,
+        verificado: u.verificado || false,
         fecha_registro: u.fecha_registro
       }
       originalUserData.value = { ...user.value }
@@ -877,6 +895,7 @@ const onIdentityFileChange = async (e) => {
     if (res.success) {
       user.value.identidad_url = res.data.identidad_url
       user.value.identidad_public_id = res.data.identidad_public_id
+      user.value.verificado = false // Reset locally
       showMsg('Identidad subida', 'success')
       isIdentityModalOpen.value = false
     }
@@ -897,6 +916,7 @@ const deleteIdentityImage = async () => {
     await $api(`/usuarios/identidad-foto/${user.value.id_usuario}`, { method: 'DELETE' })
     user.value.identidad_url = null
     user.value.identidad_public_id = null
+    user.value.verificado = false
     showMsg('Identidad eliminada', 'success')
     isIdentityModalOpen.value = false
   } catch (error) {
@@ -986,9 +1006,9 @@ onMounted(async () => {
 })
 
 useHead({
-  title: 'Mi Perfil | RedYMercadeo',
+  title: 'Mi Perfil | RedPlus',
   meta: [
-    { name: 'description', content: 'Gestiona tu perfil y ganancias en RedYMercadeo.' }
+    { name: 'description', content: 'Gestiona tu perfil y ganancias en RedPlus.' }
   ]
 })
 </script>
