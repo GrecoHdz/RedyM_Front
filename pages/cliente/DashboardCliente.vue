@@ -109,6 +109,9 @@
                   <button v-if="post.link" @click="handleLink(post.link)" class="w-7 h-7 rounded-full bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center active:scale-110 transition-transform">
                     <span class="text-xs">🔗</span>
                   </button>
+                  <button v-if="post.whatsapp_active" @click="handleWhatsApp(post)" class="w-7 h-7 rounded-full bg-[#25D366]/10 border border-[#25D366]/20 flex items-center justify-center active:scale-110 transition-transform">
+                    <svg class="w-4 h-4 text-[#25D366] fill-current" preserveAspectRatio="xMidYMid meet" viewBox="0 0 24 24"><path d="M12.01 2.01c-5.52 0-10 4.48-10 10c0 1.76.46 3.42 1.25 4.87L2.01 22l5.31-1.39c1.37.74 2.93 1.16 4.59 1.16c5.52 0 10-4.48 10-10s-4.48-10-10-10m.1 1.75c4.56.09 8.24 3.76 8.24 8.32c0 4.6-3.72 8.35-8.35 8.35c-1.58 0-3.04-.44-4.32-1.21l-.31-.18l-3.1.81l.82-3.01l-.2-.33a8.216 8.216 0 0 1-1.3-4.44c0-4.56 3.7-8.22 8.25-8.31"></path><path d="M15.83 13.91c-.24-.12-1.42-.7-1.64-.78c-.22-.08-.38-.12-.54.12c-.16.24-.62.78-.76.94c-.14.16-.28.18-.52.06c-.24-.12-1.02-.37-1.94-1.19c-.71-.64-1.2-1.42-1.34-1.66c-.14-.24-.02-.37.1-.49c.11-.11.24-.28.36-.42c.12-.14.16-.24.24-.4s.04-.32-.02-.44c-.06-.12-.54-1.3-.74-1.78c-.2-.48-.39-.42-.54-.42c-.14 0-.3 0-.46.02c-.16.02-.42.06-.63.29c-.21.23-.81.79-.81 1.94c0 1.15.83 2.26.95 2.42c.12.16 1.64 2.5 3.98 3.51c.56.24.99.38 1.33.49c.56.18 1.07.15 1.47.09c.45-.07 1.42-.58 1.62-1.14c.2-.56.2-1.04.14-1.14c-.06-.1-.22-.16-.46-.28"></path></svg>
+                  </button>
                 </div>
 
                 <!-- Money Icon -->
@@ -231,6 +234,7 @@ import MediaCarousel from '~/components/ui/MediaCarousel.vue'
 import Toast from '~/components/ui/Toast.vue'
 import LoadingSpinner from '~/components/ui/LoadingSpinner.vue'
 
+const { $api } = useNuxtApp()
 const auth = useAuthStore()
 const isLoading = ref(true)
 const shortName = computed(() => auth.user?.nombre?.split(' ')[0] || 'Usuario')
@@ -282,14 +286,64 @@ const handlePageShow = () => {
   }
 }
 
-onMounted(() => {
+const fetchPosts = async () => {
+  try {
+    const res = await $api('/publicaciones')
+    if (res.success && res.data) {
+      feedPosts.value = res.data.map(p => {
+        // Formatear tiempo relativo básico
+        const postDate = new Date(p.fecha)
+        const diffMs = Date.now() - postDate
+        const diffMin = Math.round(diffMs / 60000)
+        let timeLabel = 'Hace un momento'
+        
+        if (diffMin >= 60) {
+          const hours = Math.floor(diffMin / 60)
+          timeLabel = `Hace ${hours} ${hours === 1 ? 'hora' : 'horas'}`
+        } else if (diffMin > 0) {
+          timeLabel = `Hace ${diffMin} ${diffMin === 1 ? 'min' : 'mins'}`
+        }
+
+        const poll = p.poll_data ? {
+            question: p.poll_data.question,
+            options: p.poll_data.options,
+            correctAnswer: p.poll_data.options[p.poll_data.correct_index],
+            answered: false
+        } : null
+
+        return {
+          id: p.id_publicacion,
+          author: p.usuario?.nombre || 'Usuario',
+          userAvatar: p.usuario?.imagen_url || 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y',
+          verified: p.usuario?.verificado || false,
+          time: timeLabel,
+          media: p.media || [],
+          content: p.content || '',
+          likes: p.likes || 0,
+          liked: false,
+          canEarn: p.media?.some(m => m.type === 'video'),
+          gain: '1.50',
+          poll: poll,
+          link: p.external_url,
+          whatsapp_active: p.whatsapp_active,
+          phone: p.usuario?.telefono,
+          hasVideo: p.media?.some(m => m.type === 'video'),
+          videoCompleted: false
+        }
+      })
+    }
+  } catch (error) {
+    console.error('Error fetching posts:', error)
+    showToast('Error al cargar el feed', 'error')
+  }
+}
+
+onMounted(async () => {
   document.addEventListener('visibilitychange', handlePageShow)
   window.addEventListener('focus', handlePageShow)
   
-  // Simular carga de datos
-  setTimeout(() => {
-    isLoading.value = false
-  }, 800)
+  await fetchPosts()
+  isLoading.value = false
 })
 
 onUnmounted(() => {
@@ -306,75 +360,7 @@ const stories = [
   { id: 6, name: 'Apple', image: 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=100&h=100&fit=crop', hasReward: false },
 ]
 
-const feedPosts = ref([
-  {
-    id: 1,
-    author: 'Carlos Rodríguez',
-    userAvatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop',
-    verified: true,
-    following: false,
-    time: 'Hace 5 min',
-    media: [
-      { type: 'image', url: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600&h=800&fit=crop' },
-      { type: 'image', url: 'https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?w=600&h=800&fit=crop' }
-    ],
-    content: '¡Nuevos tenis adquiridos! El diseño es de otro planeta y la comodidad para correr es increíble. ¿Qué les parecen?',
-    likes: 1240,
-    liked: false,
-    comments: 84,
-    canEarn: true,
-    gain: '4.50',
-    rewardCollected: false,
-    poll: { 
-      question: '¿Qué color de tenis prefieres para correr?', 
-      options: ['Rojo Neón', 'Azul Eléctrico', 'Negro Mate'], 
-      correctAnswer: 'Azul Eléctrico',
-      answered: false 
-    },
-    link: null
-  },
-  {
-    id: 2,
-    author: 'Nike Official',
-    userAvatar: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=100&h=100&fit=crop',
-    verified: true,
-    following: true,
-    time: 'Publicidad',
-    hasVideo: true,
-    videoCompleted: false,
-    media: [
-      { type: 'video', url: 'https://www.w3schools.com/html/mov_bbb.mp4' }
-    ],
-    content: 'Lleva tu rendimiento al siguiente nivel con la nueva colección. Mira el video para conocer más.',
-    likes: 5400,
-    liked: true,
-    comments: 230,
-    canEarn: true,
-    gain: '15.00',
-    rewardCollected: false,
-    poll: null,
-    link: 'https://nike.com'
-  },
-  {
-    id: 3,
-    author: 'María Elena',
-    userAvatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&h=100&fit=crop',
-    verified: false,
-    following: false,
-    time: 'Hace 1 hora',
-    media: [
-      { type: 'image', url: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=600&h=800&fit=crop' }
-    ],
-    content: 'Cenando en mi lugar favorito. La experiencia gastronómica fue 10/10.',
-    likes: 850,
-    liked: false,
-    comments: 42,
-    canEarn: false,
-    rewardCollected: false,
-    poll: null,
-    link: null
-  }
-])
+const feedPosts = ref([])
 
 const showToast = (message, type = 'success') => {
   toast.value = { show: true, message, type }
@@ -453,7 +439,26 @@ const submitPollAnswer = (option) => {
 }
 
 const handleLink = (url) => {
-  window.open(url, '_blank')
+  if (!url) return
+  // Ensure the URL has a protocol, otherwise window.open treats it as relative
+  let finalUrl = url
+  if (!/^https?:\/\//i.test(url)) {
+    finalUrl = 'https://' + url
+  }
+  window.open(finalUrl, '_blank')
+}
+
+const handleWhatsApp = (post) => {
+  if (!post.phone) {
+    showToast('Este usuario no tiene un número vinculado', 'error')
+    return
+  }
+  // Sanitize phone number (whatsapp expects only numbers, INCLUDING country code)
+  const cleanPhone = post.phone.replace(/[^0-9]/g, '')
+  const message = `Hola, vi tu publicación en RedYMercadeo y me gustaría más información.`
+  const encodedMessage = encodeURIComponent(message)
+  const whatsappUrl = `https://wa.me/${cleanPhone}?text=${encodedMessage}`
+  window.open(whatsappUrl, '_blank')
 }
 
 const toggleFollow = (post) => {
