@@ -241,7 +241,12 @@ const shortName = computed(() => auth.user?.nombre?.split(' ')[0] || 'Usuario')
 
 const toast = ref({ show: false, message: '', type: 'success' })
 const pollModal = ref({ show: false, post: null })
-const totalEarnings = ref(125.50) // Starting balance example
+const totalEarnings = ref(0.00) // Will be updated from DB
+const rewardsConfig = ref({
+  valor_like: 0.10,
+  valor_video: 1.50,
+  valor_encuesta: 2.50
+})
 
 // Daily Missions Logic
 const rewardClaimed = ref(false)
@@ -286,9 +291,26 @@ const handlePageShow = () => {
   }
 }
 
+const fetchRewardsConfig = async () => {
+  try {
+    const res = await $api('/config/publicaciones')
+    if (res.success && res.data) {
+      rewardsConfig.value = {
+        valor_like: parseFloat(res.data.valor_like || 0.10),
+        valor_video: parseFloat(res.data.valor_video || 1.50),
+        valor_encuesta: parseFloat(res.data.valor_encuesta || 2.50)
+      }
+    }
+  } catch (e) {
+    console.error('Error fetching rewards config:', e)
+  }
+}
+
 const fetchPosts = async () => {
   try {
-    const res = await $api('/publicaciones')
+    const res = await $api('/publicaciones', {
+      params: { uid: auth.user.id_usuario }
+    })
     if (res.success && res.data) {
       feedPosts.value = res.data.map(p => {
         // Formatear tiempo relativo básico
@@ -297,7 +319,10 @@ const fetchPosts = async () => {
         const diffMin = Math.round(diffMs / 60000)
         let timeLabel = 'Hace un momento'
         
-        if (diffMin >= 60) {
+        if (diffMin >= 1440) {
+          const days = Math.floor(diffMin / 1440)
+          timeLabel = `Hace ${days} ${days === 1 ? 'día' : 'días'}`
+        } else if (diffMin >= 60) {
           const hours = Math.floor(diffMin / 60)
           timeLabel = `Hace ${hours} ${hours === 1 ? 'hora' : 'horas'}`
         } else if (diffMin > 0) {
@@ -308,7 +333,7 @@ const fetchPosts = async () => {
             question: p.poll_data.question,
             options: p.poll_data.options,
             correctAnswer: p.poll_data.options[p.poll_data.correct_index],
-            answered: false
+            answered: p.answered || false
         } : null
 
         return {
@@ -320,15 +345,15 @@ const fetchPosts = async () => {
           media: p.media || [],
           content: p.content || '',
           likes: p.likes || 0,
-          liked: false,
+          liked: p.liked || false,
           canEarn: p.media?.some(m => m.type === 'video'),
-          gain: '1.50',
+          gain: rewardsConfig.value.valor_video.toFixed(2),
           poll: poll,
           link: p.external_url,
           whatsapp_active: p.whatsapp_active,
           phone: p.usuario?.telefono,
           hasVideo: p.media?.some(m => m.type === 'video'),
-          videoCompleted: false
+          videoCompleted: p.videoCompleted || false
         }
       })
     }
@@ -366,47 +391,81 @@ const showToast = (message, type = 'success') => {
   toast.value = { show: true, message, type }
 }
 
-const handleVideoComplete = (post) => {
+const registerInteraction = async (postId, type, detail = null) => {
+  try {
+    return await $api('/interacciones', {
+      method: 'POST',
+      body: {
+        id_publicacion: postId,
+        id_usuario: auth.user.id_usuario,
+        tipo: type,
+        detalle: detail ? (typeof detail === 'string' ? detail : JSON.stringify(detail)) : null
+      }
+    })
+  } catch (error) {
+    console.error(`Error registering interaction ${type}:`, error)
+    return { success: false }
+  }
+}
+
+const handleVideoComplete = async (post) => {
   if (post.hasVideo && !post.videoCompleted) {
-    post.videoCompleted = true
-    const gainValue = parseFloat(post.gain)
-    totalEarnings.value += gainValue
-    showToast(`🎉 ¡Ganaste L. ${post.gain}! Video completado.`, 'success')
-    
-    // Update daily mission (id: 2)
-    const videoMission = dailyMissions.value.find(m => m.id === 2)
-    if (videoMission && !videoMission.completed) {
-      videoMission.current++
-      if (videoMission.current >= videoMission.goal) videoMission.completed = true
+    const res = await registerInteraction(post.id, 'video_view')
+    if (res.success) {
+      post.videoCompleted = true
+      const gainValue = rewardsConfig.value.valor_video
+      totalEarnings.value += gainValue
+      showToast(`🎉 ¡Ganaste L. ${gainValue.toFixed(2)}! Video completado.`, 'success')
+      
+      // Update daily mission (id: 2)
+      const videoMission = dailyMissions.value.find(m => m.id === 2)
+      if (videoMission && !videoMission.completed) {
+        videoMission.current++
+        if (videoMission.current >= videoMission.goal) videoMission.completed = true
+      }
     }
   }
 }
 
-const handleLike = (post) => {
+const handleLike = async (post) => {
+  const originalLiked = post.liked
+  const originalLikes = post.likes
+  
+  // Optimistic update
   post.liked = !post.liked
-  if (post.liked) {
-    post.likes++
-    totalEarnings.value += 0.10
-    
-    // Update daily mission (id: 1)
-    const likeMission = dailyMissions.value.find(m => m.id === 1)
-    if (likeMission && !likeMission.completed) {
-      likeMission.current++
-      if (likeMission.current >= likeMission.goal) likeMission.completed = true
+  post.liked ? post.likes++ : post.likes--
+  
+  const res = await registerInteraction(post.id, 'like')
+  if (res.success) {
+    if (res.action === 'liked') {
+      totalEarnings.value += rewardsConfig.value.valor_like
+      // Update daily mission (id: 1)
+      const likeMission = dailyMissions.value.find(m => m.id === 1)
+      if (likeMission && !likeMission.completed) {
+        likeMission.current++
+        if (likeMission.current >= likeMission.goal) likeMission.completed = true
+      }
+    } else {
+      totalEarnings.value -= rewardsConfig.value.valor_like
     }
   } else {
-    post.likes--
-    totalEarnings.value -= 0.10
+    // Revert
+    post.liked = originalLiked
+    post.likes = originalLikes
+    showToast('Error al procesar like', 'error')
   }
 }
 
-const handleShare = (post) => {
+const handleShare = async (post) => {
   const message = `¡Mira esta publicación de ${post.author} en Red Y Mercadeo!\n\n"${post.content}"\n\nÚnete aquí: ${window.location.origin}`
   const encodedMessage = encodeURIComponent(message)
   const whatsappUrl = `https://wa.me/?text=${encodedMessage}`
   
   // Record time to validate mission on return
   lastShareAttempt.value = Date.now()
+  
+  // Registrar interaccion share
+  await registerInteraction(post.id, 'share')
   
   // Abrir WhatsApp
   window.open(whatsappUrl, '_blank')
@@ -423,17 +482,24 @@ const handlePoll = (post) => {
   pollModal.value = { show: true, post }
 }
 
-const submitPollAnswer = (option) => {
+const submitPollAnswer = async (option) => {
   if (pollModal.value.post) {
     const post = pollModal.value.post
-    post.poll.answered = true
-    pollModal.value.show = false
     
-    if (option === post.poll.correctAnswer) {
-      totalEarnings.value += 2.50 // Bonus for correct answer
-      showToast(`¡Correcto! Ganaste L. 2.50 🎉`, 'success')
+    const res = await registerInteraction(post.id, 'poll', { answer: option })
+    if (res.success) {
+      post.poll.answered = true
+      pollModal.value.show = false
+      
+      if (option === post.poll.correctAnswer) {
+        const reward = rewardsConfig.value.valor_encuesta
+        totalEarnings.value += reward 
+        showToast(`¡Correcto! Ganaste L. ${reward.toFixed(2)} 🎉`, 'success')
+      } else {
+        showToast(`Incorrecto. La respuesta era ${post.poll.correctAnswer}. ❌`, 'error')
+      }
     } else {
-      showToast(`Incorrecto. La respuesta era ${post.poll.correctAnswer}. ❌`, 'error')
+      showToast('Error al enviar respuesta', 'error')
     }
   }
 }
@@ -465,6 +531,36 @@ const toggleFollow = (post) => {
   post.following = !post.following
   showToast(post.following ? `Siguiendo a ${post.author}` : `Dejaste de seguir a ${post.author}`, 'success')
 }
+
+onMounted(async () => {
+  document.addEventListener('visibilitychange', handlePageShow)
+  window.addEventListener('focus', handlePageShow)
+  
+  await fetchRewardsConfig()
+  await fetchPosts()
+  
+  // Fetch real earnings for header
+  try {
+    const cData = await $api(`/credito/usuario/${auth.user.id_usuario}`)
+    if (cData && cData.success) {
+       totalEarnings.value = parseFloat(cData.data.monto_credito || 0)
+    }
+  } catch (e) {}
+  
+  isLoading.value = false
+})
+
+onUnmounted(() => {
+  document.removeEventListener('visibilitychange', handlePageShow)
+  window.removeEventListener('focus', handlePageShow)
+})
+
+useHead({
+  title: 'Dashboard | RedPlus',
+  meta: [
+    { name: 'description', content: 'Dashboard de usuario de RedPlus.' }
+  ]
+})
 </script>
 
 <style>
