@@ -23,7 +23,7 @@
     </div>
 
     <!-- Header -->
-    <MobileHeader :earnings="totalEarnings" />
+    <MobileHeader :earnings="totalEarnings" :has-membership="isMembershipActive" />
 
     <main v-if="!isLoading" class="pt-20 pb-12 px-4 max-w-2xl mx-auto"> 
 
@@ -31,7 +31,7 @@
       <section class="flex flex-col items-center mb-4 animate-fade-in">
         <div class="relative group">
           <div class="w-24 h-24 rounded-3xl bg-gradient-to-tr from-emerald-500 to-teal-400 p-1 shadow-2xl shadow-emerald-500/20 group-hover:scale-105 transition-transform duration-500">
-            <div @click="isPhotoModalOpen = true" class="w-full h-full rounded-[1.4rem] bg-[#070b14] flex items-center justify-center overflow-hidden cursor-pointer group/avatar relative">
+            <div @click="isVerificationModalOpen = true" class="w-full h-full rounded-[1.4rem] bg-[#070b14] flex items-center justify-center overflow-hidden cursor-pointer group/avatar relative">
               <img v-if="user.imagen_url" :src="user.imagen_url" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700">
               <div v-else class="flex flex-col items-center gap-1 group-hover:scale-110 transition-transform duration-300">
                 <svg class="w-8 h-8 text-emerald-500/40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -59,7 +59,7 @@
             </div>
           </div>
 
-          <button @click="isPhotoModalOpen = true" class="absolute -bottom-1 -right-1 w-8 h-8 bg-emerald-500 rounded-xl flex items-center justify-center shadow-lg border-2 border-[#070b14] active:scale-90 transition-transform hover:bg-emerald-400 z-10">
+          <button @click="isVerificationModalOpen = true" class="absolute -bottom-1 -right-1 w-8 h-8 bg-emerald-500 rounded-xl flex items-center justify-center shadow-lg border-2 border-[#070b14] active:scale-90 transition-transform hover:bg-emerald-400 z-10">
             <svg class="w-4 h-4 text-[#070b14]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812-1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -73,7 +73,7 @@
             <div class="flex items-center gap-1.5 h-6">
               <span 
                 v-if="!user.verificado && !user.identidad_url"
-                @click="isIdentityModalOpen = true"
+                @click="isVerificationModalOpen = true"
                 class="px-3 py-1 bg-red-500/10 text-red-400 border border-red-500/20 rounded-full text-[9px] font-black uppercase tracking-widest cursor-pointer hover:bg-red-500/20 transition-all flex items-center gap-2"
               >
                 <i class="fas fa-exclamation-triangle animate-pulse"></i>
@@ -101,7 +101,7 @@
             </div>
             <span class="text-[8px] font-black text-gray-500 uppercase tracking-widest text-center">Saldo Total</span>
           </div>
-          <div class="text-base font-black text-white text-center">L. {{ totalEarnings.toFixed(2) }}</div>
+          <div class="text-base font-black text-white text-center">${{ totalEarnings.toFixed(2) }}</div>
         </div>
         <div class="bg-white/5 border border-white/10 rounded-2xl p-3 backdrop-blur-sm flex flex-col items-center">
           <div class="flex flex-col items-center gap-1.5 mb-2">
@@ -125,58 +125,74 @@
 
       <!-- Membership Card -->
       <section class="mb-4">
-        <div class="relative overflow-hidden rounded-2xl bg-gradient-to-br transition-all duration-300 p-4 shadow-xl shadow-emerald-900/20 group"
-          :class="{
-            'from-blue-600 to-indigo-700': isMembershipActive,
-            'from-amber-500 to-orange-600': isMembershipPending,
-            'from-red-600 to-pink-700': isMembershipExpired,
-            'from-gray-700 to-gray-800': isMembershipInactive
-          }">
-          <!-- Background decoration -->
-          <div class="absolute -top-10 -right-10 w-40 h-40 bg-white/10 rounded-full blur-3xl transition-transform group-hover:scale-150 duration-700"></div>
+        <div class="relative overflow-hidden rounded-2xl bg-white/5 border border-white/10 p-5 backdrop-blur-md shadow-2xl transition-all duration-500 group">
+          <!-- Subtle status-based glow -->
+          <div class="absolute -right-20 -top-20 w-48 h-48 blur-[80px] opacity-20 pointer-events-none transition-all duration-700 group-hover:opacity-30"
+            :class="{
+              'bg-blue-500': isMembershipActive,
+              'bg-amber-500': isMembershipPending,
+              'bg-red-500': isMembershipExpired,
+              'bg-gray-500': isMembershipInactive
+            }"></div>
           
-          <div class="relative z-10 flex flex-col h-full">
-            <div class="flex justify-between items-start mb-4">
-              <div>
-                <h3 class="text-white/70 text-[9px] font-black uppercase tracking-[0.2em] mb-0.5">
-                  {{ isMembershipActive ? 'Membresía Activa' : membershipStatus }}
-                </h3>
-                <h4 class="text-xl font-black text-white tracking-tight">
-                  {{ isMembershipActive ? 'PLAN VIP' : (isMembershipInactive ? 'Sin Membresía' : 'PENDIENTE') }}
-                </h4>
-              </div>
-              <div class="w-10 h-10 bg-white/10 backdrop-blur-xl rounded-xl flex items-center justify-center border border-white/20 text-xl">
+          <div class="relative z-10">
+            <div class="flex items-center justify-between mb-5">
+              <div class="flex items-center gap-4">
+                <div class="w-12 h-12 rounded-2xl bg-white/5 flex items-center justify-center text-2xl border border-white/10 shadow-inner group-hover:scale-110 transition-transform duration-500">
                   {{ isMembershipActive ? '🏆' : (isMembershipPending ? '⏳' : (isMembershipExpired ? '⚠️' : '🔒')) }}
-              </div>
-            </div>
-
-            <div v-if="isMembershipActive || isMembershipPending || isMembershipExpired" class="mb-4">
-              <div class="w-full bg-white/20 rounded-full h-1.5 mb-1">
-                <div 
-                  class="h-1.5 rounded-full bg-white transition-all duration-500"
-                  :style="`width: ${membershipProgress}%`"
-                ></div>
-              </div>
-              <p class="text-[9px] text-white/60 font-medium">
-                {{ isMembershipActive ? `${membershipProgress}% del periodo transcurrido` : '' }}
-              </p>
-            </div>
-
-            <div class="mt-auto flex items-center justify-between gap-4">
-              <div>
-                <p class="text-white/60 text-[9px] font-bold uppercase tracking-widest">
-                  {{ isMembershipActive ? 'Vence el' : (isMembershipPending ? 'Enviado el' : 'Estado') }}
-                </p>
-                <p class="text-white font-black text-sm">
-                  {{ isMembershipActive ? formatShortDate(membershipData.fechaVencimiento) : (isMembershipInactive ? 'Activa tu plan' : formatShortDate(membershipData.fechaInicio)) }}
-                </p>
+                </div>
+                <div>
+                  <h3 class="text-sm font-black text-white uppercase tracking-tight mb-0.5">Membresía</h3>
+                  <div class="flex items-center gap-2">
+                    <span class="w-1.5 h-1.5 rounded-full animate-pulse"
+                      :class="{
+                        'bg-blue-400 shadow-[0_0_8px_rgba(96,165,250,0.8)]': isMembershipActive,
+                        'bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.8)]': isMembershipPending,
+                        'bg-red-400 shadow-[0_0_8px_rgba(248,113,113,0.8)]': isMembershipExpired,
+                        'bg-gray-500': isMembershipInactive
+                      }"></span>
+                    <p class="text-[10px] font-black uppercase tracking-widest"
+                       :class="{
+                         'text-blue-400': isMembershipActive,
+                         'text-amber-400': isMembershipPending,
+                         'text-red-400': isMembershipExpired,
+                         'text-gray-500': isMembershipInactive
+                       }">
+                      {{ membershipStatus }}
+                    </p>
+                  </div>
+                </div>
               </div>
               <button 
                 @click="renovarMembresia"
                 :disabled="isMembershipPending"
-                class="bg-white text-[#070b14] px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest shadow-lg active:scale-95 transition-all hover:bg-emerald-50 disabled:opacity-50 disabled:cursor-not-allowed">
+                class="bg-white/10 hover:bg-white text-white hover:text-[#070b14] px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest border border-white/10 active:scale-95 transition-all disabled:opacity-30 disabled:cursor-not-allowed shadow-lg">
                 {{ isMembershipActive ? 'Renovar' : (isMembershipInactive || isMembershipExpired ? 'Activar' : 'Pendiente') }}
               </button>
+            </div>
+
+            <div v-if="isMembershipActive || isMembershipPending || isMembershipExpired" class="space-y-3">
+              <div class="flex justify-between items-end px-1">
+                <div class="space-y-0.5">
+                  <p class="text-[9px] text-gray-500 font-black uppercase tracking-widest">
+                    {{ isMembershipActive ? 'Vence el' : (isMembershipPending ? 'Enviado el' : 'Estado') }}
+                  </p>
+                  <p class="text-[11px] font-black text-white">
+                    {{ isMembershipActive ? formatShortDate(membershipData.fechaVencimiento) : (isMembershipInactive ? 'Activa tu membresía' : formatShortDate(membershipData.fechaInicio)) }}
+                  </p>
+                </div>
+                <div v-if="isMembershipActive" class="text-right">
+                  <p class="text-[9px] text-gray-500 font-black uppercase tracking-widest">Progreso</p>
+                  <p class="text-[11px] font-black text-blue-400">{{ membershipProgress }}%</p>
+                </div>
+              </div>
+              
+              <div v-if="isMembershipActive" class="w-full bg-white/5 rounded-full h-1.5 overflow-hidden border border-white/5">
+                <div 
+                  class="h-full rounded-full bg-gradient-to-r from-blue-600 to-blue-400 transition-all duration-1000 ease-out shadow-[0_0_10px_rgba(37,99,235,0.4)]"
+                  :style="`width: ${membershipProgress}%`"
+                ></div>
+              </div>
             </div>
           </div>
         </div>
@@ -250,7 +266,7 @@
               </button>
               
               <button 
-                @click="isIdentityModalOpen = true"
+                @click="isVerificationModalOpen = true"
                 class="py-2.5 bg-white/5 hover:bg-white/10 text-white font-bold rounded-xl border border-white/10 transition-all text-[10px] flex items-center justify-center gap-2">
                 <i class="fas fa-id-card text-blue-500"></i>
                 {{ user.identidad_url ? 'ID ✅' : 'Verificar Identidad' }}
@@ -394,56 +410,81 @@
       </div>
     </Transition>
 
-    <!-- Modal Gestión de Foto de Perfil -->
+    <!-- Modal Unificado de Verificación (Foto e ID) -->
     <Transition name="fade">
-      <div v-if="isPhotoModalOpen" @click.self="isPhotoModalOpen = false" class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-        <div class="bg-[#0f172a] border border-white/10 rounded-3xl p-8 w-full max-w-sm shadow-2xl animate-modal-in text-center">
-          <div class="w-32 h-32 rounded-3xl bg-emerald-500/10 border-2 border-emerald-500/20 flex items-center justify-center mx-auto mb-6 overflow-hidden">
-            <img v-if="user.imagen_url" :src="user.imagen_url" class="w-full h-full object-cover">
-            <span v-else class="text-4xl">📸</span>
-          </div>
-          <h3 class="text-xl font-black text-white mb-2">Tu Avatar</h3>
-          <p class="text-xs text-gray-500 mb-8 font-medium">Sube una foto donde te veas genial</p>
-          
-          <div class="space-y-3">
-            <input type="file" ref="fileInput" class="hidden" accept="image/*" @change="onFileChange">
-            <button @click="$refs.fileInput.click()" class="w-full py-4 bg-emerald-500 text-[#070b14] font-black uppercase tracking-widest rounded-2xl shadow-lg active:scale-95 transition-all">
-              {{ isUploading ? 'Subiendo...' : 'Subir Nueva Foto' }}
+      <div v-if="isVerificationModalOpen" @click.self="isVerificationModalOpen = false" class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+        <div class="bg-[#0f172a] border border-white/10 rounded-[2.5rem] p-6 w-full max-w-md shadow-2xl animate-modal-in max-h-[90vh] overflow-y-auto custom-scrollbar">
+          <div class="flex items-center justify-between mb-8">
+            <h3 class="text-xl font-black text-white uppercase tracking-tight">Verificación</h3>
+            <button @click="isVerificationModalOpen = false" class="text-gray-500 hover:text-white transition-colors">
+              <i class="fas fa-times text-lg"></i>
             </button>
-            <button v-if="user.imagen_url" @click="deleteProfileImage" class="w-full py-4 bg-red-500/10 text-red-400 font-black uppercase tracking-widest rounded-2xl active:scale-95 transition-all">
-              Eliminar Actual
-            </button>
-            <button @click="isPhotoModalOpen = false" class="w-full py-2 text-gray-500 font-bold text-xs uppercase tracking-widest mt-2">Cerrar</button>
-          </div>
-        </div>
-      </div>
-    </Transition>
-
-    <!-- Modal Verificación ID -->
-    <Transition name="fade">
-      <div v-if="isIdentityModalOpen" @click.self="isIdentityModalOpen = false" class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-        <div class="bg-[#0f172a] border border-white/10 rounded-[2.5rem] p-8 w-full max-w-md shadow-2xl animate-modal-in">
-          <h3 class="text-2xl font-black text-white mb-4 flex items-center gap-3">
-            <span class="w-10 h-10 bg-emerald-500/20 rounded-xl flex items-center justify-center text-sm">🛡️</span>
-            Verificación ID
-          </h3>
-          <p class="text-sm text-gray-400 mb-8 leading-relaxed">Sube una foto clara de tu DNI o Identificación Nacional para obtener el check de verificado.</p>
-          
-          <div v-if="user.identidad_url" class="aspect-video bg-white/5 border border-white/10 rounded-3xl overflow-hidden mb-8">
-            <img :src="user.identidad_url" class="w-full h-full object-cover">
-          </div>
-          <div v-else class="aspect-video bg-white/5 border-2 border-dashed border-white/10 rounded-3xl flex flex-col items-center justify-center mb-8 gap-3 group">
-            <span class="text-3xl grayscale group-hover:grayscale-0 transition-all">📇</span>
-            <p class="text-[10px] font-black text-gray-500 uppercase tracking-widest">Sin documento</p>
           </div>
 
-          <div class="grid grid-cols-1 gap-3">
-            <input type="file" ref="identityFileInput" class="hidden" accept="image/*" @change="onIdentityFileChange">
-            <button @click="$refs.identityFileInput.click()" class="w-full py-4 bg-emerald-500 text-[#070b14] font-black uppercase tracking-widest rounded-2xl shadow-lg active:scale-95 transition-all">
-              {{ user.identidad_url ? 'Actualizar Documento' : 'Subir DNI' }}
-            </button>
-            <button v-if="user.identidad_url" @click="deleteIdentityImage" class="w-full py-3 text-red-400 font-bold uppercase tracking-widest text-[10px] hover:underline">Eliminar documento</button>
+          <div class="space-y-8">
+            <!-- Sección Avatar -->
+            <div class="bg-white/5 rounded-3xl p-6 border border-white/5 relative group">
+              <div class="flex items-center gap-4 mb-6">
+                <div class="w-12 h-12 rounded-2xl bg-emerald-500/10 flex items-center justify-center text-xl border border-emerald-500/20">📸</div>
+                <div>
+                  <h4 class="text-sm font-black text-white uppercase tracking-tight">Foto de Perfil</h4>
+                  <p class="text-[10px] text-gray-500 font-bold uppercase">Sube una foto donde te veas genial</p>
+                </div>
+              </div>
+
+              <div class="flex flex-col items-center gap-5">
+                <div class="w-32 h-32 rounded-3xl bg-white/5 border border-white/10 flex items-center justify-center overflow-hidden shadow-inner">
+                  <img v-if="user.imagen_url" :src="user.imagen_url" class="w-full h-full object-cover">
+                  <span v-else class="text-4xl opacity-50">👤</span>
+                </div>
+                
+                <div class="w-full grid grid-cols-1 gap-2">
+                  <input type="file" ref="fileInput" class="hidden" accept="image/*" @change="onFileChange">
+                  <button @click="$refs.fileInput.click()" class="w-full py-3 bg-emerald-500 text-[#070b14] font-black uppercase tracking-widest rounded-xl shadow-lg active:scale-95 transition-all text-[11px]">
+                    {{ isUploading ? 'Subiendo...' : (user.imagen_url ? 'Cambiar Foto' : 'Subir Foto') }}
+                  </button>
+                  <button v-if="user.imagen_url" @click="deleteProfileImage" class="w-full py-3 text-red-400 font-bold uppercase tracking-widest text-[9px] hover:bg-red-400/5 rounded-xl transition-all">
+                    Eliminar Actual
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Sección Identidad -->
+            <div class="bg-white/5 rounded-3xl p-6 border border-white/5 relative">
+              <div class="flex items-center gap-4 mb-6">
+                <div class="w-12 h-12 rounded-2xl bg-blue-500/10 flex items-center justify-center text-xl border border-blue-500/20">🛡️</div>
+                <div>
+                  <h4 class="text-sm font-black text-white uppercase tracking-tight">Identidad (DNI)</h4>
+                  <p class="text-[10px] text-gray-500 font-bold uppercase">Para obtener el check verificado</p>
+                </div>
+              </div>
+
+              <div class="space-y-5">
+                <div v-if="user.identidad_url" class="aspect-video bg-white/5 border border-white/10 rounded-2xl overflow-hidden shadow-inner">
+                  <img :src="user.identidad_url" class="w-full h-full object-cover">
+                </div>
+                <div v-else class="aspect-video bg-white/5 border-2 border-dashed border-white/10 rounded-2xl flex flex-col items-center justify-center gap-2 grayscale opacity-40">
+                  <span class="text-3xl">📇</span>
+                  <p class="text-[9px] font-black text-gray-500 uppercase tracking-widest">Sin documento</p>
+                </div>
+
+                <div class="grid grid-cols-1 gap-2">
+                  <input type="file" ref="identityFileInput" class="hidden" accept="image/*" @change="onIdentityFileChange">
+                  <button @click="$refs.identityFileInput.click()" class="w-full py-3 bg-blue-500 text-white font-black uppercase tracking-widest rounded-xl shadow-lg active:scale-95 transition-all text-[11px]">
+                    {{ user.identidad_url ? 'Actualizar Documento' : 'Subir DNI' }}
+                  </button>
+                  <button v-if="user.identidad_url" @click="deleteIdentityImage" class="w-full py-3 text-red-400 font-bold uppercase tracking-widest text-[9px] hover:bg-red-400/5 rounded-xl transition-all">
+                    Eliminar documento
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
+          
+          <button @click="isVerificationModalOpen = false" class="w-full mt-8 py-3 text-gray-500 font-bold uppercase tracking-widest text-[10px] hover:text-white transition-colors">
+            Cerrar Ventana
+          </button>
         </div>
       </div>
     </Transition>
@@ -454,13 +495,13 @@
         <div class="bg-[#0f172a] border border-white/10 rounded-[2.5rem] p-8 w-full max-w-sm shadow-2xl animate-modal-in max-h-[90vh] overflow-y-auto">
           <div class="text-center mb-6">
             <div class="w-16 h-16 bg-blue-500/20 rounded-2xl flex items-center justify-center mx-auto mb-4 text-3xl">🏆</div>
-            <h3 class="text-xl font-black text-white uppercase tracking-tight">Activar Plan VIP</h3>
+            <h3 class="text-xl font-black text-white uppercase tracking-tight">Activar Membresía</h3>
             <p class="text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-1">Disfruta beneficios exclusivos</p>
           </div>
 
           <div class="bg-blue-500/10 border border-blue-500/20 p-4 rounded-2xl mb-6 text-center">
             <span class="text-[10px] text-blue-400 font-black uppercase tracking-widest block mb-1">Costo Mensual</span>
-            <span class="text-2xl font-black text-white">L. {{ Number(membershipCost).toFixed(2) }}</span>
+            <span class="text-2xl font-black text-white">${{ Number(membershipCost).toFixed(2) }}</span>
           </div>
 
           <div class="space-y-6">
@@ -538,7 +579,7 @@
             </section>
             <section>
               <h4 class="text-white font-black uppercase text-xs mb-2 tracking-widest">2. Membresías</h4>
-              <p>Los periodos duran 30 días. Si no renuevas, pierdes los beneficios VIP, pero sigues siendo parte de la comunidad.</p>
+              <p>Los periodos duran 30 días. Si no renuevas, pierdes los beneficios de la membresía, pero sigues siendo parte de la comunidad.</p>
             </section>
             <section>
               <h4 class="text-white font-black uppercase text-xs mb-2 tracking-widest">3. Garantías</h4>
@@ -602,12 +643,11 @@ const isDeleting = ref(false)
 const isUpdatingPassword = ref(false)
 const isRenewing = ref(false)
 
-const totalEarnings = ref(125.50)
+const totalEarnings = computed(() => Number(user.value.monto_credito || 0))
 const totalReferrals = ref(24)
 
 // Modals
-const isPhotoModalOpen = ref(false)
-const isIdentityModalOpen = ref(false)
+const isVerificationModalOpen = ref(false)
 const isPasswordModalOpen = ref(false)
 const showRenewalModal = ref(false)
 const showUnsubscribeModal = ref(false)
@@ -630,6 +670,7 @@ const user = ref({
   identidad_url: userCookie.value?.identidad_url || null,
   identidad_public_id: userCookie.value?.identidad_public_id || null,
   verificado: userCookie.value?.verificado || false,
+  monto_credito: userCookie.value?.monto_credito || 0,
   fecha_registro: userCookie.value?.fecha_registro || null
 })
 const originalUserData = ref({...user.value})
@@ -711,6 +752,7 @@ const fetchUserData = async () => {
     if (response && response.success && response.data) {
       const u = response.data
       user.value = {
+        ...user.value,
         id_usuario: u.id_usuario,
         nombre: u.nombre || '',
         email: u.email || '',
@@ -732,7 +774,17 @@ const fetchUserData = async () => {
     }
   } catch (error) {
     console.error('Error fetching user:', error)
-    showMsg('Error al cargar perfil', 'error')
+  }
+}
+
+const fetchCreditBalance = async () => {
+  try {
+    const res = await $api(`/credito/usuario/${auth.user.id_usuario}`)
+    if (res && res.success && res.data) {
+      user.value.monto_credito = res.data.monto_credito || 0
+    }
+  } catch (error) {
+    console.error('Error fetching credit:', error)
   }
 }
 
@@ -852,7 +904,6 @@ const onFileChange = async (e) => {
       user.value.imagen_url = res.data.imagen_url
       await auth.fetchUser()
       showMsg('Foto actualizada', 'success')
-      isPhotoModalOpen.value = false
     }
   } catch (error) {
     let errorMessage = 'Error al subir foto'
@@ -873,7 +924,6 @@ const deleteProfileImage = async () => {
       user.value.imagen_url = null
       await auth.fetchUser()
       showMsg('Foto eliminada', 'success')
-      isPhotoModalOpen.value = false
     }
   } catch (error) {
     let errorMessage = 'Error al eliminar foto'
@@ -897,7 +947,6 @@ const onIdentityFileChange = async (e) => {
       user.value.identidad_public_id = res.data.identidad_public_id
       user.value.verificado = false // Reset locally
       showMsg('Identidad subida', 'success')
-      isIdentityModalOpen.value = false
     }
   } catch (error) {
     let errorMessage = 'Error al subir ID'
@@ -918,7 +967,6 @@ const deleteIdentityImage = async () => {
     user.value.identidad_public_id = null
     user.value.verificado = false
     showMsg('Identidad eliminada', 'success')
-    isIdentityModalOpen.value = false
   } catch (error) {
     let errorMessage = 'Error al eliminar ID'
     if (error.response && error.response._data) {
@@ -931,8 +979,15 @@ const deleteIdentityImage = async () => {
 const renovarMembresia = async () => {
   showRenewalModal.value = true
   await fetchBankAccounts()
-  const data = await $api('/config/valor/membresia')
-  if (data) membershipCost.value = data.valor
+  try {
+    const data = await $api('/config/multi?tipos=valor_membresia')
+    if (data && data.success && data.data) {
+      membershipCost.value = Number(data.data.valor_membresia) || 0
+    }
+  } catch (error) {
+    console.error("Error al obtener precio membresia:", error)
+    membershipCost.value = 0
+  }
 }
 
 const confirmRenewal = async () => {
@@ -998,6 +1053,7 @@ onMounted(async () => {
   
   await Promise.all([
     fetchUserData(),
+    fetchCreditBalance(),
     fetchMembershipData(),
     checkSubscription()
   ])

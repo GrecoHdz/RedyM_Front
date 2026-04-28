@@ -4,7 +4,7 @@
     <LoadingSpinner :loading="isLoading" />
 
     <!-- Main Header -->
-    <MobileHeader :earnings="totalEarnings" />
+    <MobileHeader :earnings="totalEarnings" :has-membership="hasMembership" />
 
     <!-- Content Container with max-w-2xl to match copy.vue -->
     <div class="max-w-2xl mx-auto bg-gray-50 dark:bg-gray-900 min-h-screen relative">
@@ -243,23 +243,73 @@ const toast = ref({ show: false, message: '', type: 'success' })
 const pollModal = ref({ show: false, post: null })
 const totalEarnings = ref(0.00) // Will be updated from DB
 const rewardsConfig = ref({
-  valor_like: 0.10,
+  valor_like: 0.05,
   valor_video: 1.50,
   valor_encuesta: 2.50
 })
 
+const hasMembership = ref(false)
+const earningsMultiplier = computed(() => hasMembership.value ? 2 : 1)
+
 // Daily Missions Logic
 const rewardClaimed = ref(false)
-const lastShareAttempt = ref(null)
+const lastShareAttempt = ref({ id: null, time: null })
 const dailyMissions = ref([
-  { id: 1, title: 'Dar 3 likes', goal: 3, current: 0, completed: false },
-  { id: 2, title: 'Ver 1 video completo', goal: 1, current: 0, completed: false },
-  { id: 3, title: 'Compartir 1 vez', goal: 1, current: 0, completed: false }
+  { id: 1, title: 'Dar 3 likes', goal: 3, current: 0, completed: false, trackedIds: new Set() },
+  { id: 2, title: 'Ver 1 video completo', goal: 1, current: 0, completed: false, trackedIds: new Set() },
+  { id: 3, title: 'Compartir 1 vez', goal: 1, current: 0, completed: false, trackedIds: new Set() }
 ])
 
 const isMissionsCompleted = computed(() => {
   return dailyMissions.value.every(m => m.completed)
 })
+
+// --- Persistence Logic ---
+const saveMissions = () => {
+  if (!auth.user?.id_usuario) return
+  const data = {
+    rewardClaimed: rewardClaimed.value,
+    missions: dailyMissions.value.map(m => ({
+      id: m.id,
+      current: m.current,
+      completed: m.completed,
+      trackedIds: Array.from(m.trackedIds)
+    })),
+    lastUpdate: new Date().toDateString()
+  }
+  localStorage.setItem(`missions_${auth.user.id_usuario}`, JSON.stringify(data))
+}
+
+const loadMissions = () => {
+  if (!auth.user?.id_usuario) return
+  const saved = localStorage.getItem(`missions_${auth.user.id_usuario}`)
+  if (saved) {
+    try {
+      const data = JSON.parse(saved)
+      if (data.lastUpdate === new Date().toDateString()) {
+        rewardClaimed.value = data.rewardClaimed
+        data.missions.forEach(sm => {
+          const m = dailyMissions.value.find(dm => dm.id === sm.id)
+          if (m) {
+            m.current = sm.current
+            m.completed = sm.completed
+            m.trackedIds = new Set(sm.trackedIds)
+          }
+        })
+      } else {
+        localStorage.removeItem(`missions_${auth.user.id_usuario}`)
+      }
+    } catch (e) {
+      console.error('Error loading missions:', e)
+    }
+  }
+}
+
+// Auto-save changes
+watch([dailyMissions, rewardClaimed], () => {
+  saveMissions()
+}, { deep: true })
+// --------------------------
 
 const handleClaimReward = () => {
   if (isMissionsCompleted.value && !rewardClaimed.value) {
@@ -271,17 +321,18 @@ const handleClaimReward = () => {
 
 // Validation logic for "Return to site"
 const validateShareMission = () => {
-  if (lastShareAttempt.value) {
-    const timeElapsed = Date.now() - lastShareAttempt.value
+  if (lastShareAttempt.value.time && lastShareAttempt.value.id) {
+    const timeElapsed = Date.now() - lastShareAttempt.value.time
     if (timeElapsed >= 5000) { // 5 seconds
       const shareMission = dailyMissions.value.find(m => m.id === 3)
-      if (shareMission && !shareMission.completed) {
-        shareMission.current++
+      if (shareMission && !shareMission.completed && !shareMission.trackedIds.has(lastShareAttempt.value.id)) {
+        shareMission.trackedIds.add(lastShareAttempt.value.id)
+        shareMission.current = shareMission.trackedIds.size
         if (shareMission.current >= shareMission.goal) shareMission.completed = true
         showToast('¡Misión de compartir completada! ✅', 'success')
       }
     }
-    lastShareAttempt.value = null // Reset
+    lastShareAttempt.value = { id: null, time: null } // Reset
   }
 }
 
@@ -293,16 +344,27 @@ const handlePageShow = () => {
 
 const fetchRewardsConfig = async () => {
   try {
-    const res = await $api('/config/publicaciones')
+    const res = await $api('/config/multi?tipos=valor_like,valor_video,valor_encuesta')
     if (res.success && res.data) {
       rewardsConfig.value = {
-        valor_like: parseFloat(res.data.valor_like || 0.10),
+        valor_like: parseFloat(res.data.valor_like || 0.05),
         valor_video: parseFloat(res.data.valor_video || 1.50),
         valor_encuesta: parseFloat(res.data.valor_encuesta || 2.50)
       }
     }
   } catch (e) {
     console.error('Error fetching rewards config:', e)
+  }
+}
+
+const fetchMembershipStatus = async () => {
+  try {
+    const res = await $api(`/membresia/${auth.user.id_usuario}`)
+    if (res && res.status === 'success' && res.data) {
+       hasMembership.value = res.data.estado === 'activa'
+    }
+  } catch (e) {
+    console.error('Error fetching membership:', e)
   }
 }
 
@@ -363,18 +425,7 @@ const fetchPosts = async () => {
   }
 }
 
-onMounted(async () => {
-  document.addEventListener('visibilitychange', handlePageShow)
-  window.addEventListener('focus', handlePageShow)
-  
-  await fetchPosts()
-  isLoading.value = false
-})
 
-onUnmounted(() => {
-  document.removeEventListener('visibilitychange', handlePageShow)
-  window.removeEventListener('focus', handlePageShow)
-})
 
 const stories = [
   { id: 1, name: 'Nike', image: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=100&h=100&fit=crop', hasReward: true },
@@ -413,14 +464,15 @@ const handleVideoComplete = async (post) => {
     const res = await registerInteraction(post.id, 'video_view')
     if (res.success) {
       post.videoCompleted = true
-      const gainValue = rewardsConfig.value.valor_video
+      const gainValue = rewardsConfig.value.valor_video * earningsMultiplier.value
       totalEarnings.value += gainValue
       showToast(`🎉 ¡Ganaste L. ${gainValue.toFixed(2)}! Video completado.`, 'success')
       
       // Update daily mission (id: 2)
       const videoMission = dailyMissions.value.find(m => m.id === 2)
-      if (videoMission && !videoMission.completed) {
-        videoMission.current++
+      if (videoMission && !videoMission.completed && !videoMission.trackedIds.has(post.id)) {
+        videoMission.trackedIds.add(post.id)
+        videoMission.current = videoMission.trackedIds.size
         if (videoMission.current >= videoMission.goal) videoMission.completed = true
       }
     }
@@ -438,15 +490,26 @@ const handleLike = async (post) => {
   const res = await registerInteraction(post.id, 'like')
   if (res.success) {
     if (res.action === 'liked') {
-      totalEarnings.value += rewardsConfig.value.valor_like
+      totalEarnings.value += rewardsConfig.value.valor_like * earningsMultiplier.value
       // Update daily mission (id: 1)
       const likeMission = dailyMissions.value.find(m => m.id === 1)
-      if (likeMission && !likeMission.completed) {
-        likeMission.current++
+      if (likeMission && !likeMission.completed && !likeMission.trackedIds.has(post.id)) {
+        likeMission.trackedIds.add(post.id)
+        likeMission.current = likeMission.trackedIds.size
         if (likeMission.current >= likeMission.goal) likeMission.completed = true
       }
     } else {
-      totalEarnings.value -= rewardsConfig.value.valor_like
+      totalEarnings.value -= rewardsConfig.value.valor_like * earningsMultiplier.value
+      // Update daily mission (id: 1) - Remove point if unliked
+      const likeMission = dailyMissions.value.find(m => m.id === 1)
+      if (likeMission && likeMission.trackedIds.has(post.id)) {
+        likeMission.trackedIds.delete(post.id)
+        likeMission.current = likeMission.trackedIds.size
+        // If they already completed it, we check if they fall below the goal
+        if (likeMission.current < likeMission.goal) {
+          likeMission.completed = false
+        }
+      }
     }
   } else {
     // Revert
@@ -462,7 +525,7 @@ const handleShare = async (post) => {
   const whatsappUrl = `https://wa.me/?text=${encodedMessage}`
   
   // Record time to validate mission on return
-  lastShareAttempt.value = Date.now()
+  lastShareAttempt.value = { id: post.id, time: Date.now() }
   
   // Registrar interaccion share
   await registerInteraction(post.id, 'share')
@@ -492,7 +555,7 @@ const submitPollAnswer = async (option) => {
       pollModal.value.show = false
       
       if (option === post.poll.correctAnswer) {
-        const reward = rewardsConfig.value.valor_encuesta
+        const reward = rewardsConfig.value.valor_encuesta * earningsMultiplier.value
         totalEarnings.value += reward 
         showToast(`¡Correcto! Ganaste L. ${reward.toFixed(2)} 🎉`, 'success')
       } else {
@@ -536,8 +599,12 @@ onMounted(async () => {
   document.addEventListener('visibilitychange', handlePageShow)
   window.addEventListener('focus', handlePageShow)
   
+  // Load persisted missions
+  loadMissions()
+  
   await fetchRewardsConfig()
   await fetchPosts()
+  await fetchMembershipStatus()
   
   // Fetch real earnings for header
   try {

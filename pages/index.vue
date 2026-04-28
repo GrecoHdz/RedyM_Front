@@ -170,12 +170,16 @@ import LoadingSpinner from '~/components/ui/LoadingSpinner.vue'
 import Toast from '~/components/ui/Toast.vue'
 
 const auth = useAuthStore()
+const route = useRoute()
 const { $api } = useNuxtApp()
 const showModal = ref(false)
 const isLogin = ref(true)
 const loading = ref(false)
 const isPageLoading = ref(true)
 const errorMsg = ref('')
+
+// Captura de referido
+const idPatrocinador = ref(1)
 
 // Status overlay
 const showStatusSuccess = ref(false)
@@ -207,6 +211,12 @@ watch(showModal, (val) => {
 })
 
 onMounted(async () => {
+  // Capturar referido de la URL ?ref=123
+  if (route.query.ref) {
+    idPatrocinador.value = parseInt(route.query.ref) || 1
+    console.log('Referido capturado:', idPatrocinador.value)
+  }
+
   // Simular carga inicial
   setTimeout(() => {
     isPageLoading.value = false
@@ -303,7 +313,8 @@ const handleAuth = async () => {
           telefono: form.value.telefono,
           password: form.value.password,
           id_ciudad: form.value.selectedCiudad.id_ciudad,
-          es_tecnico: 0
+          es_tecnico: 0,
+          id_patrocinador: idPatrocinador.value
         }
       })
       

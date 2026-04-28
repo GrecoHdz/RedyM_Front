@@ -13,9 +13,14 @@
         <div class="w-5 h-5 bg-emerald-500 rounded-full flex items-center justify-center shadow-lg shadow-emerald-500/40">
           <span class="text-[10px] text-white font-black">L</span>
         </div>
-        <span class="text-[13px] font-black text-emerald-400 tracking-tight">
-          {{ earnings.toFixed(2) }}
-        </span>
+        <div class="flex items-center gap-1.5">
+          <span class="text-[13px] font-black text-emerald-400 tracking-tight">
+            {{ earnings.toFixed(2) }}
+          </span>
+          <div v-if="hasMembership" class="flex items-center justify-center bg-blue-500 text-[#070b14] text-[8px] font-black w-4 h-4 rounded-md shadow-sm shadow-blue-500/30">
+            x2
+          </div>
+        </div>
       </div>
 
       <button class="relative p-2 text-gray-400 hover:text-emerald-400 transition-colors">
@@ -33,6 +38,10 @@ const props = defineProps({
   earnings: {
     type: Number,
     default: 0
+  },
+  hasMembership: {
+    type: Boolean,
+    default: false
   }
 })
 </script>

@@ -15,7 +15,7 @@
     />
 
     <!-- Header -->
-    <MobileHeader :earnings="totalEarnings" />
+    <MobileHeader :earnings="totalEarnings" :has-membership="isMembershipActive" />
 
     <main class="pt-20 px-4 max-w-2xl mx-auto">
       <!-- Membership Guard -->
@@ -451,15 +451,15 @@ onMounted(async () => {
   
   await fetchMembershipStatus()
   
-  // Fetch approximate earnings for header
+  // Fetch real credit balance for header
   try {
-    const uData = await $api(`/usuarios/${auth.user.id_usuario}`)
-    if (uData && uData.data) {
-       // In a real app we'd have a specific endpoint for balance
-       // For now let's assume it's part of user or a separate mock
-       totalEarnings.value = 125.50 
+    const cData = await $api(`/credito/usuario/${auth.user.id_usuario}`)
+    if (cData && cData.success) {
+       totalEarnings.value = parseFloat(cData.data.monto_credito || 0)
     }
-  } catch (e) {}
+  } catch (e) {
+    console.error('Error fetching credit:', e)
+  }
   
   isLoading.value = false
 })
