@@ -1,6 +1,6 @@
 <template>
   <div class="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white selection:bg-emerald-500/30 overflow-x-hidden pb-24 relative">
-    
+    <LoadingSpinner :loading="isLoading" />
     <!-- Header -->
     <header class="fixed top-0 left-0 right-0 z-40 bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border-b border-gray-200 dark:border-gray-800 transition-all duration-300">
       <div class="max-w-2xl mx-auto px-4 h-16 flex items-center justify-between">
@@ -513,7 +513,10 @@
                 label="banco"
                 track-by="id_cuenta"
                 class="multiselect-custom-dark"
-                placeholder="-- Elige una cuenta --"
+                placeholder="-- Elige una opción --"
+                select-label=""
+                deselect-label=""
+                selected-label=""
               />
             </div>
 
@@ -529,6 +532,10 @@
               <div class="flex justify-between items-center text-[10px] uppercase font-bold">
                 <span class="text-gray-500">Titular:</span>
                 <span class="text-white">{{ selectedAccountObject.beneficiario }}</span>
+              </div>
+              <div class="flex justify-between items-center text-[10px] uppercase font-bold">
+                <span class="text-gray-500">Tipo:</span>
+                <span class="text-white">{{ selectedAccountObject.tipo }}</span>
               </div>
             </div>
 
@@ -637,6 +644,7 @@
 import { ref, computed, onMounted, watch, nextTick } from 'vue'
 import BottomNav from '~/components/footers/BottomNav.vue'
 import Toast from '~/components/ui/Toast.vue'
+import LoadingSpinner from '~/components/ui/LoadingSpinner.vue'
 import Multiselect from 'vue-multiselect'
 import { useAuthStore } from '~/middleware/auth.store'
 
@@ -1241,14 +1249,17 @@ useHead({
   z-index: 100 !important;
 }
 
+.multiselect-custom-dark :deep(.multiselect__option) {
+  padding: 12px 16px !important;
+}
+
 .multiselect-custom-dark :deep(.multiselect__option--highlight) {
-  background: #10b981 !important;
-  color: #070b14 !important;
-  font-weight: 900 !important;
+  background: transparent !important;
+  color: white !important;
 }
 
 .multiselect-custom-dark :deep(.multiselect__option--selected) {
-  background: rgba(16, 185, 129, 0.2) !important;
+  background: rgba(16, 185, 129, 0.1) !important;
   color: #10b981 !important;
 }
 

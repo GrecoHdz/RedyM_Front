@@ -23,7 +23,7 @@
     </div>
 
     <!-- Header -->
-    <MobileHeader :earnings="totalEarnings" :has-membership="isMembershipActive" />
+    <MobileHeader :earnings="totalEarnings"/>
 
     <main v-if="!isLoading" class="pt-20 pb-12 px-4 max-w-2xl mx-auto"> 
 

@@ -15,7 +15,8 @@
         <img 
           v-if="item.type === 'image'" 
           :src="item.url" 
-          class="w-full h-full object-cover select-none"
+          class="w-full h-full object-cover select-none cursor-pointer"
+          @click="$emit('media-click', item)"
           alt="media content"
         >
         
@@ -24,11 +25,11 @@
           <video 
             ref="videoRefs"
             :src="item.url"
-            class="w-full h-full object-cover"
+            class="w-full h-full object-cover cursor-pointer"
             playsinline
             @timeupdate="updateProgress($event, index)"
             @ended="onVideoEnded(index)"
-            @click="togglePlay($event)"
+            @click="handleVideoClick($event, item)"
           ></video>
           
           <!-- Play Overlay -->
@@ -86,7 +87,7 @@ const props = defineProps({
   }
 })
 
-const emit = defineEmits(['video-complete', 'index-change'])
+const emit = defineEmits(['video-complete', 'index-change', 'media-click'])
 
 const scrollContainer = ref(null)
 const videoRefs = ref([])
@@ -170,6 +171,14 @@ const togglePlay = (e) => {
   const video = e.target
   if (video.paused) video.play()
   else video.pause()
+}
+
+const handleVideoClick = (e, item) => {
+  // En móvil, un toque reproduce/pausa. 
+  // Podríamos usar un doble toque para el visor, o un botón dedicado.
+  // Por ahora, emitimos el click para que el padre decida.
+  togglePlay(e)
+  emit('media-click', item)
 }
 
 const next = () => {

@@ -84,6 +84,7 @@
               <MediaCarousel 
                 :media="post.media" 
                 @video-complete="handleVideoComplete(post)"
+                @media-click="abrirVisor"
               />
             </div>
 
@@ -106,7 +107,7 @@
                   <button v-if="post.poll" @click="handlePoll(post)" class="w-7 h-7 rounded-full bg-blue-500/20 border border-blue-500/30 flex items-center justify-center active:scale-110 transition-transform">
                     <span class="text-xs">📊</span>
                   </button>
-                  <button v-if="post.link" @click="handleLink(post.link)" class="w-7 h-7 rounded-full bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center active:scale-110 transition-transform">
+                  <button v-if="post.link" @click="handleLink(post)" class="w-7 h-7 rounded-full bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center active:scale-110 transition-transform">
                     <span class="text-xs">🔗</span>
                   </button>
                   <button v-if="post.whatsapp_active" @click="handleWhatsApp(post)" class="w-7 h-7 rounded-full bg-[#25D366]/10 border border-[#25D366]/20 flex items-center justify-center active:scale-110 transition-transform">
@@ -223,6 +224,30 @@
          </div>
        </div>
     </Transition>
+
+    <!-- ====== VISOR DE MEDIOS (Lightbox) ====== -->
+    <Transition name="fade">
+      <div v-if="showMediaViewer" class="fixed inset-0 z-[200] bg-black/95 backdrop-blur-xl flex flex-col items-center justify-center p-4 cursor-pointer" @click="cerrarVisor">
+        
+        <!-- Media Container -->
+        <div class="w-full h-full flex items-center justify-center overflow-hidden">
+          <img v-if="mediaToView?.type === 'image'" 
+            :src="mediaToView.url" 
+            class="max-w-[95vw] max-h-[85vh] object-contain animate-modal-in shadow-2xl rounded-lg"
+          >
+          <video v-else-if="mediaToView?.type === 'video'" 
+            :src="mediaToView.url" 
+            controls autoplay 
+            class="max-w-[95vw] max-h-[85vh] rounded-2xl animate-modal-in shadow-2xl"
+          ></video>
+        </div>
+
+        <!-- Info/Instructions -->
+        <div class="absolute bottom-10 text-white/40 text-[10px] font-bold uppercase tracking-widest pointer-events-none">
+          Toca en cualquier parte para cerrar
+        </div>
+      </div>
+    </Transition>
   </div>
 </template>
 
@@ -241,6 +266,11 @@ const shortName = computed(() => auth.user?.nombre?.split(' ')[0] || 'Usuario')
 
 const toast = ref({ show: false, message: '', type: 'success' })
 const pollModal = ref({ show: false, post: null })
+
+// Media viewer state
+const showMediaViewer = ref(false)
+const mediaToView = ref(null)
+
 const totalEarnings = ref(0.00) // Will be updated from DB
 const rewardsConfig = ref({
   valor_like: 0.05,
@@ -344,12 +374,15 @@ const handlePageShow = () => {
 
 const fetchRewardsConfig = async () => {
   try {
-    const res = await $api('/config/multi?tipos=valor_like,valor_video,valor_encuesta')
+    const res = await $api('/config/multi?tipos=valor_like,valor_video,valor_encuesta,valor_visita_web,valor_visita_whatsapp,valor_compartir')
     if (res.success && res.data) {
       rewardsConfig.value = {
         valor_like: parseFloat(res.data.valor_like || 0.05),
         valor_video: parseFloat(res.data.valor_video || 1.50),
-        valor_encuesta: parseFloat(res.data.valor_encuesta || 2.50)
+        valor_encuesta: parseFloat(res.data.valor_encuesta || 2.50),
+        valor_visita_web: parseFloat(res.data.valor_visita_web || 0.10),
+        valor_visita_whatsapp: parseFloat(res.data.valor_visita_whatsapp || 0.10),
+        valor_compartir: parseFloat(res.data.valor_compartir || 0.20)
       }
     }
   } catch (e) {
@@ -427,6 +460,16 @@ const fetchPosts = async () => {
 
 
 
+const abrirVisor = (item) => {
+  mediaToView.value = item
+  showMediaViewer.value = true
+}
+
+const cerrarVisor = () => {
+  showMediaViewer.value = false
+  mediaToView.value = null
+}
+
 const stories = [
   { id: 1, name: 'Nike', image: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=100&h=100&fit=crop', hasReward: true },
   { id: 2, name: 'Adidas', image: 'https://images.unsplash.com/photo-1587563871167-1ee9c731aefb?w=100&h=100&fit=crop', hasReward: false },
@@ -455,7 +498,9 @@ const registerInteraction = async (postId, type, detail = null) => {
     })
   } catch (error) {
     console.error(`Error registering interaction ${type}:`, error)
-    return { success: false }
+    // Extraer mensaje del error si es posible
+    const serverMessage = error.data?.message || 'Error al procesar interacción'
+    return { success: false, message: serverMessage, already_done: error.data?.already_done }
   }
 }
 
@@ -475,6 +520,9 @@ const handleVideoComplete = async (post) => {
         videoMission.current = videoMission.trackedIds.size
         if (videoMission.current >= videoMission.goal) videoMission.completed = true
       }
+    } else if (res.already_done) {
+      post.videoCompleted = true
+      showToast('Ya has recibido recompensa por este video anteriormente.', 'info')
     }
   }
 }
@@ -528,13 +576,17 @@ const handleShare = async (post) => {
   lastShareAttempt.value = { id: post.id, time: Date.now() }
   
   // Registrar interaccion share
-  await registerInteraction(post.id, 'share')
+  const res = await registerInteraction(post.id, 'share')
+  if (res && res.success) {
+    const gainValue = rewardsConfig.value.valor_compartir * earningsMultiplier.value
+    totalEarnings.value += gainValue
+    showToast(`🎉 ¡Ganaste L. ${gainValue.toFixed(2)}! por compartir.`, 'success')
+  } else if (res && res.already_done) {
+    showToast('Ya has compartido esta publicación anteriormente (Sola una recompensa permitida).', 'info')
+  }
   
   // Abrir WhatsApp
   window.open(whatsappUrl, '_blank')
-  
-  // Feedback visual
-  showToast('Abriendo WhatsApp... Completa el envío y regresa para ganar. 📱', 'success')
 }
 
 const handlePoll = (post) => {
@@ -567,22 +619,44 @@ const submitPollAnswer = async (option) => {
   }
 }
 
-const handleLink = (url) => {
+const handleLink = async (post) => {
+  const url = post.link
   if (!url) return
-  // Ensure the URL has a protocol, otherwise window.open treats it as relative
+  
   let finalUrl = url
   if (!/^https?:\/\//i.test(url)) {
     finalUrl = 'https://' + url
   }
+
+  // Registrar interaccion visita_web
+  const res = await registerInteraction(post.id, 'visita_web')
+  if (res && res.success) {
+    const gainValue = rewardsConfig.value.valor_visita_web * earningsMultiplier.value
+    totalEarnings.value += gainValue
+    showToast(`🎉 ¡Ganaste L. ${gainValue.toFixed(2)}! por visitar el enlace.`, 'success')
+  } else if (res && res.already_done) {
+    showToast('Ya has visitado este enlace anteriormente.', 'info')
+  }
+
   window.open(finalUrl, '_blank')
 }
 
-const handleWhatsApp = (post) => {
+const handleWhatsApp = async (post) => {
   if (!post.phone) {
     showToast('Este usuario no tiene un número vinculado', 'error')
     return
   }
-  // Sanitize phone number (whatsapp expects only numbers, INCLUDING country code)
+  
+  // Registrar interaccion visita_whatsapp
+  const res = await registerInteraction(post.id, 'visita_whatsapp')
+  if (res && res.success) {
+    const gainValue = rewardsConfig.value.valor_visita_whatsapp * earningsMultiplier.value
+    totalEarnings.value += gainValue
+    showToast(`🎉 ¡Ganaste L. ${gainValue.toFixed(2)}! por contactar vendededor.`, 'success')
+  } else if (res && res.already_done) {
+    showToast('Ya has contactado a este vendedor anteriormente.', 'info')
+  }
+
   const cleanPhone = post.phone.replace(/[^0-9]/g, '')
   const message = `Hola, vi tu publicación en RedYMercadeo y me gustaría más información.`
   const encodedMessage = encodeURIComponent(message)

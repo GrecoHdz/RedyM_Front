@@ -134,6 +134,96 @@
         </div>
       </template>
 
+      <!-- Section: PUBLICACIONES (Pagos pendientes) -->
+      <template v-if="currentSection === 'publicaciones'">
+        <div class="mb-6 bg-violet-500/10 border border-violet-500/20 rounded-3xl p-4 flex items-start gap-3">
+          <span class="text-2xl">📢</span>
+          <div>
+            <p class="text-[11px] font-black text-white uppercase tracking-widest mb-1">Verificación de Pagos</p>
+            <p class="text-[10px] text-gray-400 leading-relaxed">Revisa los comprobantes de pago de cada publicación. Al aprobar, la publicación se activará y aparecerá en el feed.</p>
+          </div>
+        </div>
+
+        <div class="space-y-4">
+          <div v-if="publicacionesPendientes.length === 0" class="py-20 text-center opacity-40">
+            <i class="fas fa-check-circle text-4xl mb-4 text-emerald-500"></i>
+            <p class="text-xs font-bold uppercase tracking-widest">No hay publicaciones pendientes de verificación</p>
+          </div>
+
+          <TransitionGroup name="list">
+            <div v-for="pub in publicacionesPendientes" :key="pub.id_publicacion"
+              class="bg-white/5 border border-white/10 rounded-[2rem] p-5 backdrop-blur-sm group hover:border-violet-500/30 transition-all">
+              
+              <!-- User info -->
+              <div class="flex items-center justify-between mb-4">
+                <div class="flex items-center gap-3">
+                  <div class="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 overflow-hidden">
+                    <img :src="pub.usuario?.imagen_url || `https://ui-avatars.com/api/?name=${pub.usuario?.nombre}&background=random&color=fff`" class="w-full h-full object-cover">
+                  </div>
+                  <div>
+                    <h3 class="text-sm font-black text-white uppercase tracking-tight">{{ pub.usuario?.nombre }}</h3>
+                    <div class="flex items-center gap-2 mt-0.5">
+                      <span class="text-[9px] font-bold text-gray-500">{{ pub.usuario?.telefono }}</span>
+                      <div class="w-1 h-1 rounded-full bg-gray-700"></div>
+                      <span class="text-[9px] font-bold text-violet-400">{{ formatDate(pub.fecha) }}</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-widest bg-amber-500/10 text-amber-400">En Revisión</div>
+              </div>
+
+              <!-- Content preview -->
+              <div v-if="pub.content" class="mb-4 p-3 bg-white/5 rounded-2xl border border-white/5">
+                <p class="text-xs text-gray-300 leading-relaxed" style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">{{ pub.content }}</p>
+              </div>
+
+              <!-- Media preview -->
+              <div v-if="pub.media && pub.media.length > 0" class="flex gap-2 mb-4 overflow-x-auto pb-1">
+                <div v-for="(item, idx) in pub.media" :key="idx" class="shrink-0 w-16 h-16 rounded-xl overflow-hidden bg-black/40 border border-white/10">
+                  <img v-if="item.type === 'image'" :src="item.url" class="w-full h-full object-cover">
+                  <div v-else class="w-full h-full flex items-center justify-center text-xl">🎥</div>
+                </div>
+              </div>
+
+              <!-- Payment details grid -->
+              <div class="grid grid-cols-2 gap-3 mb-4 pt-4 border-t border-white/5">
+                <div class="space-y-1">
+                  <span class="text-[8px] font-black text-gray-500 uppercase tracking-widest block">Presupuesto</span>
+                  <p class="text-sm font-black text-white">L. {{ Number(pub.presupuesto || 0).toFixed(2) }}</p>
+                </div>
+                <div class="space-y-1">
+                  <span class="text-[8px] font-black text-gray-500 uppercase tracking-widest block">N° Comprobante</span>
+                  <p class="text-xs font-black text-violet-400 select-all">{{ pub.num_comprobante || '—' }}</p>
+                </div>
+              </div>
+
+              <!-- Comprobante image -->
+              <div v-if="pub.comprobante_url" class="mb-4 cursor-zoom-in group/img relative rounded-2xl overflow-hidden border border-white/10" @click="viewFullImage(pub.comprobante_url)">
+                <img :src="pub.comprobante_url" class="w-full max-h-48 object-cover">
+                <div class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover/img:opacity-100 transition-opacity">
+                  <i class="fas fa-search-plus text-2xl text-white"></i>
+                </div>
+              </div>
+              <div v-else class="mb-4 p-3 bg-white/5 border border-white/5 rounded-2xl text-center">
+                <p class="text-[10px] text-gray-500 font-bold uppercase tracking-widest">Sin imagen de comprobante</p>
+              </div>
+
+              <!-- Actions -->
+              <div class="grid grid-cols-2 gap-3 pt-4 border-t border-white/5">
+                <button @click="confirmAction(pub, 'rechazar', 'publicacion')"
+                  class="py-3 px-4 bg-red-500/10 hover:bg-red-500/20 text-red-500 rounded-2xl text-[10px] font-black uppercase tracking-widest border border-red-500/20 transition-all flex items-center justify-center gap-2">
+                  <i class="fas fa-times"></i> Rechazar
+                </button>
+                <button @click="confirmAction(pub, 'aprobar', 'publicacion')"
+                  class="py-3 px-4 bg-emerald-500 text-[#070b14] rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20">
+                  <i class="fas fa-check"></i> Activar
+                </button>
+              </div>
+            </div>
+          </TransitionGroup>
+        </div>
+      </template>
+
       <!-- Section: IDENTIDAD -->
       <template v-if="currentSection === 'identidad'">
         <!-- Tabs Filter -->
@@ -292,12 +382,13 @@ const { $api } = useNuxtApp()
 // --- ESTADOS ---
 const isLoading = ref(true)
 const isProcessing = ref(false)
-const currentSection = ref('membresias') // 'membresias', 'identidad', 'retiros'
+const currentSection = ref('membresias') // 'membresias', 'publicaciones', 'identidad', 'retiros'
 
 // Data
 const membresias = ref([])
 const identidades = ref([])
 const retiros = ref([])
+const publicacionesPendientes = ref([])
 const estadisticas = ref({ total: 0, pendientes: 0, aprobados: 0 })
 
 // Tabs
@@ -307,6 +398,7 @@ const activeWithdrawTab = ref('pendiente')
 
 const mainSections = [
   { id: 'membresias', label: 'Membresías', icon: 'fas fa-id-badge' },
+  { id: 'publicaciones', label: 'Publicaciones', icon: 'fas fa-bullhorn' },
   { id: 'identidad', label: 'Identidad', icon: 'fas fa-fingerprint' },
   { id: 'retiros', label: 'Retiros', icon: 'fas fa-hand-holding-usd' }
 ]
@@ -335,7 +427,7 @@ const fullImageUrl = ref(null)
 
 // --- COMPUTED ---
 const sectionTitle = computed(() => {
-  const map = { membresias: 'Gestión de Membresías', identidad: 'Revisión de Identidad', retiros: 'Solicitudes de Retiro' }
+  const map = { membresias: 'Gestión de Membresías', publicaciones: 'Pagos de Publicaciones', identidad: 'Revisión de Identidad', retiros: 'Solicitudes de Retiro' }
   return map[currentSection.value]
 })
 
@@ -368,6 +460,7 @@ const fetchData = async () => {
   isLoading.value = true
   try {
     if (currentSection.value === 'membresias') await fetchMembresias()
+    else if (currentSection.value === 'publicaciones') await fetchPublicacionesPendientes()
     else if (currentSection.value === 'identidad') await fetchIdentidades()
     else if (currentSection.value === 'retiros') await fetchRetiros()
   } catch (e) {
@@ -383,6 +476,11 @@ const fetchMembresias = async () => {
     membresias.value = res.data
     estadisticas.value = res.estadisticas
   }
+}
+
+const fetchPublicacionesPendientes = async () => {
+  const res = await $api('/publicaciones/admin/pendientes')
+  if (res.success) publicacionesPendientes.value = res.data
 }
 
 const fetchIdentidades = async () => {
@@ -414,11 +512,13 @@ const processAction = async () => {
     if (category === 'membresia') {
       if (type === 'aprobar') res = await $api(`/membresia/aprobar/${item.id_membresia}`, { method: 'POST' })
       else res = await $api(`/membresia/rechazar/${item.id_membresia}`, { method: 'POST' })
+    } else if (category === 'publicacion') {
+      if (type === 'aprobar') res = await $api(`/publicaciones/admin/aprobar/${item.id_publicacion}`, { method: 'POST' })
+      else res = await $api(`/publicaciones/admin/rechazar/${item.id_publicacion}`, { method: 'POST' })
     } else if (category === 'identidad') {
       if (type === 'aprobar') {
         res = await $api(`/usuarios/${item.id_usuario}`, { method: 'PUT', body: { verificado: true } })
       } else {
-        // Rechazar identidad implica borrar la foto para que suba otra
         res = await $api(`/usuarios/identidad-foto/${item.id_usuario}`, { method: 'DELETE' })
       }
     } else if (category === 'retiro') {

@@ -110,7 +110,8 @@ export const useAuthStore = defineStore('auth', () => {
       id_ciudad: normalizedUser.id_ciudad,
       role: normalizedUser.role,
       estado: normalizedUser.estado,
-      imagen_url: normalizedUser.imagen_url
+      imagen_url: normalizedUser.imagen_url,
+      telefono: normalizedUser.telefono
     };
     userCookie.value = JSON.stringify(minimalUserData);
 

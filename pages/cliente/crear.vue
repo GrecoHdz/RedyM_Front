@@ -1,56 +1,45 @@
 <template>
-  <div class="min-h-screen bg-[#070b14] text-gray-100 font-['Outfit'] selection:bg-emerald-500/30 selection:text-emerald-400 pb-24">
-    <!-- Toast Notification -->
-    <Toast 
-      :show="toast.show"
-      :message="toast.message" 
-      :type="toast.type"
-      @close="toast.show = false"
-    />
-    
-    <!-- Loading Spinner -->
-    <LoadingSpinner 
-      :loading="isLoading || isSubmitting" 
-      :message="isSubmitting ? 'Publicando...' : 'Cargando...'"
-    />
-
-    <!-- Header -->
+  <div class="min-h-screen bg-[#070b14] text-gray-100 font-['Outfit'] selection:bg-emerald-500/30 selection:text-emerald-400 pb-28">
+    <Toast :show="toast.show" :message="toast.message" :type="toast.type" @close="toast.show = false" />
+    <LoadingSpinner :loading="isLoading || isSubmitting" :message="isSubmitting ? 'Publicando...' : 'Cargando...'" />
     <MobileHeader :earnings="totalEarnings" :has-membership="isMembershipActive" />
 
     <main class="pt-20 px-4 max-w-2xl mx-auto">
-      <!-- Membership Guard -->
-      <div v-if="!isLoading && !isMembershipActive" class="mt-10 text-center animate-fade-in">
-        <div class="w-20 h-20 bg-amber-500/20 rounded-3xl flex items-center justify-center mx-auto mb-6 text-3xl">🔒</div>
-        <h2 class="text-2xl font-black text-white mb-2">Acceso Restringido</h2>
-        <p class="text-gray-400 text-sm mb-8 leading-relaxed px-4">
-          Solo los usuarios con una <span class="text-amber-500 font-bold uppercase">Membresía Activa</span> pueden publicar contenido en la red.
-        </p>
-        <button 
-          @click="navigateTo('/cliente/Perfil')"
-          class="px-8 py-4 bg-amber-500 text-[#070b14] font-black uppercase tracking-widest rounded-2xl shadow-lg active:scale-95 transition-all"
-        >
-          Activar Membresía
-        </button>
-      </div>
+      <div v-if="!isLoading" class="space-y-6 animate-fade-in">
 
-      <div v-else-if="!isLoading" class="space-y-6 animate-fade-in">
+        <!-- Page Header -->
         <header class="flex flex-col gap-1 mb-2">
-          <h2 class="text-2xl font-black text-white tracking-tight">Nueva Publicación</h2>
-          <p class="text-[10px] text-emerald-500 font-black uppercase tracking-[0.3em]">Comparte con la comunidad</p>
+          <h2 class="text-2xl font-black text-white tracking-tight">Nueva Publicidad</h2>
+          <p class="text-[10px] text-emerald-500 font-black uppercase tracking-[0.3em]">Paga por alcance</p>
         </header>
 
-        <!-- Form -->
+        <!-- Form Card -->
         <div class="bg-white/5 border border-white/10 rounded-[2.5rem] p-6 backdrop-blur-sm space-y-6"> 
 
-          <!-- Description -->
+          <!-- Content -->
           <div class="space-y-2">
             <label class="block text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">Descripción</label>
             <textarea 
-              v-model="post.content"
-              rows="4"
+              v-model="post.content" rows="4"
               class="w-full px-5 py-4 bg-[#0d121f] border border-white/10 rounded-3xl focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 outline-none transition-all text-white font-medium text-sm resize-none"
               placeholder="Escribe algo interesante..."
             ></textarea>
+          </div>
+
+          <!-- Budget Field -->
+          <div class="space-y-2">
+            <div class="flex items-center justify-between ml-1">
+              <label class="text-[10px] font-black text-gray-500 uppercase tracking-widest">Presupuesto (L.)</label>
+              <span class="text-[9px] text-emerald-500 font-black">Mín. L. 50</span>
+            </div>
+            <div class="relative">
+              <span class="absolute left-5 top-1/2 -translate-y-1/2 text-emerald-400 font-black text-sm pointer-events-none">L.</span>
+              <input 
+                v-model.number="post.presupuesto" type="number" min="50" step="10"
+                class="w-full pl-10 pr-5 py-4 bg-[#0d121f] border border-white/10 rounded-3xl focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500 outline-none transition-all text-white font-black text-xl"
+                placeholder="200"
+              >
+            </div>
           </div>
 
           <!-- External URL -->
@@ -60,161 +49,344 @@
               <span class="text-[9px] text-emerald-500/50 font-bold">🔗</span>
             </div>
             <input 
-              v-model="post.external_url"
-              type="url"
+              v-model="post.external_url" type="url"
               class="w-full px-5 py-3 bg-[#0d121f] border border-white/10 rounded-2xl focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 outline-none transition-all text-white font-medium text-sm"
               placeholder="https://ejemplo.com"
             >
           </div>
 
-          <!-- Poll and WhatsApp Section -->
-          <div class="grid grid-cols-2 gap-3 pt-2">
+          <!-- WhatsApp + Poll Toggles -->
+          <div class="space-y-3 pt-2">
+            
             <!-- WhatsApp Toggle -->
-            <div 
-              @click="post.whatsapp_active = !post.whatsapp_active"
-              class="bg-[#0d121f]/50 border border-white/5 p-4 rounded-3xl cursor-pointer transition-all active:scale-95"
-              :class="post.whatsapp_active ? 'border-emerald-500/30 bg-emerald-500/5' : ''"
-            >
-              <div class="flex items-center justify-between mb-2">
-                <span class="text-[14px]">📱</span>
-                <div 
-                  class="w-8 h-4 rounded-full transition-colors relative"
-                  :class="post.whatsapp_active ? 'bg-emerald-500' : 'bg-gray-700'"
-                >
-                  <div 
-                    class="absolute top-0.5 w-3 h-3 bg-white rounded-full transition-transform"
-                    :class="post.whatsapp_active ? 'translate-x-4.5' : 'translate-x-0.5'"
-                  ></div>
+            <div class="bg-[#0d121f]/50 border border-white/5 rounded-3xl cursor-pointer transition-all"
+              :class="post.whatsapp_active ? 'border-emerald-500/30 bg-emerald-500/5' : ''">
+              <div @click="post.whatsapp_active = !post.whatsapp_active"
+                class="flex items-center justify-between p-4 active:scale-[0.98] transition-transform select-none">
+                <div class="flex items-center gap-3">
+                  <span class="text-[18px]">📱</span>
+                  <div>
+                    <p class="text-[10px] font-black text-white uppercase tracking-wider leading-none">WhatsApp</p>
+                    <p class="text-[8px] font-bold uppercase mt-0.5" :class="post.whatsapp_active ? 'text-emerald-400' : 'text-gray-500'">{{ post.whatsapp_active ? 'Activo' : 'Inactivo' }}</p>
+                  </div>
+                </div>
+                <!-- Toggle pill -->
+                <div class="w-10 h-5 rounded-full relative flex-shrink-0 transition-colors duration-300"
+                  :class="post.whatsapp_active ? 'bg-emerald-500' : 'bg-gray-700'">
+                  <div class="absolute top-[3px] w-3.5 h-3.5 bg-white rounded-full shadow transition-all duration-300"
+                    :style="{ left: post.whatsapp_active ? '22px' : '3px' }"></div>
                 </div>
               </div>
-              <p class="text-[10px] font-black text-white uppercase tracking-wider">WhatsApp</p>
-              <p class="text-[8px] text-gray-500 font-bold uppercase">{{ post.whatsapp_active ? 'Activo' : 'Inactivo' }}</p>
+              <!-- Número de WhatsApp editable -->
+              <Transition name="fade">
+                <div v-if="post.whatsapp_active" class="px-4 pb-4" @click.stop>
+                  <label class="text-[8px] font-black text-gray-500 uppercase tracking-widest block mb-1.5 ml-1">Número de Contacto (Incluye código de país)</label>
+                  <div class="flex items-center gap-2 bg-[#0d121f] border border-emerald-500/20 rounded-2xl px-4 py-2.5 focus-within:border-emerald-500 transition-all">
+                    <input
+                      v-model="post.whatsapp_number"
+                      type="tel"
+                      placeholder="Ej: 50499887766"
+                      @input="post.whatsapp_number = post.whatsapp_number.replace(/[^0-9+\s()]/g, '')"
+                      class="flex-1 bg-transparent outline-none text-white font-bold text-sm placeholder-gray-600"
+                    >
+                  </div>
+                </div>
+              </Transition>
             </div>
 
             <!-- Poll Toggle -->
-            <div 
-              @click="showPoll = !showPoll"
-              class="bg-[#0d121f]/50 border border-white/5 p-4 rounded-3xl cursor-pointer transition-all active:scale-95"
-              :class="showPoll ? 'border-blue-500/30 bg-blue-500/5' : ''"
-            >
-              <div class="flex items-center justify-between mb-2">
-                <span class="text-[14px]">📊</span>
-                <div 
-                  class="w-8 h-4 rounded-full transition-colors relative"
-                  :class="showPoll ? 'bg-blue-500' : 'bg-gray-700'"
-                >
-                  <div 
-                    class="absolute top-0.5 w-3 h-3 bg-white rounded-full transition-transform"
-                    :class="showPoll ? 'translate-x-4.5' : 'translate-x-0.5'"
-                  ></div>
+            <div @click="showPoll = !showPoll"
+              class="bg-[#0d121f]/50 border border-white/5 p-4 rounded-3xl cursor-pointer transition-all active:scale-[0.98] select-none flex items-center justify-between"
+              :class="showPoll ? 'border-blue-500/30 bg-blue-500/5' : ''">
+              <div class="flex items-center gap-3">
+                <span class="text-[18px]">📊</span>
+                <div>
+                  <p class="text-[10px] font-black text-white uppercase tracking-wider leading-none">Encuesta</p>
+                  <p class="text-[8px] font-bold uppercase mt-0.5" :class="showPoll ? 'text-blue-400' : 'text-gray-500'">{{ showPoll ? 'Activa' : 'Añadir' }}</p>
                 </div>
               </div>
-              <p class="text-[10px] font-black text-white uppercase tracking-wider">Encuesta</p>
-              <p class="text-[8px] text-gray-500 font-bold uppercase">{{ showPoll ? 'Activa' : 'Añadir' }}</p>
+              <!-- Toggle pill -->
+              <div class="w-10 h-5 rounded-full relative flex-shrink-0 transition-colors duration-300"
+                :class="showPoll ? 'bg-blue-500' : 'bg-gray-700'">
+                <div class="absolute top-[3px] w-3.5 h-3.5 bg-white rounded-full shadow transition-all duration-300"
+                  :style="{ left: showPoll ? '22px' : '3px' }"></div>
+              </div>
             </div>
           </div>
 
-          <!-- Poll Form Container -->
+          <!-- Poll Form -->
           <Transition name="fade">
-            <div v-if="showPoll" class="bg-[#0d121f]/50 border border-white/5 rounded-3xl p-4 space-y-4 animate-fade-in shadow-inner">
+            <div v-if="showPoll" class="bg-[#0d121f]/50 border border-white/5 rounded-3xl p-4 space-y-4 shadow-inner">
               <div class="space-y-1">
-                 <label class="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">Pregunta de la encuesta</label>
-                 <input 
-                   v-model="post.poll.question"
-                   type="text"
-                   class="w-full px-4 py-2.5 bg-[#0d121f] border border-white/10 rounded-xl focus:border-blue-500 outline-none text-white text-sm transition-all"
-                   placeholder="Escribe tu pregunta aquí..."
-                 >
+                <label class="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">Pregunta de la encuesta</label>
+                <input v-model="post.poll.question" type="text" class="w-full px-4 py-2.5 bg-[#0d121f] border border-white/10 rounded-xl focus:border-blue-500 outline-none text-white text-sm transition-all" placeholder="Escribe tu pregunta aquí...">
               </div>
-
               <div class="space-y-2">
-                 <label class="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">Opciones (Marca la correcta ✅)</label>
-                 <div v-for="(opt, idx) in post.poll.options" :key="idx" class="flex items-center gap-2">
-                    <button 
-                      @click="post.poll.correct_index = idx"
-                      class="w-8 h-8 rounded-lg flex items-center justify-center transition-all border shrink-0"
-                      :class="post.poll.correct_index === idx ? 'bg-emerald-500 border-emerald-400 text-[#070b14]' : 'bg-white/5 border-white/10 text-gray-500'"
-                    >
-                      {{ post.poll.correct_index === idx ? '✓' : '' }}
-                    </button>
-                    <input 
-                      v-model="post.poll.options[idx]"
-                      type="text"
-                      class="flex-1 px-4 py-2.5 bg-[#0d121f] border border-white/10 rounded-xl focus:border-emerald-500 outline-none text-white text-xs transition-all"
-                      :placeholder="'Opción ' + (idx + 1)"
-                    >
-                 </div>
+                <label class="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">Opciones (Marca la correcta ✅)</label>
+                <div v-for="(opt, idx) in post.poll.options" :key="idx" class="flex items-center gap-2">
+                  <button @click="post.poll.correct_index = idx" class="w-8 h-8 rounded-lg flex items-center justify-center transition-all border shrink-0"
+                    :class="post.poll.correct_index === idx ? 'bg-emerald-500 border-emerald-400 text-[#070b14]' : 'bg-white/5 border-white/10 text-gray-500'">
+                    {{ post.poll.correct_index === idx ? '✓' : '' }}
+                  </button>
+                  <input v-model="post.poll.options[idx]" type="text" class="flex-1 px-4 py-2.5 bg-[#0d121f] border border-white/10 rounded-xl focus:border-emerald-500 outline-none text-white text-xs transition-all" :placeholder="'Opción ' + (idx + 1)">
+                </div>
               </div>
             </div>
           </Transition>
 
-          <!-- Media Upload Area -->
+          <!-- Media Upload -->
           <div class="space-y-3">
-            <label class="block text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">
-              Fotos y Videos ({{ selectedFiles.length }}/5)
-            </label>
-            
-            <!-- Grid of previews -->
+            <label class="block text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">Fotos y Videos ({{ selectedFiles.length }}/5)</label>
             <div class="grid grid-cols-3 gap-3">
               <div v-for="(file, index) in selectedFiles" :key="index" class="relative aspect-square rounded-2xl overflow-hidden border border-white/10 bg-black/40 group">
                 <img v-if="file.type.startsWith('image/')" :src="file.preview" class="w-full h-full object-cover">
                 <div v-else class="w-full h-full flex items-center justify-center text-2xl">🎥</div>
-                
-                <button 
-                  @click="removeFile(index)"
-                  class="absolute top-1 right-1 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center shadow-lg active:scale-90 transition-transform opacity-0 group-hover:opacity-100"
-                >
+                <button @click="removeFile(index)" class="absolute top-1 right-1 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center shadow-lg active:scale-90 transition-transform opacity-0 group-hover:opacity-100">
                   <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12"/></svg>
                 </button>
               </div>
-
-              <!-- Add button -->
-              <button 
-                v-if="selectedFiles.length < 5"
-                @click="$refs.fileInput.click()"
-                class="aspect-square rounded-2xl border-2 border-dashed border-white/10 flex flex-col items-center justify-center gap-2 hover:border-emerald-500/50 hover:bg-emerald-500/5 transition-all group"
-              >
+              <button v-if="selectedFiles.length < 5" @click="$refs.fileInput.click()" class="aspect-square rounded-2xl border-2 border-dashed border-white/10 flex flex-col items-center justify-center gap-2 hover:border-emerald-500/50 hover:bg-emerald-500/5 transition-all group">
                 <div class="w-10 h-10 bg-white/5 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
                   <svg class="w-6 h-6 text-gray-500 group-hover:text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>
                 </div>
                 <span class="text-[8px] font-black text-gray-500 uppercase tracking-widest">Añadir</span>
               </button>
             </div>
-            
-            <p class="text-[9px] text-gray-600 font-bold uppercase tracking-widest text-center mt-2">
-              Límite total: 10MB • Máximo 5 archivos
-            </p>
+            <p class="text-[9px] text-gray-600 font-bold uppercase tracking-widest text-center mt-2">Límite total: 10MB • Máximo 5 archivos</p>
           </div>
 
-          <input 
-            type="file" 
-            ref="fileInput" 
-            class="hidden" 
-            accept="image/*,video/*" 
-            multiple 
-            @change="handleFileSelect"
-          >
+          <input type="file" ref="fileInput" class="hidden" accept="image/*,video/*" multiple @change="handleFileSelect">
 
-          <!-- Submit Button -->
-          <button 
-            @click="submitPost"
-            :disabled="!canSubmit || isSubmitting"
-            class="w-full py-4 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-[#070b14] font-black uppercase tracking-widest rounded-2xl shadow-xl shadow-emerald-900/30 transition-all disabled:opacity-30 disabled:grayscale flex items-center justify-center gap-3"
-          >
-            <span v-if="!isSubmitting">Publicar Ahora</span>
+          <!-- Submit -->
+          <button @click="submitPost" :disabled="!canSubmit || isSubmitting"
+            class="w-full py-4 bg-gradient-to-r from-violet-500 to-emerald-500 hover:from-violet-600 hover:to-emerald-600 text-white font-black uppercase tracking-widest rounded-2xl shadow-xl shadow-violet-900/30 transition-all disabled:opacity-30 disabled:grayscale flex items-center justify-center gap-3">
+            <span v-if="!isSubmitting">🚀 Publicar · L. {{ post.presupuesto || 0 }}</span>
             <span v-else class="flex items-center gap-2">
-              <svg class="animate-spin h-5 w-5 text-[#070b14]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-              </svg>
+              <svg class="animate-spin h-5 w-5 text-white" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/></svg>
               Comprimiendo...
             </span>
           </button>
         </div>
+
+        <!-- ====== MIS PUBLICACIONES ====== -->
+        <div class="mt-6">
+          <div class="flex items-center justify-between mb-4">
+            <div>
+              <h3 class="text-lg font-black text-white tracking-tight">Mis Publicaciones</h3>
+              <p class="text-[9px] text-gray-500 font-bold uppercase tracking-widest">{{ misPublicaciones.length }} publicaciones</p>
+            </div>
+            <button @click="fetchMisPublicaciones" :disabled="loadingPubs" class="p-2 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 transition-all active:scale-95">
+              <svg :class="['w-4 h-4 text-gray-400', loadingPubs ? 'animate-spin' : '']" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+              </svg>
+            </button>
+          </div>
+
+          <div v-if="!loadingPubs && misPublicaciones.length === 0" class="text-center py-12 bg-white/3 border border-white/5 rounded-3xl">
+            <div class="text-4xl mb-3">📭</div>
+            <p class="text-gray-500 text-sm font-bold">Aún no tienes publicaciones</p>
+            <p class="text-gray-600 text-[10px] mt-1 uppercase tracking-widest">Crea tu primera publicación arriba</p>
+          </div>
+
+          <div v-else-if="loadingPubs" class="space-y-4">
+            <div v-for="i in 2" :key="i" class="bg-white/5 border border-white/10 rounded-3xl p-5 animate-pulse">
+              <div class="h-4 bg-white/10 rounded-full w-3/4 mb-3"></div>
+              <div class="h-2 bg-white/5 rounded-full w-full"></div>
+            </div>
+          </div>
+
+          <div v-else class="space-y-4">
+            <div v-for="pub in misPublicaciones" :key="pub.id_publicacion"
+              class="bg-white/5 border border-white/10 rounded-3xl overflow-hidden transition-all hover:border-white/20">
+              
+              <!-- Header: status + actions -->
+              <div class="flex items-center justify-between px-5 pt-4 pb-2">
+                <span class="text-[8px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full" :class="getStatusClass(pub.estado)">
+                  {{ getStatusLabel(pub.estado) }}
+                </span>
+                <div class="flex items-center gap-2">
+                  <!-- Pagar button for pendiente_pago or rechazada -->
+                  <button v-if="pub.estado === 'pendiente_pago' || pub.estado === 'rechazada'"
+                    @click="abrirModalPago(pub)"
+                    class="text-[9px] font-black uppercase tracking-widest px-3 py-1.5 bg-emerald-500 text-[#070b14] rounded-xl active:scale-95 transition-all">
+                    {{ pub.estado === 'rechazada' ? '🔄 Reintentar' : '💳 Pagar' }}
+                  </button>
+                  <button @click="eliminarPublicacion(pub.id_publicacion)" class="w-7 h-7 bg-red-500/10 border border-red-500/20 text-red-400 rounded-xl flex items-center justify-center hover:bg-red-500/20 active:scale-90 transition-all">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Media strip -->
+              <div v-if="pub.media && pub.media.length > 0" class="flex gap-1.5 px-5 pb-3 overflow-x-auto no-scrollbar">
+                <div v-for="(item, idx) in pub.media" :key="idx" 
+                  @click="abrirVisor(item)"
+                  class="shrink-0 w-16 h-16 rounded-xl overflow-hidden bg-black/40 border border-white/10 cursor-pointer active:scale-95 transition-transform">
+                  <img v-if="item.type === 'image'" :src="item.url" class="w-full h-full object-cover">
+                  <div v-else class="w-full h-full flex items-center justify-center text-xl">🎥</div>
+                </div>
+              </div>
+
+              <!-- Content preview -->
+              <div class="px-5 pb-3" v-if="pub.content">
+                <p class="text-sm text-gray-300 leading-relaxed line-clamp-2">{{ pub.content }}</p>
+              </div>
+
+              <!-- Budget bar (only for active) -->
+              <div v-if="pub.estado === 'activa'" class="px-5 pb-4">
+                <div class="flex items-center justify-between mb-1.5">
+                  <span class="text-[9px] font-black text-gray-500 uppercase tracking-widest">Presupuesto restante</span>
+                  <span class="text-[10px] font-black" :class="getBudgetColor(pub)">
+                    L. {{ parseFloat(pub.presupuesto_restante || 0).toFixed(2) }} / L. {{ parseFloat(pub.presupuesto || 0).toFixed(2) }}
+                  </span>
+                </div>
+                <div class="w-full h-2 bg-white/10 rounded-full overflow-hidden">
+                  <div class="h-full rounded-full transition-all" :class="getBudgetBarClass(pub)" :style="{ width: getBudgetPercent(pub) + '%' }"></div>
+                </div>
+              </div>
+
+              <!-- Amount info for non-active -->
+              <div v-else class="px-5 pb-3">
+                <div class="bg-[#0d121f] border border-white/5 rounded-2xl px-4 py-2 flex items-center justify-between">
+                  <span class="text-[9px] font-black text-gray-500 uppercase tracking-widest">Presupuesto</span>
+                  <span class="text-sm font-black text-white">L. {{ parseFloat(pub.presupuesto || 0).toFixed(2) }}</span>
+                </div>
+              </div>
+
+              <!-- Stats row -->
+              <div class="flex items-center gap-0 border-t border-white/5 divide-x divide-white/5">
+                <div class="flex-1 py-3 text-center">
+                  <p class="text-[8px] font-black text-gray-600 uppercase tracking-widest">Interacciones</p>
+                  <p class="text-sm font-black text-white">{{ pub.total_interacciones || 0 }}</p>
+                </div>
+                <div class="flex-1 py-3 text-center">
+                  <p class="text-[8px] font-black text-gray-600 uppercase tracking-widest">Likes</p>
+                  <p class="text-sm font-black text-white">{{ pub.likes || 0 }}</p>
+                </div>
+                <div class="flex-1 py-3 text-center">
+                  <p class="text-[8px] font-black text-gray-600 uppercase tracking-widest">Creada</p>
+                  <p class="text-[10px] font-black text-gray-400">{{ formatDate(pub.fecha) }}</p>
+                </div>
+                <div class="flex-1 py-3 text-center">
+                  <p class="text-[8px] font-black text-gray-600 uppercase tracking-widest">Finaliza</p>
+                  <p class="text-[10px] font-black" :class="pub.fecha_finalizacion ? 'text-gray-400' : 'text-gray-600'">
+                    {{ pub.fecha_finalizacion ? formatDate(pub.fecha_finalizacion) : '—' }}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
       </div>
     </main>
 
-    <!-- Navigation -->
+    <!-- ====== MODAL DE PAGO ====== -->
+    <Transition name="fade">
+      <div v-if="showPaymentModal" @click.self="!isPayingPub && (showPaymentModal = false)"
+        class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/70 backdrop-blur-md">
+        <div class="bg-[#0f172a] border border-white/10 rounded-[2.5rem] p-6 w-full max-w-sm shadow-2xl animate-modal-in max-h-[90vh] overflow-y-auto">
+          
+          <!-- Header -->
+          <div class="flex items-center justify-between mb-6">
+            <div>
+              <h3 class="text-lg font-black text-white uppercase tracking-tight">Registrar Pago</h3>
+              <p class="text-[9px] text-gray-500 font-bold uppercase tracking-widest mt-0.5">Completa el proceso de tu publicación</p>
+            </div>
+            <button :disabled="isPayingPub" @click="showPaymentModal = false" class="text-gray-500 hover:text-white transition-colors disabled:opacity-30">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+          </div>
+
+          <!-- Amount badge -->
+          <div class="bg-violet-500/10 border border-violet-500/20 p-4 rounded-2xl mb-5 text-center">
+            <span class="text-[10px] text-violet-400 font-black uppercase tracking-widest block mb-1">Total a Pagar</span>
+            <span class="text-3xl font-black text-white">L. {{ parseFloat(selectedPub?.presupuesto || 0).toFixed(2) }}</span>
+          </div>
+
+          <div class="space-y-5">
+            <!-- Bank selector -->
+            <div class="space-y-2">
+              <label class="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">Selecciona Forma de Pago</label>
+              <multiselect
+                v-model="payment.selectedAccountObj"
+                :options="bankAccounts"
+                :searchable="false"
+                label="banco"
+                track-by="id_cuenta"
+                class="multiselect-custom-dark"
+                placeholder="-- Elige una opción --"
+                select-label=""
+                deselect-label=""
+                selected-label=""
+              />
+            </div>
+
+            <!-- Account details -->
+            <div v-if="payment.selectedAccountObj" class="bg-white/5 border border-white/10 p-4 rounded-2xl space-y-2">
+              <div class="flex justify-between items-center text-[10px] uppercase font-bold">
+                <span class="text-gray-500">Banco:</span>
+                <span class="text-white">{{ payment.selectedAccountObj.banco }}</span>
+              </div>
+              <div class="flex justify-between items-center text-[10px] uppercase font-bold">
+                <span class="text-gray-500">N° Cuenta:</span>
+                <span class="text-white select-all">{{ payment.selectedAccountObj.num_cuenta }}</span>
+              </div>
+              <div class="flex justify-between items-center text-[10px] uppercase font-bold">
+                <span class="text-gray-500">Titular:</span>
+                <span class="text-white">{{ payment.selectedAccountObj.beneficiario }}</span>
+              </div>
+              <div class="flex justify-between items-center text-[10px] uppercase font-bold">
+                <span class="text-gray-500">Tipo:</span>
+                <span class="text-white">{{ payment.selectedAccountObj.tipo }}</span>
+              </div>
+            </div>
+
+            <!-- Comprobante number -->
+            <div class="space-y-2">
+              <label class="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">N° Comprobante</label>
+              <input v-model="payment.numComprobante" type="text" placeholder="Ej: 9812739"
+                class="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 outline-none focus:border-violet-500 transition-all text-white font-bold text-sm">
+            </div>
+
+            <!-- Buttons -->
+            <div class="flex flex-col gap-3 pt-2">
+              <button @click="confirmarPago" :disabled="isPayingPub || !payment.selectedAccountObj || !payment.numComprobante"
+                class="w-full py-4 bg-gradient-to-r from-violet-500 to-emerald-500 text-white font-black uppercase tracking-widest rounded-2xl shadow-xl active:scale-95 transition-all disabled:opacity-40 flex items-center justify-center gap-2">
+                <svg v-if="isPayingPub" class="animate-spin h-5 w-5" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/></svg>
+                {{ isPayingPub ? 'Enviando...' : 'Confirmar y Enviar' }}
+              </button>
+              <button :disabled="isPayingPub" @click="showPaymentModal = false" class="w-full py-2 text-gray-500 font-bold uppercase tracking-widest text-[10px] disabled:opacity-30">Cancelar</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </Transition>
+
+    <!-- ====== VISOR DE MEDIOS (Lightbox) ====== -->
+    <Transition name="fade">
+      <div v-if="showMediaViewer" class="fixed inset-0 z-[200] bg-black/95 backdrop-blur-xl flex flex-col items-center justify-center p-4 cursor-pointer" @click="cerrarVisor">
+        
+        <!-- Media Container -->
+        <div class="w-full h-full flex items-center justify-center overflow-hidden">
+          <img v-if="mediaToView?.type === 'image'" 
+            :src="mediaToView.url" 
+            class="max-w-[95vw] max-h-[85vh] object-contain animate-modal-in shadow-2xl rounded-lg"
+          >
+          <video v-else-if="mediaToView?.type === 'video'" 
+            :src="mediaToView.url" 
+            controls autoplay 
+            class="max-w-[95vw] max-h-[85vh] rounded-2xl animate-modal-in shadow-2xl"
+          ></video>
+        </div>
+
+        <!-- Info/Instructions -->
+        <div class="absolute bottom-10 text-white/40 text-[10px] font-bold uppercase tracking-widest pointer-events-none">
+          Toca en cualquier parte para cerrar
+        </div>
+      </div>
+    </Transition>
+
     <BottomNav />
   </div>
 </template>
@@ -226,6 +398,7 @@ import MobileHeader from '~/components/headers/MobileHeader.vue'
 import BottomNav from '~/components/footers/BottomNav.vue'
 import LoadingSpinner from '~/components/ui/LoadingSpinner.vue'
 import Toast from '~/components/ui/Toast.vue'
+import Multiselect from 'vue-multiselect'
 
 const auth = useAuthStore()
 const { $api } = useNuxtApp()
@@ -236,16 +409,31 @@ const isSubmitting = ref(false)
 const isMembershipActive = ref(false)
 const totalEarnings = ref(0)
 const showPoll = ref(false)
+const loadingPubs = ref(false)
+const misPublicaciones = ref([])
+const bankAccounts = ref([])
+
+// Payment modal state
+const showPaymentModal = ref(false)
+const isPayingPub = ref(false)
+const selectedPub = ref(null)
+
+// Media viewer state
+const showMediaViewer = ref(false)
+const mediaToView = ref(null) // { url, type }
+
+const payment = ref({
+  selectedAccountObj: null,
+  numComprobante: ''
+})
 
 const post = ref({
   content: '',
   external_url: '',
-  whatsapp_active: true,
-  poll: {
-    question: '',
-    options: ['', '', ''],
-    correct_index: 0
-  }
+  whatsapp_active: false,
+  whatsapp_number: '',
+  presupuesto: 200,
+  poll: { question: '', options: ['', '', ''], correct_index: 0 }
 })
 
 const selectedFiles = ref([])
@@ -254,240 +442,310 @@ const toast = ref({ show: false, message: '', type: 'info' })
 // --- COMPUTED ---
 const canSubmit = computed(() => {
   const contentOk = post.value.content.trim().length > 0 || selectedFiles.value.length > 0
+  const budgetOk = post.value.presupuesto >= 50
+  const whatsappOk = !post.value.whatsapp_active || (post.value.whatsapp_number && post.value.whatsapp_number.length >= 8)
   
   if (showPoll.value) {
-    const pollOk = post.value.poll.question.trim().length > 0 && 
-                  post.value.poll.options.every(opt => opt.trim().length > 0)
-    return contentOk && pollOk
+    const pollOk = post.value.poll.question.trim().length > 0 && post.value.poll.options.every(o => o.trim().length > 0)
+    return contentOk && pollOk && budgetOk && whatsappOk
   }
-  
-  return contentOk
+  return contentOk && budgetOk && whatsappOk
 })
 
-// --- FUNCIONES ---
-const showMsg = (message, type = 'info') => {
-  toast.value = { show: true, message, type }
+// --- HELPERS ---
+const showMsg = (message, type = 'info') => { toast.value = { show: true, message, type } }
+
+const getStatusLabel = (estado) => {
+  const map = {
+    pendiente_pago: '💳 Pendiente de Pago',
+    verificando_pago: '⏳ Verificando Pago',
+    activa: '🟢 Activa',
+    borrada: '⚫ Finalizada',
+    rechazada: '🔴 Pago Rechazado',
+    reportada: '🚩 Reportada'
+  }
+  return map[estado] || estado
 }
 
+const getStatusClass = (estado) => {
+  const map = {
+    pendiente_pago: 'bg-amber-500/20 text-amber-400',
+    verificando_pago: 'bg-blue-500/20 text-blue-400',
+    activa: 'bg-emerald-500/20 text-emerald-400',
+    borrada: 'bg-gray-500/20 text-gray-400',
+    rechazada: 'bg-red-500/20 text-red-400',
+    reportada: 'bg-orange-500/20 text-orange-400'
+  }
+  return map[estado] || 'bg-gray-500/20 text-gray-400'
+}
+
+const getBudgetPercent = (pub) => {
+  const total = parseFloat(pub.presupuesto || 0)
+  const remaining = parseFloat(pub.presupuesto_restante || 0)
+  if (total <= 0) return 0
+  return Math.max(0, Math.min(100, (remaining / total) * 100))
+}
+
+const getBudgetColor = (pub) => {
+  const pct = getBudgetPercent(pub)
+  if (pct > 60) return 'text-emerald-400'
+  if (pct > 25) return 'text-amber-400'
+  return 'text-red-400'
+}
+
+const getBudgetBarClass = (pub) => {
+  const pct = getBudgetPercent(pub)
+  if (pct > 60) return 'bg-gradient-to-r from-emerald-500 to-teal-500'
+  if (pct > 25) return 'bg-gradient-to-r from-amber-400 to-orange-500'
+  return 'bg-gradient-to-r from-red-500 to-red-600'
+}
+
+const formatDate = (dateStr) => {
+  if (!dateStr) return '—'
+  return new Date(dateStr).toLocaleDateString('es-HN', { day: '2-digit', month: 'short', year: '2-digit' })
+}
+
+// --- DATA FETCH ---
 const fetchMembershipStatus = async () => {
   try {
     const data = await $api(`/membresia/${auth.user.id_usuario}`)
-    if (data && data.status === 'success' && data.data) {
-      isMembershipActive.value = data.data.estado === 'activa'
-    } else {
-      isMembershipActive.value = false
-    }
-  } catch (error) {
-    console.error('Error fetching membership:', error)
-    isMembershipActive.value = false
+    isMembershipActive.value = data?.data?.estado === 'activa'
+  } catch { isMembershipActive.value = false }
+}
+
+const fetchMisPublicaciones = async () => {
+  loadingPubs.value = true
+  try {
+    const data = await $api(`/publicaciones/mis-publicaciones/${auth.user.id_usuario}`)
+    if (data?.success) misPublicaciones.value = data.data
+  } catch (e) { console.error(e) } finally { loadingPubs.value = false }
+}
+
+const fetchBankAccounts = async () => {
+  try {
+    const data = await $api('/cuentas')
+    if (data) bankAccounts.value = data
+  } catch (e) {
+    console.error('Error loading bank accounts:', e)
   }
 }
 
+// --- MEDIA VIEWER ---
+const abrirVisor = (item) => {
+  mediaToView.value = item
+  showMediaViewer.value = true
+}
+
+const cerrarVisor = () => {
+  showMediaViewer.value = false
+  mediaToView.value = null
+}
+
+const abrirModalPago = (pub) => {
+  selectedPub.value = pub
+  payment.value = { selectedAccountObj: null, numComprobante: '' }
+  showPaymentModal.value = true
+}
+
+
+const confirmarPago = async () => {
+  if (!payment.value.selectedAccountObj || !payment.value.numComprobante) return
+  isPayingPub.value = true
+  try {
+    const res = await $api(`/publicaciones/${selectedPub.value.id_publicacion}/pago`, {
+      method: 'POST',
+      body: {
+        id_cuenta_pago: payment.value.selectedAccountObj.id_cuenta,
+        num_comprobante: payment.value.numComprobante
+      }
+    })
+    if (res?.success) {
+      showMsg('✅ Pago registrado. Tu publicación está en revisión.', 'success')
+      showPaymentModal.value = false
+      await fetchMisPublicaciones()
+    } else {
+      showMsg(res?.message || 'Error al registrar pago', 'error')
+    }
+  } catch (error) {
+    showMsg(error?.response?._data?.message || 'Error de conexión', 'error')
+  } finally {
+    isPayingPub.value = false
+  }
+}
+
+// --- FILE HANDLING ---
 const handleFileSelect = (e) => {
   const files = Array.from(e.target.files)
-  
-  if (selectedFiles.value.length + files.length > 5) {
-    showMsg('Máximo 5 archivos permitidos', 'error')
-    return
-  }
-
+  if (selectedFiles.value.length + files.length > 5) { showMsg('Máximo 5 archivos', 'error'); return }
   files.forEach(file => {
-    // Check total size of already selected + this one
-    const currentTotalSize = selectedFiles.value.reduce((acc, f) => acc + f.file.size, 0)
-    if (currentTotalSize + file.size > 10 * 1024 * 1024) {
-      showMsg('Límite total de 10MB superado', 'error')
-      return
-    }
-
+    const currentSize = selectedFiles.value.reduce((a, f) => a + f.file.size, 0)
+    if (currentSize + file.size > 10 * 1024 * 1024) { showMsg('Límite de 10MB superado', 'error'); return }
     const reader = new FileReader()
-    reader.onload = (event) => {
-      selectedFiles.value.push({
-        file,
-        preview: file.type.startsWith('image/') ? event.target.result : null,
-        type: file.type
-      })
-    }
+    reader.onload = (ev) => selectedFiles.value.push({ file, preview: file.type.startsWith('image/') ? ev.target.result : null, type: file.type })
     reader.readAsDataURL(file)
   })
-  
-  // Reset input
   if (e.target) e.target.value = ''
 }
 
-const removeFile = (index) => {
-  selectedFiles.value.splice(index, 1)
-}
+const removeFile = (index) => { selectedFiles.value.splice(index, 1) }
 
-// Image compression logic using Canvas
-const compressImage = async (file) => {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader()
-    reader.readAsDataURL(file)
-    reader.onload = (event) => {
-      const img = new Image()
-      img.src = event.target.result
-      img.onload = () => {
-        const canvas = document.createElement('canvas')
-        let width = img.width
-        let height = img.height
-
-        // Max dimension 1200px for web display vs compression balance
-        const MAX_WIDTH = 1200
-        const MAX_HEIGHT = 1200
-
-        if (width > height) {
-          if (width > MAX_WIDTH) {
-            height *= MAX_WIDTH / width
-            width = MAX_WIDTH
-          }
-        } else {
-          if (height > MAX_HEIGHT) {
-            width *= MAX_HEIGHT / height
-            height = MAX_HEIGHT
-          }
-        }
-
-        canvas.width = width
-        canvas.height = height
-        const ctx = canvas.getContext('2d')
-        ctx.drawImage(img, 0, 0, width, height)
-
-        // Quality 0.6 for "max compression" while looking "good"
-        canvas.toBlob((blob) => {
-          if (blob) {
-            const compressedFile = new File([blob], file.name, {
-              type: 'image/jpeg',
-              lastModified: Date.now(),
-            })
-            resolve(compressedFile)
-          } else {
-            reject(new Error('Canvas toBlob error'))
-          }
-        }, 'image/jpeg', 0.6)
-      }
-      img.onerror = () => reject(new Error('Image load error'))
+const compressImage = (file) => new Promise((resolve, reject) => {
+  const reader = new FileReader()
+  reader.readAsDataURL(file)
+  reader.onload = (ev) => {
+    const img = new Image()
+    img.src = ev.target.result
+    img.onload = () => {
+      const canvas = document.createElement('canvas')
+      let w = img.width, h = img.height
+      if (w > 1200) { h *= 1200 / w; w = 1200 }
+      if (h > 1200) { w *= 1200 / h; h = 1200 }
+      canvas.width = w; canvas.height = h
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h)
+      canvas.toBlob(blob => blob ? resolve(new File([blob], file.name, { type: 'image/jpeg', lastModified: Date.now() })) : reject(), 'image/jpeg', 0.6)
     }
-    reader.onerror = () => reject(new Error('File reader error'))
-  })
-}
+    img.onerror = reject
+  }
+  reader.onerror = reject
+})
 
+// --- SUBMIT POST ---
 const submitPost = async () => {
   if (!canSubmit.value) return
-  
   isSubmitting.value = true
   try {
-    const formData = new FormData()
-    formData.append('id_usuario', auth.user.id_usuario)
-    formData.append('content', post.value.content)
-    
-    // Extra fields
-    if (post.value.external_url) {
-      formData.append('external_url', post.value.external_url)
+    const fd = new FormData()
+    fd.append('id_usuario', auth.user.id_usuario)
+    fd.append('content', post.value.content)
+    fd.append('presupuesto', post.value.presupuesto)
+    if (post.value.external_url) fd.append('external_url', post.value.external_url)
+    fd.append('whatsapp_active', post.value.whatsapp_active)
+    if (post.value.whatsapp_active && post.value.whatsapp_number) {
+      fd.append('whatsapp_number', post.value.whatsapp_number)
     }
-
-    formData.append('whatsapp_active', post.value.whatsapp_active)
-    
-    if (showPoll.value) {
-      formData.append('poll_data', JSON.stringify({
-        question: post.value.poll.question,
-        options: post.value.poll.options,
-        correct_index: post.value.poll.correct_index
-      }))
-    }
-    
-    // Process and compress files
+    if (showPoll.value) fd.append('poll_data', JSON.stringify(post.value.poll))
     for (const item of selectedFiles.value) {
-      let fileToUpload = item.file
-      
-      if (item.type.startsWith('image/')) {
-        try {
-          fileToUpload = await compressImage(item.file)
-        } catch (e) {
-          console.error('Compression failed, using original', e)
-        }
-      }
-      // Videos are not compressed client-side here (too complex without libs), 
-      // but we respect the 10MB limit.
-      
-      formData.append('media', fileToUpload)
+      let f = item.file
+      if (item.type.startsWith('image/')) { try { f = await compressImage(item.file) } catch {} }
+      fd.append('media', f)
     }
 
-    const response = await $api('/publicaciones', {
-      method: 'POST',
-      body: formData
-    })
-
-    if (response.success) {
-      showMsg('¡Publicado con éxito! 🚀', 'success')
+    const res = await $api('/publicaciones', { method: 'POST', body: fd })
+    if (res?.success) {
       // Reset form
-      post.value.content = ''
-      post.value.external_url = ''
-      post.value.whatsapp_active = true
-      post.value.poll = { question: '', options: ['', '', ''], correct_index: 0 }
+      post.value = { 
+        content: '', 
+        external_url: '', 
+        whatsapp_active: false, 
+        whatsapp_number: auth.user.telefono || '',
+        presupuesto: 200, 
+        poll: { question: '', options: ['', '', ''], correct_index: 0 } 
+      }
       showPoll.value = false
       selectedFiles.value = []
-      
-      // Redirect to dashboard after a short delay
-      setTimeout(() => {
-        navigateTo('/cliente/DashboardCliente')
-      }, 2000)
+      await fetchMisPublicaciones()
+      // Open payment modal for the newly created publication
+      const newPub = misPublicaciones.value[0]
+      if (newPub) setTimeout(() => abrirModalPago(newPub), 400)
     } else {
-      showMsg(response.message || 'Error al publicar', 'error')
+      showMsg(res?.message || 'Error al publicar', 'error')
     }
   } catch (error) {
-    console.error('Submit error:', error)
-    let msg = 'Error de conexión'
-    if (error.response && error.response._data) {
-      msg = error.response._data.message || msg
-    }
-    showMsg(msg, 'error')
+    showMsg(error?.response?._data?.message || 'Error de conexión', 'error')
   } finally {
     isSubmitting.value = false
   }
 }
 
+const eliminarPublicacion = async (id) => {
+  if (!confirm('¿Eliminar esta publicación?')) return
+  try {
+    await $api(`/publicaciones/${id}`, { method: 'DELETE' })
+    misPublicaciones.value = misPublicaciones.value.filter(p => p.id_publicacion !== id)
+    showMsg('Publicación eliminada', 'success')
+  } catch { showMsg('Error al eliminar', 'error') }
+}
+
 onMounted(async () => {
   if (!auth.isAuthenticated) return navigateTo('/')
+  await Promise.all([
+    fetchMembershipStatus(),
+    fetchBankAccounts(),
+    (async () => {
+      try {
+        const c = await $api(`/credito/usuario/${auth.user.id_usuario}`)
+        if (c?.success) totalEarnings.value = parseFloat(c.data.monto_credito || 0)
+      } catch {}
+    })(),
+    fetchMisPublicaciones(),
+    // Asegurar que tenemos el teléfono del usuario
+    (async () => {
+      if (!auth.user?.telefono) {
+        await auth.fetchUser()
+      }
+    })()
+  ])
   
-  await fetchMembershipStatus()
-  
-  // Fetch real credit balance for header
-  try {
-    const cData = await $api(`/credito/usuario/${auth.user.id_usuario}`)
-    if (cData && cData.success) {
-       totalEarnings.value = parseFloat(cData.data.monto_credito || 0)
-    }
-  } catch (e) {
-    console.error('Error fetching credit:', e)
+  if (auth.user?.telefono) {
+    post.value.whatsapp_number = auth.user.telefono
   }
   
   isLoading.value = false
 })
 
 useHead({
-  title: 'Crear Publicación | RedPlus',
-  meta: [
-    { name: 'description', content: 'Crea una nueva publicación para la comunidad RedPlus.' }
-  ]
+  title: 'Publicar | RedPlus',
+  meta: [{ name: 'description', content: 'Crea publicaciones y gestiona tu alcance en la comunidad RedPlus.' }]
 })
 </script>
 
 <style scoped>
-.animate-fade-in {
-  animation: fadeIn 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+.animate-fade-in { animation: fadeIn 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes modal-in { from { opacity: 0; transform: scale(0.95) translateY(10px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+.animate-modal-in { animation: modal-in 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+.fade-enter-active, .fade-leave-active { transition: opacity 0.2s; }
+.fade-enter-from, .fade-leave-to { opacity: 0; }
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+.line-clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+
+/* Multiselect dark theme */
+.multiselect-custom-dark :deep(.multiselect__tags) {
+  background: rgba(255, 255, 255, 0.05) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-radius: 1rem !important;
+  color: white !important;
+  min-height: 48px !important;
+  padding: 8px 40px 0 12px !important;
 }
 
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+.multiselect-custom-dark :deep(.multiselect__single), 
+.multiselect-custom-dark :deep(.multiselect__placeholder) {
+  background: transparent !important;
+  color: #9ca3af !important;
+  font-weight: 700 !important;
+  font-size: 12px !important;
+  margin-top: 4px !important;
 }
 
-/* Hide scrollbar but keep functionality */
-.no-scrollbar::-webkit-scrollbar {
-  display: none;
+.multiselect-custom-dark :deep(.multiselect__content-wrapper) {
+  background: #0f172a !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-radius: 1rem !important;
+  z-index: 200 !important;
 }
-.no-scrollbar {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
+
+.multiselect-custom-dark :deep(.multiselect__option) {
+  background: transparent;
+  color: #e5e7eb;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 12px 16px !important;
+}
+
+.multiselect-custom-dark :deep(.multiselect__option--highlight) {
+  background: transparent !important;
+  color: white !important;
 }
 </style>
