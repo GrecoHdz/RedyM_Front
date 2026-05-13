@@ -179,7 +179,7 @@ const isPageLoading = ref(true)
 const errorMsg = ref('')
 
 // Captura de referido
-const idPatrocinador = ref(1)
+const idPatrocinador = ref(null)
 
 // Status overlay
 const showStatusSuccess = ref(false)
@@ -210,12 +210,22 @@ watch(showModal, (val) => {
   }
 })
 
+// Cargar ciudades si se cambia a registro y no están cargadas
+watch(isLogin, (val) => {
+  if (!val && ciudades.value.length === 0) {
+    fetchCiudades()
+  }
+})
+
 onMounted(async () => {
   // Capturar referido de la URL ?ref=123
   if (route.query.ref) {
-    idPatrocinador.value = parseInt(route.query.ref) || 1
+    idPatrocinador.value = parseInt(route.query.ref) || null
     console.log('Referido capturado:', idPatrocinador.value)
   }
+
+  // Cargar ciudades preventivamente
+  fetchCiudades()
 
   // Simular carga inicial
   setTimeout(() => {
@@ -245,6 +255,7 @@ const fetchCiudades = async () => {
     }
   } catch (err) {
     console.error('Error al cargar ciudades:', err)
+    showToast('Error al conectar con el servidor para cargar ciudades', 'error')
   } finally {
     loadingCiudades.value = false
   }

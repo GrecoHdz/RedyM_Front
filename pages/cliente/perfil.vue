@@ -123,80 +123,7 @@
         </div>
       </section>
 
-      <!-- Membership Card -->
-      <section class="mb-4">
-        <div class="relative overflow-hidden rounded-2xl bg-white/5 border border-white/10 p-5 backdrop-blur-md shadow-2xl transition-all duration-500 group">
-          <!-- Subtle status-based glow -->
-          <div class="absolute -right-20 -top-20 w-48 h-48 blur-[80px] opacity-20 pointer-events-none transition-all duration-700 group-hover:opacity-30"
-            :class="{
-              'bg-blue-500': isMembershipActive,
-              'bg-amber-500': isMembershipPending,
-              'bg-red-500': isMembershipExpired,
-              'bg-gray-500': isMembershipInactive
-            }"></div>
-          
-          <div class="relative z-10">
-            <div class="flex items-center justify-between mb-5">
-              <div class="flex items-center gap-4">
-                <div class="w-12 h-12 rounded-2xl bg-white/5 flex items-center justify-center text-2xl border border-white/10 shadow-inner group-hover:scale-110 transition-transform duration-500">
-                  {{ isMembershipActive ? '🏆' : (isMembershipPending ? '⏳' : (isMembershipExpired ? '⚠️' : '🔒')) }}
-                </div>
-                <div>
-                  <h3 class="text-sm font-black text-white uppercase tracking-tight mb-0.5">Membresía</h3>
-                  <div class="flex items-center gap-2">
-                    <span class="w-1.5 h-1.5 rounded-full animate-pulse"
-                      :class="{
-                        'bg-blue-400 shadow-[0_0_8px_rgba(96,165,250,0.8)]': isMembershipActive,
-                        'bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.8)]': isMembershipPending,
-                        'bg-red-400 shadow-[0_0_8px_rgba(248,113,113,0.8)]': isMembershipExpired,
-                        'bg-gray-500': isMembershipInactive
-                      }"></span>
-                    <p class="text-[10px] font-black uppercase tracking-widest"
-                       :class="{
-                         'text-blue-400': isMembershipActive,
-                         'text-amber-400': isMembershipPending,
-                         'text-red-400': isMembershipExpired,
-                         'text-gray-500': isMembershipInactive
-                       }">
-                      {{ membershipStatus }}
-                    </p>
-                  </div>
-                </div>
-              </div>
-              <button 
-                @click="renovarMembresia"
-                :disabled="isMembershipPending"
-                class="bg-white/10 hover:bg-white text-white hover:text-[#070b14] px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest border border-white/10 active:scale-95 transition-all disabled:opacity-30 disabled:cursor-not-allowed shadow-lg">
-                {{ isMembershipActive ? 'Renovar' : (isMembershipInactive || isMembershipExpired ? 'Activar' : 'Pendiente') }}
-              </button>
-            </div>
-
-            <div v-if="isMembershipActive || isMembershipPending || isMembershipExpired" class="space-y-3">
-              <div class="flex justify-between items-end px-1">
-                <div class="space-y-0.5">
-                  <p class="text-[9px] text-gray-500 font-black uppercase tracking-widest">
-                    {{ isMembershipActive ? 'Vence el' : (isMembershipPending ? 'Enviado el' : 'Estado') }}
-                  </p>
-                  <p class="text-[11px] font-black text-white">
-                    {{ isMembershipActive ? formatShortDate(membershipData.fechaVencimiento) : (isMembershipInactive ? 'Activa tu membresía' : formatShortDate(membershipData.fechaInicio)) }}
-                  </p>
-                </div>
-                <div v-if="isMembershipActive" class="text-right">
-                  <p class="text-[9px] text-gray-500 font-black uppercase tracking-widest">Progreso</p>
-                  <p class="text-[11px] font-black text-blue-400">{{ membershipProgress }}%</p>
-                </div>
-              </div>
-              
-              <div v-if="isMembershipActive" class="w-full bg-white/5 rounded-full h-1.5 overflow-hidden border border-white/5">
-                <div 
-                  class="h-full rounded-full bg-gradient-to-r from-blue-600 to-blue-400 transition-all duration-1000 ease-out shadow-[0_0_10px_rgba(37,99,235,0.4)]"
-                  :style="`width: ${membershipProgress}%`"
-                ></div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+<div class="hidden"><!-- Membership section moved to red.vue --></div>
  
       <!-- Personal Information Form -->
       <section class="bg-white/5 border border-white/10 rounded-2xl p-4 mb-4 backdrop-blur-sm">
@@ -412,11 +339,11 @@
 
     <!-- Modal Unificado de Verificación (Foto e ID) -->
     <Transition name="fade">
-      <div v-if="isVerificationModalOpen" @click.self="isVerificationModalOpen = false" class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+      <div v-if="isVerificationModalOpen" @click.self="!isUploading && (isVerificationModalOpen = false)" class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
         <div class="bg-[#0f172a] border border-white/10 rounded-[2.5rem] p-6 w-full max-w-md shadow-2xl animate-modal-in max-h-[90vh] overflow-y-auto custom-scrollbar">
           <div class="flex items-center justify-between mb-8">
             <h3 class="text-xl font-black text-white uppercase tracking-tight">Verificación</h3>
-            <button @click="isVerificationModalOpen = false" class="text-gray-500 hover:text-white transition-colors">
+            <button :disabled="isUploading" @click="isVerificationModalOpen = false" class="text-gray-500 hover:text-white transition-colors disabled:opacity-30 disabled:cursor-not-allowed">
               <i class="fas fa-times text-lg"></i>
             </button>
           </div>
@@ -440,10 +367,10 @@
                 
                 <div class="w-full grid grid-cols-1 gap-2">
                   <input type="file" ref="fileInput" class="hidden" accept="image/*" @change="onFileChange">
-                  <button @click="$refs.fileInput.click()" class="w-full py-3 bg-emerald-500 text-[#070b14] font-black uppercase tracking-widest rounded-xl shadow-lg active:scale-95 transition-all text-[11px]">
+                  <button :disabled="isUploading" @click="$refs.fileInput.click()" class="w-full py-3 bg-emerald-500 text-[#070b14] font-black uppercase tracking-widest rounded-xl shadow-lg active:scale-95 transition-all text-[11px] disabled:opacity-50 disabled:cursor-not-allowed">
                     {{ isUploading ? 'Subiendo...' : (user.imagen_url ? 'Cambiar Foto' : 'Subir Foto') }}
                   </button>
-                  <button v-if="user.imagen_url" @click="deleteProfileImage" class="w-full py-3 text-red-400 font-bold uppercase tracking-widest text-[9px] hover:bg-red-400/5 rounded-xl transition-all">
+                  <button :disabled="isUploading" v-if="user.imagen_url" @click="deleteProfileImage" class="w-full py-3 text-red-400 font-bold uppercase tracking-widest text-[9px] hover:bg-red-400/5 rounded-xl transition-all disabled:opacity-30 disabled:cursor-not-allowed">
                     Eliminar Actual
                   </button>
                 </div>
@@ -471,10 +398,10 @@
 
                 <div class="grid grid-cols-1 gap-2">
                   <input type="file" ref="identityFileInput" class="hidden" accept="image/*" @change="onIdentityFileChange">
-                  <button @click="$refs.identityFileInput.click()" class="w-full py-3 bg-blue-500 text-white font-black uppercase tracking-widest rounded-xl shadow-lg active:scale-95 transition-all text-[11px]">
-                    {{ user.identidad_url ? 'Actualizar Documento' : 'Subir DNI' }}
+                  <button :disabled="isUploading" @click="$refs.identityFileInput.click()" class="w-full py-3 bg-blue-500 text-white font-black uppercase tracking-widest rounded-xl shadow-lg active:scale-95 transition-all text-[11px] disabled:opacity-50 disabled:cursor-not-allowed">
+                    {{ isUploading ? 'Subiendo...' : (user.identidad_url ? 'Actualizar Documento' : 'Subir DNI') }}
                   </button>
-                  <button v-if="user.identidad_url" @click="deleteIdentityImage" class="w-full py-3 text-red-400 font-bold uppercase tracking-widest text-[9px] hover:bg-red-400/5 rounded-xl transition-all">
+                  <button :disabled="isUploading" v-if="user.identidad_url" @click="deleteIdentityImage" class="w-full py-3 text-red-400 font-bold uppercase tracking-widest text-[9px] hover:bg-red-400/5 rounded-xl transition-all disabled:opacity-30 disabled:cursor-not-allowed">
                     Eliminar documento
                   </button>
                 </div>
@@ -482,75 +409,14 @@
             </div>
           </div>
           
-          <button @click="isVerificationModalOpen = false" class="w-full mt-8 py-3 text-gray-500 font-bold uppercase tracking-widest text-[10px] hover:text-white transition-colors">
+          <button :disabled="isUploading" @click="isVerificationModalOpen = false" class="w-full mt-8 py-3 text-gray-500 font-bold uppercase tracking-widest text-[10px] hover:text-white transition-colors disabled:opacity-30 disabled:cursor-not-allowed">
             Cerrar Ventana
           </button>
         </div>
       </div>
     </Transition>
 
-    <!-- Modal Renovación Membresía -->
-    <Transition name="fade">
-      <div v-if="showRenewalModal" @click.self="showRenewalModal = false" class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-        <div class="bg-[#0f172a] border border-white/10 rounded-[2.5rem] p-8 w-full max-w-sm shadow-2xl animate-modal-in max-h-[90vh] overflow-y-auto">
-          <div class="text-center mb-6">
-            <div class="w-16 h-16 bg-blue-500/20 rounded-2xl flex items-center justify-center mx-auto mb-4 text-3xl">🏆</div>
-            <h3 class="text-xl font-black text-white uppercase tracking-tight">Activar Membresía</h3>
-            <p class="text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-1">Disfruta beneficios exclusivos</p>
-          </div>
-
-          <div class="bg-blue-500/10 border border-blue-500/20 p-4 rounded-2xl mb-6 text-center">
-            <span class="text-[10px] text-blue-400 font-black uppercase tracking-widest block mb-1">Costo Mensual</span>
-            <span class="text-2xl font-black text-white">${{ Number(membershipCost).toFixed(2) }}</span>
-          </div>
-
-          <div class="space-y-6">
-            <div class="space-y-2">
-              <label class="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">Selecciona Banco</label>
-              <multiselect
-                v-model="selectedAccountObject"
-                :options="bankAccounts"
-                :searchable="false"
-                label="banco"
-                track-by="id_cuenta"
-                class="multiselect-custom-dark"
-                placeholder="-- Elige una cuenta --"
-              />
-            </div>
-
-            <div v-if="selectedAccountObject" class="bg-white/5 border border-white/10 p-4 rounded-2xl space-y-2">
-              <div class="flex justify-between items-center text-[10px] uppercase font-bold">
-                <span class="text-gray-500">Banco:</span>
-                <span class="text-white">{{ selectedAccountObject.banco }}</span>
-              </div>
-              <div class="flex justify-between items-center text-[10px] uppercase font-bold">
-                <span class="text-gray-500">N° Cuenta:</span>
-                <span class="text-white select-all">{{ selectedAccountObject.num_cuenta }}</span>
-              </div>
-              <div class="flex justify-between items-center text-[10px] uppercase font-bold">
-                <span class="text-gray-500">Titular:</span>
-                <span class="text-white">{{ selectedAccountObject.beneficiario }}</span>
-              </div>
-            </div>
-
-            <div class="space-y-2">
-              <label class="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">N° Comprobante</label>
-              <input v-model="comprobante" type="text" placeholder="Ej: 9812739" class="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 outline-none focus:border-blue-500 transition-all text-white font-bold">
-            </div>
-
-            <div class="flex flex-col gap-3 pt-4">
-              <button 
-                @click="confirmRenewal"
-                :disabled="isRenewing || !selectedAccount || !comprobante"
-                class="w-full py-4 bg-blue-500 text-white font-black uppercase tracking-widest rounded-2xl shadow-xl shadow-blue-900/40 active:scale-95 transition-all disabled:opacity-50">
-                {{ isRenewing ? 'Procesando...' : 'Confirmar y Enviar' }}
-              </button>
-              <button @click="showRenewalModal = false" class="w-full py-2 text-gray-500 font-bold uppercase tracking-widest text-xs">Cancelar</button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </Transition>
+    <!-- Membership renewal modal moved to red.vue -->
 
     <!-- Modal Confirmación Unsubscribe -->
     <Transition name="fade">
@@ -614,6 +480,21 @@
       </div>
     </Transition>
 
+    <!-- Modal Confirmación Cerrar Sesión -->
+    <Transition name="fade">
+      <div v-if="showLogoutModal" @click.self="showLogoutModal = false" class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+        <div class="bg-[#0f172a] border border-red-500/20 rounded-3xl p-8 w-full max-w-sm shadow-2xl animate-modal-in text-center">
+          <div class="w-16 h-16 bg-red-500/10 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl">👋</div>
+          <h3 class="text-xl font-black text-white mb-2">¿Ya te vas?</h3>
+          <p class="text-xs text-gray-500 mb-8 font-medium">Esperamos verte pronto de nuevo para seguir ganando.</p>
+          <div class="flex flex-col gap-3">
+            <button @click="confirmLogout" class="w-full py-4 bg-red-500 text-white font-black uppercase tracking-widest rounded-2xl active:scale-95 transition-all shadow-lg shadow-red-900/20">Sí, cerrar sesión</button>
+            <button @click="showLogoutModal = false" class="w-full py-4 bg-white/5 text-white font-black uppercase tracking-widest rounded-2xl active:scale-95 transition-all">Me quedo un rato más</button>
+          </div>
+        </div>
+      </div>
+    </Transition>
+
     <!-- Navigation -->
     <BottomNav />
   </div>
@@ -641,7 +522,6 @@ const isSaving = ref(false)
 const isUploading = ref(false)
 const isDeleting = ref(false)
 const isUpdatingPassword = ref(false)
-const isRenewing = ref(false)
 
 const totalEarnings = computed(() => Number(user.value.monto_credito || 0))
 const totalReferrals = ref(24)
@@ -654,6 +534,7 @@ const showUnsubscribeModal = ref(false)
 const isTerminosModalOpen = ref(false)
 const isPrivacidadModalOpen = ref(false)
 const isAcercaModalOpen = ref(false)
+const showLogoutModal = ref(false)
 
 // Form Data
 const userCookie = useCookie('user')
@@ -680,19 +561,6 @@ const newPassword = ref('')
 const confirmPassword = ref('')
 
 
-
-// Membresía
-const membershipData = ref({
-  status: 'inactiva',
-  progress: 0,
-  fechaInicio: null,
-  fechaVencimiento: null
-})
-const membershipCost = ref(0)
-const bankAccounts = ref([])
-const selectedAccount = ref('')
-const selectedAccountObject = ref(null)
-const comprobante = ref('')
 
 // Toast
 const toast = ref({
@@ -722,21 +590,11 @@ const passwordMismatch = computed(() => {
   return newPassword.value && confirmPassword.value && newPassword.value !== confirmPassword.value
 })
 
-const isMembershipActive = computed(() => membershipData.value.status === 'activa')
-const isMembershipPending = computed(() => membershipData.value.status === 'pendiente')
-const isMembershipExpired = computed(() => membershipData.value.status === 'vencida')
-const isMembershipInactive = computed(() => ['inactiva', 'rechazada'].includes(membershipData.value.status) || !membershipData.value.status)
-const membershipProgress = computed(() => membershipData.value.progress)
-const membershipStatus = computed(() => {
-  const map = { activa: 'Activa', pendiente: 'Pendiente', vencida: 'Vencida', inactiva: 'Inactiva', rechazada: 'Rechazada' }
-  return map[membershipData.value.status] || 'Inactiva'
-})
 
 
 
-watch(selectedAccountObject, (newVal) => {
-  selectedAccount.value = newVal ? newVal.id_cuenta : ''
-})
+
+
 
 // --- FUNCIONES ---
 const showMsg = (message, type = 'info') => {
@@ -790,43 +648,9 @@ const fetchCreditBalance = async () => {
 
 
 
-const fetchMembershipData = async () => {
-  try {
-    const data = await $api(`/membresia/${auth.user.id_usuario}`)
-    if (data && data.status === 'success' && data.data) {
-      const m = data.data
-      const fechaInicio = new Date(m.fecha)
-      const fechaFin = new Date(m.fecha)
-      fechaFin.setDate(fechaFin.getDate() + 30)
-      
-      // Calcular progreso
-      const hoy = new Date()
-      const total = fechaFin - fechaInicio
-      const transcurrido = hoy - fechaInicio
-      let progreso = Math.min(100, Math.max(0, Math.round((transcurrido / total) * 100)))
-      
-      membershipData.value = {
-        status: (progreso >= 100 && m.estado === 'activa') ? 'vencida' : m.estado,
-        progress: progreso,
-        fechaInicio: fechaInicio,
-        fechaVencimiento: fechaFin
-      }
-    }
-  } catch (error) {
-    console.error('Error membership:', error)
-    showMsg('Error al cargar membresía', 'error')
-  }
-}
 
-const fetchBankAccounts = async () => {
-  try {
-    const data = await $api('/cuentas')
-    if (data) bankAccounts.value = data
-  } catch (error) {
-    console.error('Error bank accounts:', error)
-    showMsg('Error al cargar cuentas bancarias', 'error')
-  }
-}
+
+
 
 const saveProfile = async () => {
   isSaving.value = true
@@ -976,45 +800,7 @@ const deleteIdentityImage = async () => {
   }
 }
 
-const renovarMembresia = async () => {
-  showRenewalModal.value = true
-  await fetchBankAccounts()
-  try {
-    const data = await $api('/config/multi?tipos=valor_membresia')
-    if (data && data.success && data.data) {
-      membershipCost.value = Number(data.data.valor_membresia) || 0
-    }
-  } catch (error) {
-    console.error("Error al obtener precio membresia:", error)
-    membershipCost.value = 0
-  }
-}
 
-const confirmRenewal = async () => {
-  isRenewing.value = true
-  try {
-    const res = await $api('/membresia', {
-      method: 'POST',
-      body: {
-        id_usuario: user.value.id_usuario,
-        id_cuenta: selectedAccount.value,
-        num_comprobante: comprobante.value,
-        monto: membershipCost.value
-      }
-    })
-    showRenewalModal.value = false
-    await fetchMembershipData()
-    showMsg('¡Pago enviado para revisión!', 'success')
-  } catch (error) {
-    let errorMessage = 'Error al enviar pago'
-    if (error.response && error.response._data) {
-      errorMessage = error.response._data.message || errorMessage
-    }
-    showMsg(errorMessage, 'error')
-  } finally {
-    isRenewing.value = false
-  }
-}
 
 const handleToggleNotifications = async () => {
   if (isSubscribed.value) {
@@ -1035,12 +821,15 @@ const confirmUnsubscribe = async () => {
   showMsg('Notificaciones desactivadas', 'info')
 }
 
-const handleLogout = async () => {
-  if (confirm('¿Cerrar sesión?')) {
-    isLoggingOut.value = true
-    await auth.logout()
-    navigateTo('/')
-  }
+const handleLogout = () => {
+  showLogoutModal.value = true
+}
+
+const confirmLogout = async () => {
+  showLogoutModal.value = false
+  isLoggingOut.value = true
+  await auth.logout()
+  navigateTo('/')
 }
 
 const formatShortDate = (d) => {
@@ -1054,7 +843,6 @@ onMounted(async () => {
   await Promise.all([
     fetchUserData(),
     fetchCreditBalance(),
-    fetchMembershipData(),
     checkSubscription()
   ])
   
@@ -1070,41 +858,7 @@ useHead({
 </script>
 
 <style>
-/* Estilos globales para multiselect en modo oscuro */
-.multiselect-custom-dark .multiselect__tags {
-  background: rgba(255, 255, 255, 0.05) !important;
-  border: 1px solid rgba(255, 255, 255, 0.1) !important;
-  border-radius: 1rem !important;
-  color: white !important;
-  min-height: 52px !important;
-  padding: 8px 40px 0 12px !important;
-}
 
-.multiselect-custom-dark .multiselect__single, 
-.multiselect-custom-dark .multiselect__input {
-  background: transparent !important;
-  color: white !important;
-  font-weight: 700 !important;
-  font-size: 14px !important;
-}
-
-.multiselect-custom-dark .multiselect__content-wrapper {
-  background: #0f172a !important;
-  border: 1px solid rgba(255, 255, 255, 0.1) !important;
-  border-radius: 1rem !important;
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5) !important;
-}
-
-.multiselect-custom-dark .multiselect__option--highlight {
-  background: #10b981 !important;
-  color: #070b14 !important;
-  font-weight: 900 !important;
-}
-
-.multiselect-custom-dark .multiselect__option--selected {
-  background: rgba(16, 185, 129, 0.2) !important;
-  color: #10b981 !important;
-}
 
 .animate-fade-in {
   animation: fadeIn 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;

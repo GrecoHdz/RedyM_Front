@@ -7,7 +7,7 @@
       @close="toast.show = false"
     />
 
-    <LoadingSpinner :loading="isLoading" message="Cargando solicitudes..." />
+    <LoadingSpinner :loading="isLoading" message="Cargando información..." />
 
     <!-- Header -->
     <header class="fixed top-0 inset-x-0 z-40 bg-[#070b14]/80 backdrop-blur-md border-b border-white/5 px-6 py-4 flex items-center justify-between">
@@ -17,7 +17,7 @@
         </div>
         <div>
           <h1 class="text-lg font-black uppercase tracking-tight leading-none">Admin Panel</h1>
-          <p class="text-[10px] text-emerald-500 font-bold uppercase tracking-widest mt-1">Gestión de Membresías</p>
+          <p class="text-[10px] text-emerald-500 font-bold uppercase tracking-widest mt-1">{{ sectionTitle }}</p>
         </div>
       </div>
       
@@ -27,8 +27,18 @@
     </header>
 
     <main class="pt-24 px-4 max-w-4xl mx-auto">
-      <!-- Summary Cards -->
-      <section class="grid grid-cols-3 gap-3 mb-8">
+      <!-- Main Section Navigation -->
+      <nav class="flex gap-2 mb-8 bg-white/5 p-1.5 rounded-[2rem] border border-white/10 shadow-2xl">
+        <button v-for="sec in mainSections" :key="sec.id"
+          @click="currentSection = sec.id"
+          :class="`flex-1 py-3 rounded-2xl text-[11px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2 ${currentSection === sec.id ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-[#070b14] shadow-xl scale-[1.02]' : 'text-gray-500 hover:text-white hover:bg-white/5'}`">
+          <i :class="sec.icon"></i>
+          <span class="hidden sm:inline">{{ sec.label }}</span>
+        </button>
+      </nav>
+
+      <!-- Summary Cards (Only for Memberships now, or adapted per section) -->
+      <section v-if="currentSection === 'membresias'" class="grid grid-cols-3 gap-3 mb-8">
         <div class="bg-emerald-500/10 border border-emerald-500/20 rounded-3xl p-4 text-center">
           <span class="block text-[8px] font-black text-emerald-500 uppercase tracking-widest mb-1">Recaudado</span>
           <span class="text-lg font-black text-white">${{ Number(estadisticas.total || 0).toFixed(2) }}</span>
@@ -43,192 +53,392 @@
         </div>
       </section>
 
-      <!-- Tabs Filter -->
-      <div class="flex gap-2 mb-6 bg-white/5 p-1 rounded-2xl border border-white/10">
-        <button v-for="tab in tabs" :key="tab.id"
-          @click="activeTab = tab.id"
-          :class="`flex-1 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === tab.id ? 'bg-emerald-500 text-[#070b14] shadow-lg' : 'text-gray-500 hover:text-white'}`">
-          {{ tab.label }}
-        </button>
-      </div>
-
-      <!-- Requests List -->
-      <div class="space-y-4">
-        <div v-if="filteredMembresias.length === 0" class="py-20 text-center opacity-40">
-          <i class="fas fa-folder-open text-4xl mb-4"></i>
-          <p class="text-xs font-bold uppercase tracking-widest">No hay solicitudes en esta categoría</p>
+      <!-- Section: MEMBRESIAS -->
+      <template v-if="currentSection === 'membresias'">
+        <!-- Tabs Filter -->
+        <div class="flex gap-2 mb-6 bg-white/5 p-1 rounded-2xl border border-white/10">
+          <button v-for="tab in membershipTabs" :key="tab.id"
+            @click="activeMembershipTab = tab.id"
+            :class="`flex-1 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeMembershipTab === tab.id ? 'bg-emerald-500 text-[#070b14] shadow-lg' : 'text-gray-500 hover:text-white'}`">
+            {{ tab.label }}
+          </button>
         </div>
 
-        <TransitionGroup name="list">
-          <div v-for="item in filteredMembresias" :key="item.id_membresia" 
-               class="bg-white/5 border border-white/10 rounded-[2rem] p-5 backdrop-blur-sm group hover:border-emerald-500/30 transition-all">
-            <div class="flex items-center justify-between mb-4">
-              <div class="flex items-center gap-4">
-                <div class="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 overflow-hidden">
-                  <img :src="`https://ui-avatars.com/api/?name=${item.usuario.nombre}&background=random&color=fff`" class="w-full h-full object-cover">
-                </div>
-                <div>
-                  <h3 class="text-sm font-black text-white uppercase tracking-tight">{{ item.usuario.nombre }}</h3>
-                  <div class="flex items-center gap-2 mt-0.5">
-                    <span class="text-[9px] font-bold text-gray-500">{{ item.usuario.telefono }}</span>
-                    <div class="w-1 h-1 rounded-full bg-gray-700"></div>
-                    <span class="text-[9px] font-bold text-emerald-500">{{ formatDate(item.fecha) }}</span>
+        <!-- Requests List -->
+        <div class="space-y-4">
+          <div v-if="filteredMembresias.length === 0" class="py-20 text-center opacity-40">
+            <i class="fas fa-folder-open text-4xl mb-4"></i>
+            <p class="text-xs font-bold uppercase tracking-widest">No hay membresías en esta categoría</p>
+          </div>
+
+          <TransitionGroup name="list">
+            <div v-for="item in filteredMembresias" :key="item.id_membresia" 
+                 class="bg-white/5 border border-white/10 rounded-[2rem] p-5 backdrop-blur-sm group hover:border-emerald-500/30 transition-all">
+              <div class="flex items-center justify-between mb-4">
+                <div class="flex items-center gap-4">
+                  <div class="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 overflow-hidden">
+                    <img :src="item.usuario.imagen_url || `https://ui-avatars.com/api/?name=${item.usuario.nombre}&background=random&color=fff`" class="w-full h-full object-cover">
+                  </div>
+                  <div>
+                    <h3 class="text-sm font-black text-white uppercase tracking-tight">{{ item.usuario.nombre }}</h3>
+                    <div class="flex items-center gap-2 mt-0.5">
+                      <span class="text-[9px] font-bold text-gray-500">{{ item.usuario.telefono }}</span>
+                      <div class="w-1 h-1 rounded-full bg-gray-700"></div>
+                      <span class="text-[9px] font-bold text-emerald-500">{{ formatDate(item.fecha) }}</span>
+                    </div>
                   </div>
                 </div>
+                <div :class="`px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-widest ${getStatusClass(item.estado)}` ">
+                  {{ item.estado }}
+                </div>
               </div>
-              <div :class="`px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-widest ${getStatusClass(item.estado)}` ">
-                {{ item.estado }}
-              </div>
-            </div>
 
-            <div class="grid grid-cols-2 gap-4 mb-5 pt-4 border-t border-white/5">
-              <div class="space-y-1">
-                <span class="text-[8px] font-black text-gray-500 uppercase tracking-widest block">Banco Emisor</span>
-                <p class="text-xs font-black text-white uppercase">{{ item.cuenta.banco }}</p>
+              <div class="grid grid-cols-2 gap-4 mb-5 pt-4 border-t border-white/5">
+                <div class="space-y-1">
+                  <span class="text-[8px] font-black text-gray-500 uppercase tracking-widest block">Banco Emisor</span>
+                  <p class="text-xs font-black text-white uppercase">{{ item.cuenta?.banco || '---' }}</p>
+                </div>
+                <div class="space-y-1">
+                  <span class="text-[8px] font-black text-gray-500 uppercase tracking-widest block">
+                    {{ item.pagador ? 'Enviado por' : 'Comprobante' }}
+                  </span>
+                  <p class="text-xs font-black text-emerald-400 select-all">
+                    {{ item.pagador ? item.pagador.nombre : (item.num_comprobante || '---') }}
+                  </p>
+                </div>
+                <div class="space-y-1">
+                  <span class="text-[8px] font-black text-gray-500 uppercase tracking-widest block">Monto Pagado</span>
+                  <p class="text-xs font-black text-white">${{ Number(item.monto || 0).toFixed(2) }}</p>
+                </div>
+                <div class="space-y-1">
+                  <span class="text-[8px] font-black text-gray-500 uppercase tracking-widest block">ID Usuario</span>
+                  <p class="text-xs font-black text-gray-400">#{{ item.usuario.id_usuario }}</p>
+                </div>
               </div>
-              <div class="space-y-1">
-                <span class="text-[8px] font-black text-gray-500 uppercase tracking-widest block">Comprobante</span>
-                <p class="text-xs font-black text-emerald-400 select-all">{{ item.num_comprobante || '---' }}</p>
-              </div>
-              <div class="space-y-1">
-                <span class="text-[8px] font-black text-gray-500 uppercase tracking-widest block">Monto Pagado</span>
-                <p class="text-xs font-black text-white">${{ Number(item.monto || 0).toFixed(2) }}</p>
-              </div>
-              <div class="space-y-1">
-                <span class="text-[8px] font-black text-gray-500 uppercase tracking-widest block">ID Usuario</span>
-                <p class="text-xs font-black text-gray-400">#{{ item.usuario.id_usuario }}</p>
-              </div>
-            </div>
 
-            <!-- Actions -->
-            <div v-if="item.estado === 'pendiente'" class="grid grid-cols-2 gap-3 pt-4 border-t border-white/5">
-              <button @click="confirmAction(item, 'rechazar')" 
-                class="py-3 px-4 bg-red-500/10 hover:bg-red-500/20 text-red-500 rounded-2xl text-[10px] font-black uppercase tracking-widest border border-red-500/20 transition-all flex items-center justify-center gap-2">
-                <i class="fas fa-times"></i>
-                Rechazar
-              </button>
-              <button @click="confirmAction(item, 'aprobar')" 
-                class="py-3 px-4 bg-emerald-500 text-[#070b14] rounded-2xl text-[10px] font-black uppercase tracking-widest border border-emerald-500 transition-all flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20">
-                <i class="fas fa-check"></i>
-                Aprobar Pago
-              </button>
+              <!-- Actions -->
+              <div v-if="item.estado === 'pendiente'" class="grid grid-cols-2 gap-3 pt-4 border-t border-white/5">
+                <button @click="confirmAction(item, 'rechazar', 'membresia')" 
+                  class="py-3 px-4 bg-red-500/10 hover:bg-red-500/20 text-red-500 rounded-2xl text-[10px] font-black uppercase tracking-widest border border-red-500/20 transition-all flex items-center justify-center gap-2">
+                  <i class="fas fa-times"></i>
+                  Rechazar
+                </button>
+                <button @click="confirmAction(item, 'aprobar', 'membresia')" 
+                  class="py-3 px-4 bg-emerald-500 text-[#070b14] rounded-2xl text-[10px] font-black uppercase tracking-widest border border-emerald-500 transition-all flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20">
+                  <i class="fas fa-check"></i>
+                  Aprobar Pago
+                </button>
+              </div>
             </div>
+          </TransitionGroup>
+        </div>
+      </template>
+
+      <!-- Section: IDENTIDAD -->
+      <template v-if="currentSection === 'identidad'">
+        <!-- Tabs Filter -->
+        <div class="flex gap-2 mb-6 bg-white/5 p-1 rounded-2xl border border-white/10">
+          <button v-for="tab in identityTabs" :key="tab.id"
+            @click="activeIdentityTab = tab.id"
+            :class="`flex-1 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeIdentityTab === tab.id ? 'bg-blue-500 text-white shadow-lg' : 'text-gray-500 hover:text-white'}`">
+            {{ tab.label }}
+          </button>
+        </div>
+
+        <div class="space-y-4">
+          <div v-if="filteredIdentidades.length === 0" class="py-20 text-center opacity-40">
+            <i class="fas fa-id-card text-4xl mb-4"></i>
+            <p class="text-xs font-bold uppercase tracking-widest">No hay identidades por revisar</p>
           </div>
-        </TransitionGroup>
-      </div>
+
+          <TransitionGroup name="list">
+            <div v-for="user in filteredIdentidades" :key="user.id_usuario" 
+                 class="bg-white/5 border border-white/10 rounded-[2rem] p-5 backdrop-blur-sm">
+              <div class="flex items-center gap-4 mb-5">
+                <div class="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 overflow-hidden">
+                  <img :src="user.imagen_url || `https://ui-avatars.com/api/?name=${user.nombre}&background=random&color=fff`" class="w-full h-full object-cover">
+                </div>
+                <div>
+                  <h3 class="text-sm font-black text-white uppercase tracking-tight">{{ user.nombre }}</h3>
+                  <p class="text-[9px] font-bold text-gray-500 uppercase tracking-widest">DNI: {{ user.identidad || 'No provisto' }}</p>
+                </div>
+              </div>
+
+              <div class="aspect-video bg-black/40 rounded-2xl border border-white/5 overflow-hidden mb-5 relative group cursor-zoom-in" @click="viewFullImage(user.identidad_url)">
+                <img :src="user.identidad_url" class="w-full h-full object-contain">
+                <div class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                  <i class="fas fa-search-plus text-2xl text-white"></i>
+                </div>
+              </div>
+
+              <div v-if="!user.verificado" class="grid grid-cols-2 gap-3">
+                <button @click="confirmAction(user, 'rechazar', 'identidad')" 
+                  class="py-3 px-4 bg-red-500/10 text-red-500 rounded-2xl text-[10px] font-black uppercase border border-red-500/20">
+                  Rechazar Foto
+                </button>
+                <button @click="confirmAction(user, 'aprobar', 'identidad')" 
+                  class="py-3 px-4 bg-blue-500 text-white rounded-2xl text-[10px] font-black uppercase shadow-lg shadow-blue-500/20">
+                  Verificar ID
+                </button>
+              </div>
+              <div v-else class="py-3 px-4 bg-emerald-500/10 text-emerald-500 rounded-2xl text-[10px] font-black uppercase text-center border border-emerald-500/20 flex items-center justify-center gap-2">
+                <i class="fas fa-check-circle"></i>
+                Usuario ya Verificado
+              </div>
+            </div>
+          </TransitionGroup>
+        </div>
+      </template>
+
+      <!-- Section: RETIROS -->
+      <template v-if="currentSection === 'retiros'">
+        <!-- Tabs Filter -->
+        <div class="flex gap-2 mb-6 bg-white/5 p-1 rounded-2xl border border-white/10">
+          <button v-for="tab in withdrawTabs" :key="tab.id"
+            @click="activeWithdrawTab = tab.id"
+            :class="`flex-1 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeWithdrawTab === tab.id ? 'bg-purple-500 text-white shadow-lg' : 'text-gray-500 hover:text-white'}`">
+            {{ tab.label }}
+          </button>
+        </div>
+
+        <div class="space-y-4">
+          <div v-if="filteredRetiros.length === 0" class="py-20 text-center opacity-40">
+            <i class="fas fa-money-bill-wave text-4xl mb-4"></i>
+            <p class="text-xs font-bold uppercase tracking-widest">No hay retiros en esta categoría</p>
+          </div>
+
+          <TransitionGroup name="list">
+            <div v-for="retiro in filteredRetiros" :key="retiro.id_retiro" 
+                 class="bg-white/5 border border-white/10 rounded-[2rem] p-5 backdrop-blur-sm">
+              <div class="flex items-center justify-between mb-4">
+                <div class="flex items-center gap-4">
+                  <div class="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 overflow-hidden">
+                    <img :src="retiro.usuario.imagen_url || `https://ui-avatars.com/api/?name=${retiro.usuario.nombre}&background=random&color=fff`" class="w-full h-full object-cover">
+                  </div>
+                  <div>
+                    <h3 class="text-sm font-black text-white uppercase tracking-tight">{{ retiro.usuario.nombre }}</h3>
+                    <p class="text-[9px] font-bold text-emerald-500">{{ formatDate(retiro.fecha) }}</p>
+                  </div>
+                </div>
+                <div class="text-right">
+                  <p class="text-lg font-black text-white">${{ Number(retiro.monto).toFixed(2) }}</p>
+                  <p :class="`text-[8px] font-black uppercase tracking-widest ${getStatusClass(retiro.estado)}`">{{ retiro.estado }}</p>
+                </div>
+              </div>
+
+              <div class="bg-black/20 rounded-2xl p-4 border border-white/5 mb-5">
+                <span class="text-[8px] font-black text-gray-500 uppercase tracking-widest block mb-1">Detalles de Cobro</span>
+                <p class="text-xs font-bold text-gray-300 leading-relaxed">{{ retiro.detalles_cuenta }}</p>
+              </div>
+
+              <div v-if="retiro.estado === 'pendiente'" class="grid grid-cols-2 gap-3">
+                <button @click="confirmAction(retiro, 'rechazado', 'retiro')" 
+                  class="py-3 px-4 bg-red-500/10 text-red-500 rounded-2xl text-[10px] font-black uppercase border border-red-500/20">
+                  Rechazar
+                </button>
+                <button @click="confirmAction(retiro, 'aprobado', 'retiro')" 
+                  class="py-3 px-4 bg-purple-500 text-white rounded-2xl text-[10px] font-black uppercase shadow-lg shadow-purple-500/20">
+                  Completar Pago
+                </button>
+              </div>
+            </div>
+          </TransitionGroup>
+        </div>
+      </template>
     </main>
 
     <!-- Confirmation Modal -->
     <Transition name="fade">
-      <div v-if="modal.show" class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+      <div v-if="modal.show" @click.self="modal.show = false" class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
         <div class="bg-[#0f172a] border border-white/10 rounded-[2.5rem] p-8 w-full max-w-sm shadow-2xl animate-modal-in text-center">
-          <div :class="`w-16 h-16 rounded-3xl mx-auto mb-6 flex items-center justify-center text-3xl shadow-xl ${modal.type === 'aprobar' ? 'bg-emerald-500 text-[#070b14]' : 'bg-red-500 text-white'}`">
-            <i :class="`fas ${modal.type === 'aprobar' ? 'fa-check' : 'fa-times'}`"></i>
+          <div :class="`w-16 h-16 rounded-3xl mx-auto mb-6 flex items-center justify-center text-3xl shadow-xl ${['aprobar', 'aprobado'].includes(modal.type) ? 'bg-emerald-500 text-[#070b14]' : 'bg-red-500 text-white'}`">
+            <i :class="`fas ${['aprobar', 'aprobado'].includes(modal.type) ? 'fa-check' : 'fa-times'}`"></i>
           </div>
           <h3 class="text-xl font-black text-white mb-2 uppercase tracking-tight">{{ modal.title }}</h3>
-          <p class="text-xs text-gray-500 mb-8 font-medium">Esta acción actualizará el estado de membresía de <b>{{ modal.item.usuario.nombre }}</b> de forma permanente.</p>
+          <p class="text-xs text-gray-500 mb-8 font-medium">{{ modalPrompt }}</p>
           
           <div class="flex flex-col gap-3">
             <button @click="processAction" 
               :disabled="isProcessing"
-              :class="`w-full py-4 rounded-2xl font-black uppercase tracking-widest text-sm shadow-lg transition-all active:scale-95 flex items-center justify-center gap-2 ${modal.type === 'aprobar' ? 'bg-emerald-500 text-[#070b14]' : 'bg-red-500 text-white'}`">
+              :class="`w-full py-4 rounded-2xl font-black uppercase tracking-widest text-sm shadow-lg transition-all active:scale-95 flex items-center justify-center gap-2 ${['aprobar', 'aprobado'].includes(modal.type) ? 'bg-emerald-500 text-[#070b14]' : 'bg-red-500 text-white'}`">
               <i v-if="isProcessing" class="fas fa-circle-notch fa-spin"></i>
-              {{ modal.type === 'aprobar' ? 'Confirmar Aprobación' : 'Confirmar Rechazo' }}
+              Confirmar Acción
             </button>
-            <button @click="modal.show = false" class="w-full py-4 text-gray-500 font-bold uppercase tracking-widest text-xs">Cancelar</button>
+            <button @click="modal.show = false" class="w-full py-3 text-gray-500 font-bold uppercase tracking-widest text-[10px]">Cancelar</button>
           </div>
         </div>
+      </div>
+    </Transition>
+
+    <!-- Full Image Viewer Modal -->
+    <Transition name="fade">
+      <div v-if="fullImageUrl" @click="fullImageUrl = null" class="fixed inset-0 z-[200] bg-black/95 flex items-center justify-center p-4">
+        <img :src="fullImageUrl" class="max-w-full max-h-full object-contain rounded-xl">
+        <button class="absolute top-6 right-6 w-12 h-12 rounded-full bg-white/10 text-white flex items-center justify-center text-2xl">
+          <i class="fas fa-times"></i>
+        </button>
       </div>
     </Transition>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import Toast from '~/components/ui/Toast.vue'
 import LoadingSpinner from '~/components/ui/LoadingSpinner.vue'
 
 const { $api } = useNuxtApp()
 
+// --- ESTADOS ---
 const isLoading = ref(true)
 const isProcessing = ref(false)
-const membresias = ref([])
-const estadisticas = ref({
-  total: 0,
-  pendientes: 0,
-  aprobados: 0
-})
+const currentSection = ref('membresias') // 'membresias', 'identidad', 'retiros'
 
-const activeTab = ref('pendiente')
-const tabs = [
+// Data
+const membresias = ref([])
+const identidades = ref([])
+const retiros = ref([])
+const estadisticas = ref({ total: 0, pendientes: 0, aprobados: 0 })
+
+// Tabs
+const activeMembershipTab = ref('pendiente')
+const activeIdentityTab = ref('pendiente')
+const activeWithdrawTab = ref('pendiente')
+
+const mainSections = [
+  { id: 'membresias', label: 'Membresías', icon: 'fas fa-id-badge' },
+  { id: 'identidad', label: 'Identidad', icon: 'fas fa-fingerprint' },
+  { id: 'retiros', label: 'Retiros', icon: 'fas fa-hand-holding-usd' }
+]
+
+const membershipTabs = [
   { id: 'pendiente', label: 'Pendientes' },
   { id: 'activa', label: 'Aprobadas' },
   { id: 'rechazada', label: 'Rechazadas' }
 ]
 
-const toast = ref({ show: false, message: '', type: 'info' })
-const modal = ref({ show: false, title: '', type: '', item: null })
+const identityTabs = [
+  { id: 'pendiente', label: 'Por Revisar' },
+  { id: 'verificado', label: 'Verificados' }
+]
 
-const filteredMembresias = computed(() => {
-  return membresias.value.filter(m => m.estado === activeTab.value)
+const withdrawTabs = [
+  { id: 'pendiente', label: 'Pendientes' },
+  { id: 'aprobado', label: 'Completados' },
+  { id: 'rechazado', label: 'Rechazados' }
+]
+
+// Modal & Toast
+const toast = ref({ show: false, message: '', type: 'info' })
+const modal = ref({ show: false, title: '', type: '', item: null, category: '' })
+const fullImageUrl = ref(null)
+
+// --- COMPUTED ---
+const sectionTitle = computed(() => {
+  const map = { membresias: 'Gestión de Membresías', identidad: 'Revisión de Identidad', retiros: 'Solicitudes de Retiro' }
+  return map[currentSection.value]
 })
 
-const fetchMembresias = async () => {
+const modalPrompt = computed(() => {
+  if (!modal.value.item) return ''
+  const name = modal.value.category === 'identidad' ? modal.value.item.nombre : modal.value.item.usuario.nombre
+  return `¿Seguro que deseas marcar esta solicitud de ${name} como ${modal.value.type}?`
+})
+
+const filteredMembresias = computed(() => membresias.value.filter(m => m.estado === activeMembershipTab.value))
+const filteredRetiros = computed(() => retiros.value.filter(r => r.estado === activeWithdrawTab.value))
+const filteredIdentidades = computed(() => {
+  if (activeIdentityTab.value === 'pendiente') {
+    return identidades.value.filter(u => u.identidad_url && !u.verificado)
+  }
+  return identidades.value.filter(u => u.verificado)
+})
+
+// --- WATCHERS ---
+watch(currentSection, () => {
+  fetchData()
+})
+
+// --- FUNCIONES ---
+const showMsg = (message, type = 'info') => {
+  toast.value = { show: true, message, type }
+}
+
+const fetchData = async () => {
+  isLoading.value = true
   try {
-    const res = await $api('/membresia')
-    if (res.success) {
-      membresias.value = res.data
-      estadisticas.value = res.estadisticas
-    }
-  } catch (error) {
-    console.error('Error cargando membresias:', error)
-    showMsg('Error al cargar solicitudes', 'error')
+    if (currentSection.value === 'membresias') await fetchMembresias()
+    else if (currentSection.value === 'identidad') await fetchIdentidades()
+    else if (currentSection.value === 'retiros') await fetchRetiros()
+  } catch (e) {
+    console.error(e)
   } finally {
     isLoading.value = false
   }
 }
 
-const confirmAction = (item, type) => {
+const fetchMembresias = async () => {
+  const res = await $api('/membresia')
+  if (res.success) {
+    membresias.value = res.data
+    estadisticas.value = res.estadisticas
+  }
+}
+
+const fetchIdentidades = async () => {
+  const res = await $api('/usuarios?tieneIdentidad=true')
+  if (res.success) identidades.value = res.data
+}
+
+const fetchRetiros = async () => {
+  const res = await $api('/retiros')
+  if (res.success) retiros.value = res.data
+}
+
+const confirmAction = (item, type, category) => {
   modal.value = {
     show: true,
     type,
     item,
-    title: type === 'aprobar' ? '¿Aprobar solicitud?' : '¿Rechazar solicitud?'
+    category,
+    title: `Confirmar ${type}`
   }
 }
 
 const processAction = async () => {
   isProcessing.value = true
-  const item = modal.value.item
+  const { item, type, category } = modal.value
   
   try {
     let res
-    if (modal.value.type === 'aprobar') {
-      // Usar el nuevo endpoint de aprobación
-      res = await $api(`/membresia/aprobar/${item.id_membresia}`, { method: 'POST' })
-    } else {
-      // Simplemente actualizar estado a rechazada
-      res = await $api(`/membresia/${item.id_membresia}`, { 
-        method: 'PUT',
-        body: { estado: 'rechazada' }
-      })
+    if (category === 'membresia') {
+      if (type === 'aprobar') res = await $api(`/membresia/aprobar/${item.id_membresia}`, { method: 'POST' })
+      else res = await $api(`/membresia/rechazar/${item.id_membresia}`, { method: 'POST' })
+    } else if (category === 'identidad') {
+      if (type === 'aprobar') {
+        res = await $api(`/usuarios/${item.id_usuario}`, { method: 'PUT', body: { verificado: true } })
+      } else {
+        // Rechazar identidad implica borrar la foto para que suba otra
+        res = await $api(`/usuarios/identidad-foto/${item.id_usuario}`, { method: 'DELETE' })
+      }
+    } else if (category === 'retiro') {
+      res = await $api(`/retiros/${item.id_retiro}/estado`, { method: 'PUT', body: { estado: type } })
     }
 
     if (res.success) {
-      showMsg(modal.value.type === 'aprobar' ? '¡Membresía Activada!' : 'Solicitud rechazada', 'success')
-      await fetchMembresias()
+      showMsg('¡Acción completada!', 'success')
+      await fetchData()
     }
   } catch (error) {
-    console.error('Error al procesar:', error)
-    showMsg(error.response?._data?.error || 'Error al procesar', 'error')
+    showMsg(error.response?._data?.message || 'Error al procesar', 'error')
   } finally {
     isProcessing.value = false
     modal.value.show = false
   }
 }
 
-const showMsg = (message, type = 'info') => {
-  toast.value = { show: true, message, type }
+const viewFullImage = (url) => {
+  fullImageUrl.value = url
 }
 
 const formatDate = (dateString) => {
@@ -238,37 +448,31 @@ const formatDate = (dateString) => {
 
 const getStatusClass = (status) => {
   const map = {
-    activa: 'bg-emerald-500/10 text-emerald-500',
-    pendiente: 'bg-amber-500/10 text-amber-500',
-    rechazada: 'bg-red-500/10 text-red-500'
+    activa: 'text-emerald-500 bg-emerald-500/10',
+    aprobado: 'text-emerald-500 bg-emerald-500/10',
+    pendiente: 'text-amber-500 bg-amber-500/10',
+    rechazada: 'text-red-500 bg-red-500/10',
+    rechazado: 'text-red-500 bg-red-500/10'
   }
-  return map[status] || 'bg-gray-500/10 text-gray-500'
+  return map[status] || 'text-gray-500 bg-gray-500/10'
 }
 
 onMounted(() => {
-  fetchMembresias()
+  fetchData()
 })
 </script>
 
 <style scoped>
-.list-enter-active,
-.list-leave-active {
-  transition: all 0.5s ease;
-}
-.list-enter-from,
-.list-leave-to {
-  opacity: 0;
-  transform: translateY(30px);
-}
+.list-enter-active, .list-leave-active { transition: all 0.4s ease; }
+.list-enter-from, .list-leave-to { opacity: 0; transform: translateX(20px); }
 
 @keyframes modal-in {
-  from { opacity: 0; transform: scale(0.9) translateY(20px); }
+  from { opacity: 0; transform: scale(0.95) translateY(10px); }
   to { opacity: 1; transform: scale(1) translateY(0); }
 }
-.animate-modal-in {
-  animation: modal-in 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.fade-enter-active, .fade-leave-active { transition: opacity 0.3s; }
+.animate-modal-in { animation: modal-in 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+.fade-enter-active, .fade-leave-active { transition: opacity 0.2s; }
 .fade-enter-from, .fade-leave-to { opacity: 0; }
 </style>
+
+
