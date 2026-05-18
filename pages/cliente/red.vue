@@ -66,7 +66,7 @@
               </div>
 
               <!-- Retirable Balance Card -->
-              <button @click="isWithdrawalModalOpen = true" class="flex flex-col items-end gap-1 group/balance active:scale-95 transition-all">
+              <button @click="openHistory" class="flex flex-col items-end gap-1 group/balance active:scale-95 transition-all">
                 <p class="text-[9px] text-indigo-300 font-bold uppercase tracking-widest group-hover/balance:text-emerald-400 transition-colors">Saldo Retirable</p>
                 <div class="flex items-center gap-2 px-4 py-2 bg-white/5 backdrop-blur-md border border-white/10 group-hover/balance:border-emerald-500/30 rounded-2xl transition-all shadow-lg group-hover/balance:bg-white/10">
                   <span class="text-xl font-black text-white group-hover/balance:text-emerald-400 transition-colors">{{ formatCurrency(totalEarnings) }}</span>
@@ -635,6 +635,18 @@
       </div>
     </Transition>
 
+    <!-- Interactions History Modal -->
+    <InteractionHistoryModal 
+      :show="showHistory"
+      :history="history"
+      :loading="isLoadingHistory"
+      :total-balance="totalEarnings"
+      :show-withdraw-button="true"
+      :min-withdrawal="minWithdrawal"
+      @close="showHistory = false"
+      @withdraw="isWithdrawalModalOpen = true"
+    />
+
     <!-- Bottom Navigation -->
     <BottomNav />
   </div>
@@ -642,10 +654,12 @@
 
 <script setup>
 import { ref, computed, onMounted, watch, nextTick } from 'vue'
+import { useRoute } from 'vue-router'
 import BottomNav from '~/components/footers/BottomNav.vue'
 import Toast from '~/components/ui/Toast.vue'
 import LoadingSpinner from '~/components/ui/LoadingSpinner.vue'
 import Multiselect from 'vue-multiselect'
+import InteractionHistoryModal from '~/components/ui/InteractionHistoryModal.vue'
 import { useAuthStore } from '~/middleware/auth.store'
 
 const { $api } = useNuxtApp()
@@ -788,6 +802,45 @@ const toast = ref({
   type: 'info',
   duration: 5000
 })
+
+// History State
+const showHistory = ref(false)
+const history = ref([])
+const isLoadingHistory = ref(false)
+const minWithdrawal = ref(0)
+const route = useRoute()
+
+const openHistory = () => {
+  showHistory.value = true
+  fetchHistory()
+  fetchMinWithdrawal()
+}
+
+const fetchMinWithdrawal = async () => {
+  try {
+    const res = await $api('/config/multi?tipos=retiro_minimo')
+    if (res.success && res.data.retiro_minimo) {
+      minWithdrawal.value = parseFloat(res.data.retiro_minimo)
+    }
+  } catch (e) {
+    console.error('Error fetching min withdrawal:', e)
+  }
+}
+
+const fetchHistory = async () => {
+  if (!authStore.userId) return
+  isLoadingHistory.value = true
+  try {
+    const res = await $api(`/interacciones/usuario/${authStore.userId}`)
+    if (res.success) {
+      history.value = res.data
+    }
+  } catch (e) {
+    console.error('Error fetching history:', e)
+  } finally {
+    isLoadingHistory.value = false
+  }
+}
 
 const showMsg = (message, type = 'info') => {
   toast.value.show = false
@@ -1192,6 +1245,10 @@ const handleWithdrawalRequest = async () => {
   }
 }
 
+const formatCurrency = (val) => {
+  return new Intl.NumberFormat('es-HN', { style: 'currency', currency: 'HNL' }).format(val)
+}
+
 onMounted(async () => {
   await authStore.initAuth()
   if (!authStore.user) {
@@ -1202,8 +1259,15 @@ onMounted(async () => {
     fetchUserProgress(),
     fetchNetworkData(),
     fetchCreditBalance(),
-    fetchMembershipData()
+    fetchMembershipData(),
+    fetchMinWithdrawal()
   ])
+
+  // Check for withdraw redirect
+  if (route.query.withdraw === 'true') {
+    isWithdrawalModalOpen.value = true
+  }
+
   isLoading.value = false
 })
 
@@ -1262,10 +1326,6 @@ const closeNetworkModal = () => {
   networkModal.value.currentUser = null
   networkModal.value.currentChildren = []
   networkModal.value.history = []
-}
-
-const formatCurrency = (val) => {
-  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(val)
 }
 
 useHead({

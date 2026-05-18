@@ -94,7 +94,7 @@
 
       <!-- Stats Grid -->
       <section class="grid grid-cols-2 gap-2 mb-4">
-        <div class="bg-white/5 border border-white/10 rounded-2xl p-3 backdrop-blur-sm flex flex-col items-center">
+        <div @click="openHistory" class="bg-white/5 border border-white/10 rounded-2xl p-3 backdrop-blur-sm flex flex-col items-center cursor-pointer active:scale-95 transition-all hover:bg-white/10">
           <div class="flex flex-col items-center gap-1.5 mb-2">
             <div class="w-7 h-7 rounded-lg bg-emerald-500/20 flex items-center justify-center text-sm">
               💰
@@ -497,6 +497,18 @@
 
     <!-- Navigation -->
     <BottomNav />
+
+    <!-- Interactions History Modal -->
+    <InteractionHistoryModal 
+      :show="showHistory"
+      :history="history"
+      :loading="isLoadingHistory"
+      :total-balance="totalEarnings"
+      :show-withdraw-button="true"
+      :min-withdrawal="minWithdrawal"
+      @close="showHistory = false"
+      @withdraw="handleWithdraw"
+    />
   </div>
 </template>
 
@@ -509,6 +521,7 @@ import LoadingSpinner from '~/components/ui/LoadingSpinner.vue'
 import Toast from '~/components/ui/Toast.vue'
 import Multiselect from 'vue-multiselect'
 import { usePushNotifications } from '~/composables/usePushNotifications'
+import InteractionHistoryModal from '~/components/ui/InteractionHistoryModal.vue'
 
 const auth = useAuthStore()
 const config = useRuntimeConfig()
@@ -535,6 +548,49 @@ const isTerminosModalOpen = ref(false)
 const isPrivacidadModalOpen = ref(false)
 const isAcercaModalOpen = ref(false)
 const showLogoutModal = ref(false)
+
+// History State
+const showHistory = ref(false)
+const history = ref([])
+const isLoadingHistory = ref(false)
+const minWithdrawal = ref(0)
+
+const openHistory = () => {
+  showHistory.value = true
+  fetchHistory()
+  fetchMinWithdrawal()
+}
+
+const fetchMinWithdrawal = async () => {
+  try {
+    const res = await $api('/config/multi?tipos=retiro_minimo')
+    if (res.success && res.data.retiro_minimo) {
+      minWithdrawal.value = parseFloat(res.data.retiro_minimo)
+    }
+  } catch (e) {
+    console.error('Error fetching min withdrawal:', e)
+  }
+}
+
+const handleWithdraw = () => {
+  showHistory.value = false
+  navigateTo('/cliente/red?withdraw=true')
+}
+
+const fetchHistory = async () => {
+  if (!auth.userId) return
+  isLoadingHistory.value = true
+  try {
+    const res = await $api(`/interacciones/usuario/${auth.userId}`)
+    if (res.success) {
+      history.value = res.data
+    }
+  } catch (e) {
+    console.error('Error fetching history:', e)
+  } finally {
+    isLoadingHistory.value = false
+  }
+}
 
 // Form Data
 const userCookie = useCookie('user')
