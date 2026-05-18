@@ -197,17 +197,6 @@
                 </div>
               </div>
 
-              <!-- Comprobante image -->
-              <div v-if="pub.comprobante_url" class="mb-4 cursor-zoom-in group/img relative rounded-2xl overflow-hidden border border-white/10" @click="viewFullImage(pub.comprobante_url)">
-                <img :src="pub.comprobante_url" class="w-full max-h-48 object-cover">
-                <div class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover/img:opacity-100 transition-opacity">
-                  <i class="fas fa-search-plus text-2xl text-white"></i>
-                </div>
-              </div>
-              <div v-else class="mb-4 p-3 bg-white/5 border border-white/5 rounded-2xl text-center">
-                <p class="text-[10px] text-gray-500 font-bold uppercase tracking-widest">Sin imagen de comprobante</p>
-              </div>
-
               <!-- Actions -->
               <div class="grid grid-cols-2 gap-3 pt-4 border-t border-white/5">
                 <button @click="confirmAction(pub, 'rechazar', 'publicacion')"
@@ -215,7 +204,7 @@
                   <i class="fas fa-times"></i> Rechazar
                 </button>
                 <button @click="confirmAction(pub, 'aprobar', 'publicacion')"
-                  class="py-3 px-4 bg-emerald-500 text-[#070b14] rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20">
+                  class="py-3 px-4 bg-emerald-500 text-[#070b14] rounded-2xl text-[10px] font-black uppercase transition-all flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20">
                   <i class="fas fa-check"></i> Activar
                 </button>
               </div>

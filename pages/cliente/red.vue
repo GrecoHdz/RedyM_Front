@@ -726,9 +726,9 @@ const membershipCost = ref(0)
 const bankAccounts = ref([])
 const selectedAccount = ref('')
 const selectedAccountObject = ref(null)
-const comprobante = ref('')
 const isRenewing = ref(false)
 const showRenewalModal = ref(false)
+const empresaPhoneNumber = ref('')
 
 const isMembershipActive = computed(() => membershipData.value.status === 'activa')
 const isMembershipPending = computed(() => membershipData.value.status === 'pendiente')
@@ -1063,6 +1063,51 @@ const closeGiftModal = () => {
   searchError.value = ''
 }
 
+const sendWhatsAppMessage = async (amount, receiptNumber, membershipId, bankName) => {
+  try {
+    if (!empresaPhoneNumber.value) {
+      await fetchEmpresaPhoneNumber();
+    }
+    
+    // Obtener la fecha actual en formato DDMMYY
+    const today = new Date();
+    const formattedDate = [
+      String(today.getDate()).padStart(2, '0'),
+      String(today.getMonth() + 1).padStart(2, '0'),
+      String(today.getFullYear()).slice(-2)
+    ].join('');
+    
+    const message = `*Comprobante de Pago*\n\n` +
+      `*ID de Membresía:* ${formattedDate}-${membershipId || 'N/A'}\n` +
+      `*Tipo de pago:* Pago de Membresía\n` + 
+      `*N° de comprobante:* ${receiptNumber}\n` +
+      `*Banco destino:* ${bankName || 'N/A'}\n` +
+      `*Monto:* $${Number(amount).toFixed(2)}\n\n` +
+      `Adjunto una captura del comprobante de pago para su verificación.`;
+    
+    const encodedMessage = encodeURIComponent(message);
+    const phoneNumber = empresaPhoneNumber.value;
+    
+    window.open(`https://wa.me/+504${phoneNumber}?text=${encodedMessage}`, '_blank');
+  } catch (error) {
+    console.error('Error al preparar el mensaje de WhatsApp:', error);
+  }
+};
+
+const fetchEmpresaPhoneNumber = async () => {
+  try {
+    const response = await $api('/config/valor/numero_empresa', { method: 'GET' });
+    if (response && response.valor) {
+      empresaPhoneNumber.value = response.valor;
+    } else {
+      empresaPhoneNumber.value = '1234567890';
+    }
+  } catch (error) {
+    console.error('Error al obtener el número de teléfono de la empresa:', error);
+    empresaPhoneNumber.value = '1234567890';
+  }
+};
+
 const confirmRenewal = async () => {
   isRenewing.value = true
   try {
@@ -1073,8 +1118,6 @@ const confirmRenewal = async () => {
         id_cuenta: selectedAccount.value,
         num_comprobante: comprobante.value,
         monto: membershipCost.value,
-        // Optional: you might want to add a field like 'tipo' if the backend is updated
-        // For now the admin will see the amount and deduce the intent
       }
     })
     
@@ -1086,6 +1129,14 @@ const confirmRenewal = async () => {
       showMsg('¡Pago de membresía enviado para revisión!', 'success')
     }
     
+    // Notificación por WhatsApp
+    await sendWhatsAppMessage(
+      membershipCost.value, 
+      comprobante.value, 
+      res.id_membresia,
+      selectedAccountObject.value?.banco
+    );
+
     isUpgradeFromTransfer.value = false
     upgradeTargetLevel.value = null
     comprobante.value = ''

@@ -441,7 +441,6 @@ const showPoll = ref(false)
 const loadingPubs = ref(false)
 const misPublicaciones = ref([])
 const bankAccounts = ref([])
-const empresaPhoneNumber = ref('')
 
 // Payment modal state
 const showPaymentModal = ref(false)
@@ -566,50 +565,6 @@ const fetchBankAccounts = async () => {
   }
 }
 
-const fetchEmpresaPhoneNumber = async () => {
-  try {
-    const response = await $api('/config/valor/numero_empresa', { method: 'GET' });
-    if (response && response.valor) {
-      empresaPhoneNumber.value = response.valor;
-    } else {
-      empresaPhoneNumber.value = '1234567890';
-    }
-  } catch (error) {
-    console.error('Error al obtener el número de teléfono de la empresa:', error);
-    empresaPhoneNumber.value = '1234567890';
-  }
-};
-
-const sendWhatsAppMessage = async (amount, receiptNumber, publicationId, bankName) => {
-  try {
-    if (!empresaPhoneNumber.value) {
-      await fetchEmpresaPhoneNumber();
-    }
-    
-    const today = new Date();
-    const formattedDate = [
-      String(today.getDate()).padStart(2, '0'),
-      String(today.getMonth() + 1).padStart(2, '0'),
-      String(today.getFullYear()).slice(-2)
-    ].join('');
-    
-    const message = `*Comprobante de Pago (Publicidad)*\n\n` +
-      `*ID de Publicación:* PUB-${formattedDate}-${publicationId || 'N/A'}\n` +
-      `*Tipo de pago:* Pago de Publicidad\n` + 
-      `*N° de comprobante:* ${receiptNumber}\n` +
-      `*Banco destino:* ${bankName || 'N/A'}\n` +
-      `*Monto:* L. ${Number(amount).toFixed(2)}\n\n` +
-      `Adjunto una captura del comprobante de pago para su verificación.`;
-    
-    const encodedMessage = encodeURIComponent(message);
-    const phoneNumber = empresaPhoneNumber.value;
-    
-    window.open(`https://wa.me/+504${phoneNumber}?text=${encodedMessage}`, '_blank');
-  } catch (error) {
-    console.error('Error al preparar el mensaje de WhatsApp:', error);
-  }
-};
-
 // --- MEDIA VIEWER ---
 const abrirVisor = (item) => {
   mediaToView.value = item
@@ -645,14 +600,6 @@ const confirmarPago = async () => {
       showMsg('✅ Pago registrado. Tu publicación está en revisión.', 'success')
       showPaymentModal.value = false
       await fetchMisPublicaciones()
-
-      // Enviar notificación por WhatsApp
-      await sendWhatsAppMessage(
-        selectedPub.value.presupuesto, 
-        payment.value.numComprobante, 
-        selectedPub.value.id_publicacion,
-        payment.value.selectedAccountObj?.banco
-      );
     } else {
       showMsg(res?.message || 'Error al registrar pago', 'error')
     }
