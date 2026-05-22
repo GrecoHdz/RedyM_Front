@@ -42,7 +42,7 @@
                         : 'bg-gray-100 dark:bg-gray-700 text-gray-400 dark:text-gray-500 cursor-not-allowed'
                   ]"
                 >
-                  {{ rewardClaimed ? 'Reclamado' : 'Reclamar L. 10' }}
+                  {{ rewardClaimed ? 'Reclamado' : `Reclamar $${rewardsConfig.valor_mision}` }}
                 </button>
               </div>
               
@@ -135,7 +135,7 @@
                   <div class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div>
                   <span class="text-[9px] font-black uppercase tracking-[0.1em] text-emerald-600 dark:text-emerald-400">Ver video completo para ganar</span>
                 </div>
-                <span class="text-[11px] font-black text-gray-900 dark:text-white">L. {{ post.gain }}</span>
+                <span class="text-[11px] font-black text-gray-900 dark:text-white">$ {{ post.gain }}</span>
               </div>
             </div>
           </article>
@@ -275,7 +275,8 @@ const totalEarnings = ref(0.00) // Will be updated from DB
 const rewardsConfig = ref({
   valor_like: 0.05,
   valor_video: 1.50,
-  valor_encuesta: 2.50
+  valor_encuesta: 2.50,
+  valor_mision: 10.00
 })
 
 const hasMembership = ref(false)
@@ -341,11 +342,31 @@ watch([dailyMissions, rewardClaimed], () => {
 }, { deep: true })
 // --------------------------
 
-const handleClaimReward = () => {
+const handleClaimReward = async () => {
   if (isMissionsCompleted.value && !rewardClaimed.value) {
-    totalEarnings.value += 10.00
-    rewardClaimed.value = true
-    showToast('¡Recompensa diaria reclamada! +L. 10.00 🎉', 'success')
+    const rewardValue = rewardsConfig.value.valor_mision
+    
+    try {
+      // Registrar el crédito en el backend
+      const res = await $api('/credito', {
+        method: 'POST',
+        body: {
+          id_usuario: auth.user.id_usuario,
+          monto_credito: rewardValue
+        }
+      })
+      
+      if (res.success) {
+        totalEarnings.value += rewardValue
+        rewardClaimed.value = true
+        showToast(`¡Recompensa diaria reclamada! +$${rewardValue.toFixed(2)} 🎉`, 'success')
+      } else {
+        showToast('Error al reclamar recompensa', 'error')
+      }
+    } catch (e) {
+      console.error('Error claiming mission reward:', e)
+      showToast('Error al conectar con el servidor', 'error')
+    }
   }
 }
 
@@ -374,7 +395,7 @@ const handlePageShow = () => {
 
 const fetchRewardsConfig = async () => {
   try {
-    const res = await $api('/config/multi?tipos=valor_like,valor_video,valor_encuesta,valor_visita_web,valor_visita_whatsapp,valor_compartir')
+    const res = await $api('/config/multi?tipos=valor_like,valor_video,valor_encuesta,valor_visita_web,valor_visita_whatsapp,valor_compartir,valor_mision')
     if (res.success && res.data) {
       rewardsConfig.value = {
         valor_like: parseFloat(res.data.valor_like || 0.05),
@@ -382,7 +403,8 @@ const fetchRewardsConfig = async () => {
         valor_encuesta: parseFloat(res.data.valor_encuesta || 2.50),
         valor_visita_web: parseFloat(res.data.valor_visita_web || 0.10),
         valor_visita_whatsapp: parseFloat(res.data.valor_visita_whatsapp || 0.10),
-        valor_compartir: parseFloat(res.data.valor_compartir || 0.20)
+        valor_compartir: parseFloat(res.data.valor_compartir || 0.20),
+        valor_mision: parseFloat(res.data.valor_mision || 10.00)
       }
     }
   } catch (e) {
@@ -511,7 +533,7 @@ const handleVideoComplete = async (post) => {
       post.videoCompleted = true
       const gainValue = rewardsConfig.value.valor_video * earningsMultiplier.value
       totalEarnings.value += gainValue
-      showToast(`🎉 ¡Ganaste L. ${gainValue.toFixed(2)}! Video completado.`, 'success')
+      showToast(`🎉 ¡Ganaste $${gainValue.toFixed(2)}! Video completado.`, 'success')
       
       // Update daily mission (id: 2)
       const videoMission = dailyMissions.value.find(m => m.id === 2)
@@ -580,7 +602,7 @@ const handleShare = async (post) => {
   if (res && res.success) {
     const gainValue = rewardsConfig.value.valor_compartir * earningsMultiplier.value
     totalEarnings.value += gainValue
-    showToast(`🎉 ¡Ganaste L. ${gainValue.toFixed(2)}! por compartir.`, 'success')
+    showToast(`🎉 ¡Ganaste $${gainValue.toFixed(2)}! por compartir.`, 'success')
   } else if (res && res.already_done) {
     showToast('Ya has compartido esta publicación anteriormente (Sola una recompensa permitida).', 'info')
   }
@@ -609,7 +631,7 @@ const submitPollAnswer = async (option) => {
       if (option === post.poll.correctAnswer) {
         const reward = rewardsConfig.value.valor_encuesta * earningsMultiplier.value
         totalEarnings.value += reward 
-        showToast(`¡Correcto! Ganaste L. ${reward.toFixed(2)} 🎉`, 'success')
+        showToast(`¡Correcto! Ganaste $${reward.toFixed(2)} 🎉`, 'success')
       } else {
         showToast(`Incorrecto. La respuesta era ${post.poll.correctAnswer}. ❌`, 'error')
       }
@@ -633,7 +655,7 @@ const handleLink = async (post) => {
   if (res && res.success) {
     const gainValue = rewardsConfig.value.valor_visita_web * earningsMultiplier.value
     totalEarnings.value += gainValue
-    showToast(`🎉 ¡Ganaste L. ${gainValue.toFixed(2)}! por visitar el enlace.`, 'success')
+    showToast(`🎉 ¡Ganaste $${gainValue.toFixed(2)}! por visitar el enlace.`, 'success')
   } else if (res && res.already_done) {
     showToast('Ya has visitado este enlace anteriormente.', 'info')
   }
@@ -652,7 +674,7 @@ const handleWhatsApp = async (post) => {
   if (res && res.success) {
     const gainValue = rewardsConfig.value.valor_visita_whatsapp * earningsMultiplier.value
     totalEarnings.value += gainValue
-    showToast(`🎉 ¡Ganaste L. ${gainValue.toFixed(2)}! por contactar vendededor.`, 'success')
+    showToast(`🎉 ¡Ganaste $${gainValue.toFixed(2)}! por contactar vendededor.`, 'success')
   } else if (res && res.already_done) {
     showToast('Ya has contactado a este vendedor anteriormente.', 'info')
   }

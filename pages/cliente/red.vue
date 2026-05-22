@@ -147,7 +147,7 @@
                      <svg class="w-5 h-5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
                   </div>
                   <div>
-                    <h4 class="text-xs font-black text-white uppercase tracking-tight mb-1">Acceso Total a Matrix</h4>
+                    <h4 class="text-xs font-black text-white uppercase tracking-tight mb-1">Acceso Total a Matriz</h4>
                     <p class="text-[10px] text-gray-400 font-medium leading-relaxed">
                       Desbloquea los 5 niveles de tu red y cobra bonos por el crecimiento del equipo.
                     </p>
@@ -193,7 +193,7 @@
       <!-- Network Matrix Stats -->
       <section class="space-y-4">
         <div class="flex items-center justify-between">
-          <h3 class="font-black text-xl text-gray-900 dark:text-white">Estado de la Agencia</h3>
+          <h3 class="font-black text-xl text-gray-900 dark:text-white">Estado de la Matriz</h3>
           <span class="text-[9px] font-bold px-3 py-1 bg-gray-200 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-full border border-gray-300 dark:border-gray-700 uppercase tracking-widest">
             Bono de Equipo Activo
           </span>
@@ -241,7 +241,7 @@
                   </div>
                 </div>
                 <div class="text-right">
-                  <p class="text-xs font-black text-gray-400 uppercase tracking-widest mb-1">Potencial</p>
+                  <p class="text-xs font-black text-gray-400 uppercase tracking-widest mb-1">Ganancia</p>
                   <p class="text-lg font-black text-emerald-500 transition-transform origin-right">{{ formatCurrency(level.totalCommission) }}</p>
                 </div>
               </div>
@@ -250,7 +250,7 @@
               <div class="space-y-1.5 mt-2">
                 <div class="flex justify-between items-end px-1">
                   <p class="text-[10px] font-black text-gray-500 uppercase tracking-wider">
-                    {{ userMatrixInfo.conteos[level.id] || 0 }} <span class="text-gray-400 font-bold">/ {{ level.people }} Asociados</span>
+                    {{ userMatrixInfo.conteos[level.id] || 0 }} <span class="text-gray-400 font-bold">/ {{ level.people }} Invitados</span>
                   </p>
                   <p class="text-[10px] font-black text-indigo-500">{{ Math.round(((userMatrixInfo.conteos[level.id] || 0) / level.people) * 100) }}%</p>
                 </div>
@@ -514,6 +514,7 @@
                 track-by="id_cuenta"
                 class="multiselect-custom-dark"
                 placeholder="-- Elige una opción --"
+                :show-pointer="false"
                 select-label=""
                 deselect-label=""
                 selected-label=""
@@ -743,6 +744,7 @@ const selectedAccountObject = ref(null)
 const isRenewing = ref(false)
 const showRenewalModal = ref(false)
 const empresaPhoneNumber = ref('')
+const comprobante = ref('')
 
 const isMembershipActive = computed(() => membershipData.value.status === 'activa')
 const isMembershipPending = computed(() => membershipData.value.status === 'pendiente')
@@ -992,6 +994,8 @@ const intentarDesbloqueo = (level) => {
     upgradeTargetLevel.value = level
     isUpgradeFromTransfer.value = true
     membershipCost.value = level.cost
+    selectedAccountObject.value = null
+    comprobante.value = ''
     showRenewalModal.value = true
     fetchBankAccounts()
   }
@@ -1050,6 +1054,8 @@ const fetchBankAccounts = async () => {
 }
 
 const renovarMembresia = async () => {
+  selectedAccountObject.value = null
+  comprobante.value = ''
   showRenewalModal.value = true
   await fetchBankAccounts()
   try {
@@ -1193,6 +1199,7 @@ const confirmRenewal = async () => {
     isUpgradeFromTransfer.value = false
     upgradeTargetLevel.value = null
     comprobante.value = ''
+    selectedAccountObject.value = null
     
     await fetchMembershipData()
   } catch (error) {
@@ -1246,7 +1253,7 @@ const handleWithdrawalRequest = async () => {
 }
 
 const formatCurrency = (val) => {
-  return new Intl.NumberFormat('es-HN', { style: 'currency', currency: 'HNL' }).format(val)
+  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(val)
 }
 
 onMounted(async () => {
@@ -1339,29 +1346,31 @@ useHead({
   background: rgba(255, 255, 255, 0.05) !important;
   border: 1px solid rgba(255, 255, 255, 0.1) !important;
   border-radius: 1rem !important;
-  color: white !important;
-  min-height: 52px !important;
-  padding: 8px 40px 0 12px !important;
+  padding-top: 10px !important;
+  min-height: 44px !important;
+  transition: all 0.3s ease !important;
 }
 
 .multiselect-custom-dark :deep(.multiselect__single), 
 .multiselect-custom-dark :deep(.multiselect__input) {
   background: transparent !important;
-  color: white !important;
+  color: #fff !important;
+  font-size: 0.875rem !important;
   font-weight: 700 !important;
-  font-size: 14px !important;
 }
 
 .multiselect-custom-dark :deep(.multiselect__content-wrapper) {
   background: #0f172a !important;
   border: 1px solid rgba(255, 255, 255, 0.1) !important;
   border-radius: 1rem !important;
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5) !important;
+  margin-top: 5px !important;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.5) !important;
   z-index: 100 !important;
 }
 
 .multiselect-custom-dark :deep(.multiselect__option) {
   padding: 12px 16px !important;
+  color: white !important;
 }
 
 .multiselect-custom-dark :deep(.multiselect__option--highlight) {
@@ -1370,8 +1379,8 @@ useHead({
 }
 
 .multiselect-custom-dark :deep(.multiselect__option--selected) {
-  background: rgba(16, 185, 129, 0.1) !important;
-  color: #10b981 !important;
+  background: rgba(255, 255, 255, 0.15) !important;
+  color: white !important;
 }
 
 .fade-slide-enter-active {

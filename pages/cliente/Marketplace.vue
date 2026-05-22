@@ -20,7 +20,7 @@
           <!-- Saldo Pill Compacto -->
           <div class="bg-gray-100 dark:bg-gray-800 px-3 py-1.5 rounded-full flex items-center space-x-1.5 border border-gray-200 dark:border-gray-700">
             <span class="text-[10px] text-gray-500 uppercase font-bold tracking-wider">Saldo</span>
-            <span class="text-xs font-black text-blue-600 dark:text-blue-400">L. {{ formatNumber(userCredit) }}</span>
+            <span class="text-xs font-black text-blue-600 dark:text-blue-400">$ {{ formatNumber(userCredit) }}</span>
           </div>
         </div>
 
@@ -155,7 +155,7 @@
                         <p class="text-[10px] text-gray-500 dark:text-gray-400 line-clamp-2 leading-snug">{{ paquete.descripcion }}</p>
                      </div>
                      <div class="flex items-end justify-between mt-2">
-                        <span class="font-black text-sm text-blue-600 dark:text-blue-400">L. {{ formatNumber(paquete.costo) }}</span>
+                        <span class="font-black text-sm text-blue-600 dark:text-blue-400">$ {{ formatNumber(paquete.costo) }}</span>
                         <button class="w-6 h-6 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center text-gray-400">
                            <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
                         </button>
@@ -192,7 +192,7 @@
                   </div>
                   <div class="p-2">
                      <h3 class="font-bold text-[11px] text-gray-900 dark:text-white leading-tight mb-1 truncate">{{ paquete.nombre }}</h3>
-                     <p class="font-black text-xs text-blue-600 dark:text-blue-400">L. {{ formatNumber(paquete.costo) }}</p>
+                     <p class="font-black text-xs text-blue-600 dark:text-blue-400">$ {{ formatNumber(paquete.costo) }}</p>
                   </div>
                </div>
             </div>
@@ -220,7 +220,7 @@
                   <div class="absolute bottom-0 left-0 right-0 p-4">
                      <h3 class="text-white font-bold text-lg leading-tight mb-1">{{ paquete.nombre }}</h3>
                      <div class="flex items-center space-x-2">
-                        <span class="text-white font-black text-sm">L. {{ formatNumber(paquete.costo) }}</span>
+                        <span class="text-white font-black text-sm">$ {{ formatNumber(paquete.costo) }}</span>
                         <span v-if="userCredit >= paquete.costo && (paquete.cantidad === null || paquete.cantidad >= 5)" class="text-[9px] bg-emerald-500/90 text-white px-1.5 py-0.5 rounded font-bold">Canjeable</span>
                         <span v-if="paquete.cantidad !== null && paquete.cantidad > 0 && paquete.cantidad < 5" class="text-[9px] bg-orange-500 text-white px-1.5 py-0.5 rounded font-bold italic animate-pulse">¡Corre! Solo quedan {{ paquete.cantidad }}</span>
                      </div>
@@ -271,7 +271,7 @@
 
                         <!-- Mini Badge de Precio -->
                         <div class="absolute bottom-1 right-1 bg-black/60 backdrop-blur-sm px-1.5 py-0.5 rounded text-[9px] font-bold text-white">
-                           L. {{ formatNumber(paquete.costo) }}
+                           $ {{ formatNumber(paquete.costo) }}
                         </div>
                      </div>
 
@@ -364,7 +364,7 @@
                         {{ selectedDetailPackage.nombre }}
                      </h2>
                      <div class="flex items-center justify-between">
-                        <p class="text-base font-black text-blue-600 dark:text-blue-400 uppercase tracking-widest">L. {{ formatNumber(selectedDetailPackage.costo) }}</p> 
+                        <p class="text-base font-black text-blue-600 dark:text-blue-400 uppercase tracking-widest">$ {{ formatNumber(selectedDetailPackage.costo) }}</p> 
                      </div>
                   </div>
 
@@ -397,7 +397,7 @@
                     :class="userCredit >= selectedDetailPackage.costo ? 'bg-blue-600' : 'bg-gray-900 dark:bg-gray-700'"
                  >
                     <span v-if="userCredit >= selectedDetailPackage.costo">Canjear Ahora</span>
-                    <span v-else>Adquirir L. {{ formatNumber(selectedDetailPackage.costo) }}</span>
+                    <span v-else>Adquirir $ {{ formatNumber(selectedDetailPackage.costo) }}</span>
                  </button>
               </div>
            </div>
@@ -445,7 +445,7 @@
          </div>
          <div class="flex-1 overflow-y-auto p-6">
             <div class="text-center mb-6">
-               <h1 class="text-3xl font-black text-blue-600">L. {{ formatNumber(selectedPaquete?.costo) }}</h1>
+               <h1 class="text-3xl font-black text-blue-600">$ {{ formatNumber(selectedPaquete?.costo) }}</h1>
                <p class="text-xs font-bold text-gray-400 mt-1">Total a transferir</p>
             </div>
 

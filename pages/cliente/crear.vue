@@ -30,13 +30,13 @@
           <div class="space-y-2">
             <div class="flex items-center justify-between ml-1">
               <label class="text-[10px] font-black text-gray-500 uppercase tracking-widest">
-                Presupuesto (L.){{ (auth.user?.role === 'sa' || auth.user?.role === 'admin') ? ' (Opcional)' : '' }}
+                Presupuesto ($){{ (auth.user?.role === 'sa' || auth.user?.role === 'admin') ? ' (Opcional)' : '' }}
               </label>
-              <span v-if="!(auth.user?.role === 'sa' || auth.user?.role === 'admin')" class="text-[9px] text-emerald-500 font-black">Mín. L. 50</span>
+              <span v-if="!(auth.user?.role === 'sa' || auth.user?.role === 'admin')" class="text-[9px] text-emerald-500 font-black">Mín. $ 50</span>
               <span v-else class="text-[9px] text-violet-500 font-black uppercase">Admin · Ilimitado</span>
             </div>
             <div class="relative">
-              <span class="absolute left-5 top-1/2 -translate-y-1/2 text-emerald-400 font-black text-sm pointer-events-none">L.</span>
+              <span class="absolute left-5 top-1/2 -translate-y-1/2 text-emerald-400 font-black text-sm pointer-events-none">$</span>
               <input 
                 v-model.number="post.presupuesto" type="number" :min="(auth.user?.role === 'sa' || auth.user?.role === 'admin') ? 0 : 50" step="10"
                 class="w-full pl-10 pr-5 py-4 bg-[#0d121f] border border-white/10 rounded-3xl focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500 outline-none transition-all text-white font-black text-xl"
@@ -163,7 +163,7 @@
           <!-- Submit -->
           <button @click="submitPost" :disabled="!canSubmit || isSubmitting"
             class="w-full py-4 bg-gradient-to-r from-violet-500 to-emerald-500 hover:from-violet-600 hover:to-emerald-600 text-white font-black uppercase tracking-widest rounded-2xl shadow-xl shadow-violet-900/30 transition-all disabled:opacity-30 disabled:grayscale flex items-center justify-center gap-3">
-            <span v-if="!isSubmitting">🚀 {{ (auth.user?.role === 'sa' || auth.user?.role === 'admin') ? 'Publicar Ahora' : 'Publicar · L. ' + (post.presupuesto || 0) }}</span>
+            <span v-if="!isSubmitting">🚀 {{ (auth.user?.role === 'sa' || auth.user?.role === 'admin') ? 'Publicar Ahora' : 'Publicar · $ ' + (post.presupuesto || 0) }}</span>
             <span v-else class="flex items-center gap-2">
               <svg class="animate-spin h-5 w-5 text-white" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/></svg>
               {{ (auth.user?.role === 'sa' || auth.user?.role === 'admin') ? 'Publicando...' : 'Comprimiendo...' }}
@@ -240,7 +240,7 @@
                 <div class="flex items-center justify-between mb-1.5">
                   <span class="text-[9px] font-black text-gray-500 uppercase tracking-widest">Presupuesto restante</span>
                   <span class="text-[10px] font-black" :class="getBudgetColor(pub)">
-                    L. {{ parseFloat(pub.presupuesto_restante || 0).toFixed(2) }} / L. {{ parseFloat(pub.presupuesto || 0).toFixed(2) }}
+                    $ {{ parseFloat(pub.presupuesto_restante || 0).toFixed(2) }} / $ {{ parseFloat(pub.presupuesto || 0).toFixed(2) }}
                   </span>
                 </div>
                 <div class="w-full h-2 bg-white/10 rounded-full overflow-hidden">
@@ -252,7 +252,7 @@
               <div v-else class="px-5 pb-3">
                 <div class="bg-[#0d121f] border border-white/5 rounded-2xl px-4 py-2 flex items-center justify-between">
                   <span class="text-[9px] font-black text-gray-500 uppercase tracking-widest">Presupuesto</span>
-                  <span class="text-sm font-black text-white">L. {{ parseFloat(pub.presupuesto || 0).toFixed(2) }}</span>
+                  <span class="text-sm font-black text-white">$ {{ parseFloat(pub.presupuesto || 0).toFixed(2) }}</span>
                 </div>
               </div>
 
@@ -304,7 +304,7 @@
           <!-- Amount badge -->
           <div class="bg-violet-500/10 border border-violet-500/20 p-4 rounded-2xl mb-5 text-center">
             <span class="text-[10px] text-violet-400 font-black uppercase tracking-widest block mb-1">Total a Pagar</span>
-            <span class="text-3xl font-black text-white">L. {{ parseFloat(selectedPub?.presupuesto || 0).toFixed(2) }}</span>
+            <span class="text-3xl font-black text-white">$ {{ parseFloat(selectedPub?.presupuesto || 0).toFixed(2) }}</span>
           </div>
 
           <div class="space-y-5">
@@ -598,7 +598,7 @@ const sendWhatsAppMessage = async (amount, receiptNumber, publicationId, bankNam
       `*Tipo de pago:* Pago de Publicidad\n` + 
       `*N° de comprobante:* ${receiptNumber}\n` +
       `*Banco destino:* ${bankName || 'N/A'}\n` +
-      `*Monto:* L. ${Number(amount).toFixed(2)}\n\n` +
+      `*Monto:* $ ${Number(amount).toFixed(2)}\n\n` +
       `Adjunto una captura del comprobante de pago para su verificación.`;
     
     const encodedMessage = encodeURIComponent(message);

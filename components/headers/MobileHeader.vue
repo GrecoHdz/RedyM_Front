@@ -15,7 +15,7 @@
           class="bg-emerald-500/10 border border-emerald-500/20 px-3 py-1.5 rounded-xl flex items-center gap-2 shadow-inner cursor-pointer active:scale-95 transition-all"
         >
           <div class="w-5 h-5 bg-emerald-500 rounded-full flex items-center justify-center shadow-lg shadow-emerald-500/40">
-            <span class="text-[10px] text-white font-black">L</span>
+            <span class="text-[10px] text-white font-black">$</span>
           </div>
           <div class="flex items-center gap-1.5">
             <span class="text-[13px] font-black text-emerald-400 tracking-tight">

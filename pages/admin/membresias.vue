@@ -189,7 +189,7 @@
               <div class="grid grid-cols-2 gap-3 mb-4 pt-4 border-t border-white/5">
                 <div class="space-y-1">
                   <span class="text-[8px] font-black text-gray-500 uppercase tracking-widest block">Presupuesto</span>
-                  <p class="text-sm font-black text-white">L. {{ Number(pub.presupuesto || 0).toFixed(2) }}</p>
+                  <p class="text-sm font-black text-white">$ {{ Number(pub.presupuesto || 0).toFixed(2) }}</p>
                 </div>
                 <div class="space-y-1">
                   <span class="text-[8px] font-black text-gray-500 uppercase tracking-widest block">N° Comprobante</span>

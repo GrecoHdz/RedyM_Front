@@ -74,7 +74,7 @@
                :disabled="isWithdrawDisabled"
                class="w-full py-4 bg-emerald-500 text-[#070b14] font-black uppercase tracking-widest text-[11px] rounded-2xl shadow-xl shadow-emerald-500/20 active:scale-95 transition-all disabled:opacity-30 disabled:grayscale disabled:cursor-not-allowed"
              >
-               {{ isWithdrawDisabled ? `Mínimo L. ${minWithdrawal}` : 'Solicitar Retiro' }}
+               {{ isWithdrawDisabled ? `Mínimo $${minWithdrawal}` : 'Solicitar Retiro' }}
              </button>
            </div>
         </div>

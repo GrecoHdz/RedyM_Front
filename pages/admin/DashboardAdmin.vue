@@ -42,7 +42,7 @@
                         : 'bg-gray-100 dark:bg-gray-700 text-gray-400 dark:text-gray-500 cursor-not-allowed'
                   ]"
                 >
-                  {{ rewardClaimed ? 'Reclamado' : 'Reclamar L. 10' }}
+                  {{ rewardClaimed ? 'Reclamado' : 'Reclamar $ 10' }}
                 </button>
               </div>
               
@@ -134,7 +134,7 @@
                   <div class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div>
                   <span class="text-[9px] font-black uppercase tracking-[0.1em] text-emerald-600 dark:text-emerald-400">Ver video completo para ganar</span>
                 </div>
-                <span class="text-[11px] font-black text-gray-900 dark:text-white">L. {{ post.gain }}</span>
+                <span class="text-[11px] font-black text-gray-900 dark:text-white">$ {{ post.gain }}</span>
               </div>
             </div>
           </article>
@@ -315,7 +315,7 @@ const handleClaimReward = () => {
   if (isMissionsCompleted.value && !rewardClaimed.value) {
     totalEarnings.value += 10.00
     rewardClaimed.value = true
-    showToast('¡Recompensa diaria reclamada! +L. 10.00 🎉', 'success')
+    showToast('¡Recompensa diaria reclamada! +$ 10.00 🎉', 'success')
   }
 }
 
@@ -466,7 +466,7 @@ const handleVideoComplete = async (post) => {
       post.videoCompleted = true
       const gainValue = rewardsConfig.value.valor_video * earningsMultiplier.value
       totalEarnings.value += gainValue
-      showToast(`🎉 ¡Ganaste L. ${gainValue.toFixed(2)}! Video completado.`, 'success')
+      showToast(`🎉 ¡Ganaste $ ${gainValue.toFixed(2)}! Video completado.`, 'success')
       
       // Update daily mission (id: 2)
       const videoMission = dailyMissions.value.find(m => m.id === 2)
@@ -557,7 +557,7 @@ const submitPollAnswer = async (option) => {
       if (option === post.poll.correctAnswer) {
         const reward = rewardsConfig.value.valor_encuesta * earningsMultiplier.value
         totalEarnings.value += reward 
-        showToast(`¡Correcto! Ganaste L. ${reward.toFixed(2)} 🎉`, 'success')
+        showToast(`¡Correcto! Ganaste $ ${reward.toFixed(2)} 🎉`, 'success')
       } else {
         showToast(`Incorrecto. La respuesta era ${post.poll.correctAnswer}. ❌`, 'error')
       }
