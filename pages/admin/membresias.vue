@@ -31,7 +31,12 @@
       <nav class="flex gap-2 mb-8 bg-white/5 p-1.5 rounded-[2rem] border border-white/10 shadow-2xl">
         <button v-for="sec in mainSections" :key="sec.id"
           @click="currentSection = sec.id"
-          :class="`flex-1 py-3 rounded-2xl text-[11px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2 ${currentSection === sec.id ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-[#070b14] shadow-xl scale-[1.02]' : 'text-gray-500 hover:text-white hover:bg-white/5'}`">
+          :class="`relative flex-1 py-3 rounded-2xl text-[11px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2 ${currentSection === sec.id ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-[#070b14] shadow-xl scale-[1.02]' : 'text-gray-500 hover:text-white hover:bg-white/5'}`">
+          <!-- Pending Badge -->
+          <div v-if="pendingCounts[sec.id] > 0" 
+            class="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1.5 rounded-full bg-red-500 text-white text-[9px] font-black flex items-center justify-center border-2 border-[#070b14] shadow-lg z-10 animate-pulse">
+            {{ pendingCounts[sec.id] }}
+          </div>
           <i :class="sec.icon"></i>
           <span class="hidden sm:inline">{{ sec.label }}</span>
         </button>
@@ -59,7 +64,11 @@
         <div class="flex gap-2 mb-6 bg-white/5 p-1 rounded-2xl border border-white/10">
           <button v-for="tab in membershipTabs" :key="tab.id"
             @click="activeMembershipTab = tab.id"
-            :class="`flex-1 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeMembershipTab === tab.id ? 'bg-emerald-500 text-[#070b14] shadow-lg' : 'text-gray-500 hover:text-white'}`">
+            :class="`relative flex-1 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeMembershipTab === tab.id ? 'bg-emerald-500 text-[#070b14] shadow-lg' : 'text-gray-500 hover:text-white'}`">
+            <div v-if="tab.id === 'pendiente' && pendingCounts.membresias > 0" 
+              class="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-red-500 text-white text-[9px] flex items-center justify-center border-2 border-[#070b14]">
+              {{ pendingCounts.membresias }}
+            </div>
             {{ tab.label }}
           </button>
         </div>
@@ -219,7 +228,11 @@
         <div class="flex gap-2 mb-6 bg-white/5 p-1 rounded-2xl border border-white/10">
           <button v-for="tab in identityTabs" :key="tab.id"
             @click="activeIdentityTab = tab.id"
-            :class="`flex-1 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeIdentityTab === tab.id ? 'bg-blue-500 text-white shadow-lg' : 'text-gray-500 hover:text-white'}`">
+            :class="`relative flex-1 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeIdentityTab === tab.id ? 'bg-blue-500 text-white shadow-lg' : 'text-gray-500 hover:text-white'}`">
+            <div v-if="tab.id === 'pendiente' && pendingCounts.identidad > 0" 
+              class="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-red-500 text-white text-[9px] flex items-center justify-center border-2 border-[#070b14]">
+              {{ pendingCounts.identidad }}
+            </div>
             {{ tab.label }}
           </button>
         </div>
@@ -275,7 +288,11 @@
         <div class="flex gap-2 mb-6 bg-white/5 p-1 rounded-2xl border border-white/10">
           <button v-for="tab in withdrawTabs" :key="tab.id"
             @click="activeWithdrawTab = tab.id"
-            :class="`flex-1 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeWithdrawTab === tab.id ? 'bg-purple-500 text-white shadow-lg' : 'text-gray-500 hover:text-white'}`">
+            :class="`relative flex-1 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeWithdrawTab === tab.id ? 'bg-purple-500 text-white shadow-lg' : 'text-gray-500 hover:text-white'}`">
+            <div v-if="tab.id === 'pendiente' && pendingCounts.retiros > 0" 
+              class="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-red-500 text-white text-[9px] flex items-center justify-center border-2 border-[#070b14]">
+              {{ pendingCounts.retiros }}
+            </div>
             {{ tab.label }}
           </button>
         </div>
@@ -358,6 +375,8 @@
         </button>
       </div>
     </Transition>
+
+    <BottomNav />
   </div>
 </template>
 
@@ -365,6 +384,7 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import Toast from '~/components/ui/Toast.vue'
 import LoadingSpinner from '~/components/ui/LoadingSpinner.vue'
+import BottomNav from '~/components/footers/BottomNav.vue'
 
 const { $api } = useNuxtApp()
 
@@ -434,6 +454,13 @@ const filteredIdentidades = computed(() => {
   }
   return identidades.value.filter(u => u.verificado)
 })
+
+const pendingCounts = computed(() => ({
+  membresias: membresias.value.filter(m => m.estado === 'pendiente').length,
+  publicaciones: publicacionesPendientes.value.length,
+  identidad: identidades.value.filter(u => u.identidad_url && !u.verificado).length,
+  retiros: retiros.value.filter(r => r.estado === 'pendiente').length
+}))
 
 // --- WATCHERS ---
 watch(currentSection, () => {
@@ -546,8 +573,21 @@ const getStatusClass = (status) => {
   return map[status] || 'text-gray-500 bg-gray-500/10'
 }
 
-onMounted(() => {
-  fetchData()
+onMounted(async () => {
+  isLoading.value = true
+  try {
+    // Cargar todo al inicio para mostrar los contadores de pendientes
+    await Promise.all([
+      fetchMembresias(),
+      fetchPublicacionesPendientes(),
+      fetchIdentidades(),
+      fetchRetiros()
+    ])
+  } catch (error) {
+    console.error("Error al cargar datos iniciales:", error)
+  } finally {
+    isLoading.value = false
+  }
 })
 </script>
 
