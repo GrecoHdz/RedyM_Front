@@ -141,6 +141,11 @@ export default defineNuxtRouteMiddleware(async (to) => {
       return navigateTo('/usuario-deshabilitado', { replace: true });
     }
     return;
+  } else if (currentPath === '/usuario-deshabilitado') {
+    // Si el usuario accede a /usuario-deshabilitado y está activo (no deshabilitado), redirigirlo a su dashboard
+    const userRole = (auth.user?.role?.toLowerCase() as UserRole) || 'usuario';
+    const targetDashboard = getDashboardPath(userRole);
+    return navigateTo(targetDashboard, { replace: true });
   }
 
   // 6. Obtener el rol del usuario

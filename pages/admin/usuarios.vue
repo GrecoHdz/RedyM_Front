@@ -11,25 +11,40 @@
     <LoadingSpinner :loading="isLoading" message="Sincronizando comunidad..." />
 
     <!-- Header Fijo -->
-    <header class="fixed top-0 inset-x-0 z-40 bg-[#070b14]/80 backdrop-blur-md border-b border-white/5 px-6 py-4 flex items-center justify-between">
-      <div class="flex items-center gap-3">
-        <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center shadow-lg shadow-blue-500/20">
-          <i class="fas fa-users text-white text-xl"></i>
+    <header class="fixed top-0 inset-x-0 z-40 bg-[#070b14]/80 backdrop-blur-md border-b border-white/5 px-4 py-3 flex items-center justify-between gap-2">
+      <div class="flex items-center gap-2 min-w-0">
+        <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center shadow-lg shadow-blue-500/20 flex-shrink-0">
+          <i class="fas fa-users text-white text-sm"></i>
         </div>
-        <div>
-          <h1 class="text-lg font-black uppercase tracking-tight leading-none">Comunidad</h1>
-          <p class="text-[10px] text-blue-500 font-bold uppercase tracking-widest mt-1">Gestión de Roles</p>
+        <div class="min-w-0">
+          <h1 class="text-sm font-black uppercase tracking-tight leading-none">Comunidad</h1>
+          <p class="hidden sm:block text-[9px] text-blue-500 font-bold uppercase tracking-widest mt-0.5">Gestión de Roles</p>
         </div>
       </div>
-      
-      <button @click="$router.push('/admin/DashboardAdmin')" class="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-gray-400 hover:text-white transition-colors">
-        <i class="fas fa-chevron-left text-sm"></i>
-      </button>
+      <div class="flex items-center gap-1.5 flex-shrink-0">
+        <div class="flex flex-col items-end gap-1">
+          <button 
+            @click="actualizarRed" 
+            class="h-8 px-3 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 border border-emerald-500/30 flex items-center justify-center gap-1.5 text-[9px] font-black uppercase tracking-widest text-white shadow-lg shadow-emerald-500/10 active:scale-95 transition-all disabled:opacity-50 disabled:pointer-events-none"
+            :disabled="isUpdatingRed"
+          >
+            <i class="fas" :class="isUpdatingRed ? 'fa-spinner fa-spin' : 'fa-sync-alt'"></i>
+            <span class="inline">{{ isUpdatingRed ? 'Actualizando...' : 'Actualizar Red' }}</span>
+          </button>
+          <!-- Próximo vencimiento -->
+          <Transition name="fade">
+            <div v-if="proximaFechaVencimiento" class="flex items-center gap-1 text-[7px] font-bold text-amber-400/80 bg-amber-500/10 border border-amber-500/20 rounded-lg px-1.5 py-0.5">
+              <i class="fas fa-calendar-exclamation text-[6px]"></i>
+              <span class="hidden sm:inline">Próx. vto: </span><span class="font-black text-amber-300">{{ formatDate(proximaFechaVencimiento) }}</span>
+            </div>
+          </Transition>
+        </div> 
+      </div>
     </header>
 
-    <main class="pt-24 px-4 max-w-2xl mx-auto">
+    <main class="pt-20 px-4 max-w-2xl mx-auto">
       <!-- Stats Overview -->
-      <div class="grid grid-cols-2 gap-3 mb-6">
+      <div class="grid grid-cols-2 pt-2 gap-3 mb-2">
         <div class="bg-white/5 border border-white/10 rounded-[2rem] p-5 backdrop-blur-sm relative overflow-hidden group">
           <div class="absolute -right-4 -top-4 w-16 h-16 bg-blue-500/10 rounded-full blur-2xl group-hover:bg-blue-500/20 transition-all"></div>
           <p class="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-1">Usuarios</p>
@@ -89,59 +104,83 @@
       </div>
 
       <!-- Users List -->
-      <div v-if="filteredUsers.length > 0" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <TransitionGroup name="list">
-          <div 
-            v-for="user in filteredUsers" 
-            :key="user.id_usuario"
-            class="bg-white/5 border border-white/10 rounded-[2.5rem] p-5 backdrop-blur-sm flex items-center justify-between group hover:border-white/20 transition-all"
-          >
-            <div class="flex items-center gap-4">
+      <div v-if="paginatedUsers.length > 0" class="space-y-6">
+        <div class="grid grid-cols-3 gap-2">
+          <TransitionGroup name="list">
+            <div 
+              v-for="user in paginatedUsers" 
+              :key="user.id_usuario"
+              @click="openDetails(user)"
+              class="bg-white/5 border border-white/10 rounded-[2rem] p-3 backdrop-blur-sm flex flex-col items-center text-center group hover:border-white/20 transition-all cursor-pointer active:scale-95"
+            >
               <!-- Avatar -->
-              <div class="relative">
-                <div class="w-14 h-14 rounded-2xl overflow-hidden border-2 border-white/10 bg-gray-900 flex items-center justify-center">
+              <div class="relative mb-3">
+                <div class="w-12 h-12 rounded-2xl overflow-hidden border-2 border-white/10 bg-gray-900 flex items-center justify-center">
                   <img v-if="user.imagen_url" :src="user.imagen_url" class="w-full h-full object-cover">
-                  <span v-else class="text-xl font-black text-gray-700">{{ user.nombre?.[0] }}</span>
+                  <span v-else class="text-lg font-black text-gray-700">{{ user.nombre?.[0] }}</span>
                 </div>
                 <!-- Status indicator -->
                 <div 
-                  class="absolute -bottom-1 -right-1 w-5 h-5 rounded-full border-4 border-[#070b14] flex items-center justify-center"
+                  class="absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full border-2 border-[#070b14] flex items-center justify-center"
                   :class="user.estado === 'activo' ? 'bg-emerald-500' : 'bg-red-500'"
                 ></div>
               </div>
 
               <!-- Info -->
-              <div class="min-w-0">
-                <h3 class="text-sm font-black text-white truncate">{{ user.nombre }}</h3>
-                <div class="flex items-center gap-2 mt-1">
-                  <span class="text-[9px] font-black text-gray-500 uppercase tracking-widest">{{ user.identidad }}</span>
-                  <span v-if="user.verificado" class="text-[8px] bg-blue-500/10 text-blue-400 px-1.5 py-0.5 rounded-full font-bold flex items-center gap-1">
-                    <i class="fas fa-check-circle"></i> Verificado
+              <div class="min-w-0 w-full">
+                <h3 class="text-[11px] font-black text-white truncate px-1">{{ user.nombre }}</h3>
+                <div class="flex flex-col items-center gap-1 mt-1">
+                  <span class="text-[8px] font-black text-gray-500 uppercase tracking-widest">{{ user.identidad }}</span>
+                  <span v-if="user.verificado" class="text-[7px] bg-blue-500/10 text-blue-400 px-1.5 py-0.5 rounded-full font-bold flex items-center gap-1">
+                    <i class="fas fa-check-circle"></i> V.
                   </span>
                 </div>
               </div>
             </div>
+          </TransitionGroup>
+        </div>
 
-            <!-- Actions -->
-            <div class="flex items-center gap-2">
-              <button 
-                @click="openDetails(user)"
-                class="w-9 h-9 rounded-xl bg-white/5 flex items-center justify-center text-gray-400 hover:text-white hover:bg-white/10 transition-all active:scale-90"
-              >
-                <i class="fas fa-ellipsis-v text-xs"></i>
-              </button>
-            </div>
+        <!-- Controles de Paginación -->
+        <div v-if="totalPages > 1" class="flex items-center justify-between bg-white/5 border border-white/5 rounded-2xl backdrop-blur-sm">
+          <button 
+            @click="prevPage" 
+            :disabled="currentPage === 1"
+            class="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-gray-400 hover:text-white transition-colors disabled:opacity-30 disabled:pointer-events-none active:scale-95"
+          >
+            <i class="fas fa-chevron-left text-xs"></i>
+          </button>
+          
+          <div class="flex flex-col items-center">
+            <span class="text-[9px] font-black text-gray-500 uppercase tracking-widest">Página</span>
+            <span class="text-xs font-black text-white mt-0.5">{{ currentPage }} <span class="text-gray-600">/</span> {{ totalPages }}</span>
           </div>
-        </TransitionGroup>
+
+          <button 
+            @click="nextPage" 
+            :disabled="currentPage === totalPages"
+            class="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-gray-400 hover:text-white transition-colors disabled:opacity-30 disabled:pointer-events-none active:scale-95"
+          >
+            <i class="fas fa-chevron-right text-xs"></i>
+          </button>
+        </div>
       </div>
 
       <!-- Empty State -->
-      <div v-else class="text-center py-20 bg-white/3 border border-dashed border-white/10 rounded-[3rem]">
+      <div v-else-if="!isSearching" class="text-center py-20 bg-white/3 border border-dashed border-white/10 rounded-[3rem]">
         <div class="w-20 h-20 bg-white/5 rounded-full flex items-center justify-center mx-auto mb-6">
           <i class="fas fa-user-slash text-3xl text-gray-600"></i>
         </div>
         <h3 class="text-xl font-black text-white mb-2">Sin coincidencias</h3>
         <p class="text-sm text-gray-500 max-w-[250px] mx-auto">No encontramos miembros en esta categoría que coincidan con tu búsqueda.</p>
+      </div>
+
+      <!-- Loading State (Búsqueda local, sin bloquear la UI) -->
+      <div v-else class="text-center py-16 bg-white/3 border border-white/5 rounded-[3rem] backdrop-blur-sm flex flex-col items-center justify-center">
+        <div class="relative w-10 h-10 flex items-center justify-center">
+          <div class="absolute inset-0 rounded-full border-4 border-blue-500/10"></div>
+          <div class="absolute inset-0 rounded-full border-4 border-t-blue-500 animate-spin"></div>
+        </div>
+        <h4 class="text-[9px] font-black text-blue-400 uppercase tracking-widest mt-4">Buscando...</h4>
       </div>
     </main>
 
@@ -238,9 +277,24 @@
                 {{ selectedUser.estado === 'activo' ? 'Suspender' : 'Reactivar' }}
               </button>
             </div>
-            <button @click="selectedUser = null" class="w-full py-3 text-gray-500 font-bold uppercase tracking-widest text-[9px]">
-              Cerrar Panel
-            </button>
+            <!-- Cambiar Contraseña + Eliminar -->
+            <div class="grid grid-cols-2 gap-2">
+              <button 
+                @click="openChangePasswordModal"
+                class="py-3 rounded-2xl font-black uppercase tracking-wider text-[9px] flex items-center justify-center gap-2 transition-all bg-violet-500/10 text-violet-400 border border-violet-500/20 hover:bg-violet-500/20 active:scale-95"
+              >
+                <i class="fas fa-key"></i>
+                Cambiar Clave
+              </button>
+              <button 
+                @click="openDeleteModal"
+                class="py-3 rounded-2xl font-black uppercase tracking-wider text-[9px] flex items-center justify-center gap-2 transition-all bg-red-500/5 text-red-500 border border-red-500/20 hover:bg-red-500/15 active:scale-95"
+              >
+                <i class="fas fa-trash-alt"></i>
+                Eliminar
+              </button>
+            </div>
+            
           </div>
         </div>
       </div>
@@ -288,7 +342,7 @@
             </div>
             <div class="flex justify-between items-center p-3 bg-white/5 rounded-2xl">
               <span class="text-[10px] font-bold text-gray-500 uppercase">Registro</span>
-              <span class="text-[10px] font-black text-white">{{ formatDate(selectedUser?.createdAt) }}</span>
+              <span class="text-[10px] font-black text-white">{{ formatDate(selectedUser?.fecha_registro) }}</span>
             </div>
             <div class="flex justify-between items-center p-3 bg-white/5 rounded-2xl">
               <span class="text-[10px] font-bold text-gray-500 uppercase">Estado</span>
@@ -343,13 +397,7 @@
               <div class="flex justify-between items-center p-3 bg-white/5 rounded-2xl">
                 <span class="text-[10px] font-bold text-gray-500 uppercase">Padre en Red</span>
                 <div class="flex items-center gap-2">
-                  <span class="text-xs font-black text-white truncate max-w-[120px]">{{ selectedUser.nodoRed.padre?.nombre || 'Raíz' }}</span>
-                  <button 
-                    v-if="selectedUser.nodoRed.id_padre"
-                    @click="openNetworkModal({ id: selectedUser.nodoRed.id_padre, name: selectedUser.nodoRed.padre?.nombre, level: selectedUser.nodoRed.nivel_actual - 1 })"
-                    class="p-1.5 bg-blue-500/10 text-blue-500 rounded-lg hover:bg-blue-500 hover:text-white transition-all"
-                    title="Ver hermanos"
-                  ><i class="fas fa-external-link-alt text-[10px]"></i></button>
+                  <span class="text-xs font-black text-white truncate max-w-[120px]">{{ selectedUser.nodoRed.nivel_actual === 0 ? 'Sin posicionar' : (selectedUser.nodoRed.padre?.nombre || 'Raíz') }}</span>
                 </div>
               </div>
             </div>
@@ -424,21 +472,21 @@
 
           <!-- Membership history -->
           <p class="text-[9px] font-black text-gray-500 uppercase tracking-widest mb-3 px-1">Historial de Membresías (últimas {{ selectedUser?.membresias?.length || 0 }})</p>
-          <div v-if="selectedUser?.membresias?.length > 0" class="space-y-2">
-            <div v-for="m in selectedUser.membresias" :key="m.id_membresia" class="flex items-center justify-between p-3 bg-white/5 rounded-2xl border border-white/5">
-              <div class="flex items-center gap-3">
-                <div class="w-2 h-2 rounded-full flex-shrink-0" :class="{
+          <div v-if="selectedUser?.membresias?.length > 0" class="grid grid-cols-2 gap-2">
+            <div v-for="m in selectedUser.membresias" :key="m.id_membresia" class="flex items-center justify-between p-2.5 bg-white/5 rounded-2xl border border-white/5">
+              <div class="flex items-center gap-2">
+                <div class="w-1.5 h-1.5 rounded-full flex-shrink-0" :class="{
                   'bg-emerald-500': m.estado === 'activa',
                   'bg-amber-500': m.estado === 'pendiente',
                   'bg-red-500': m.estado === 'rechazada',
                   'bg-gray-500': m.estado === 'vencida'
                 }"></div>
-                <div>
-                  <p class="text-[10px] font-black text-white uppercase">{{ m.estado }}</p>
-                  <p class="text-[9px] text-gray-500">{{ formatDate(m.fecha) }}</p>
+                <div class="min-w-0">
+                  <p class="text-[9px] font-black text-white uppercase truncate">{{ m.estado }}</p>
+                  <p class="text-[8px] text-gray-500 truncate">{{ formatDate(m.fecha) }}</p>
                 </div>
               </div>
-              <span class="text-[11px] font-black text-gray-300">${{ parseFloat(m.monto).toFixed(2) }}</span>
+              <span class="text-[10px] font-black text-gray-300 flex-shrink-0">${{ parseFloat(m.monto).toFixed(0) }}</span>
             </div>
           </div>
           <div v-else class="text-center py-8 bg-white/5 rounded-2xl border border-dashed border-white/10">
@@ -536,6 +584,174 @@
     </Transition>
 
 
+    <!-- ====================================== -->
+    <!-- SUB-MODAL: Eliminar Usuario            -->
+    <!-- ====================================== -->
+    <Transition name="fade">
+      <div v-if="activeDetailModal === 'deleteUser'" class="fixed inset-0 z-[200] flex items-end justify-center">
+        <div class="absolute inset-0 bg-black/70 backdrop-blur-sm" @click="activeDetailModal = null"></div>
+        <div class="relative w-full max-w-lg bg-[#0d121f] rounded-t-[2.5rem] p-6 border-t border-red-500/20">
+          <!-- Header -->
+          <div class="flex items-center justify-between mb-6">
+            <div class="flex items-center gap-3">
+              <div class="w-8 h-8 rounded-xl bg-red-500/20 flex items-center justify-center">
+                <i class="fas fa-trash-alt text-red-400 text-xs"></i>
+              </div>
+              <h3 class="text-sm font-black text-white uppercase tracking-widest">Eliminar Usuario</h3>
+            </div>
+            <button @click="activeDetailModal = null" class="w-8 h-8 bg-white/5 rounded-xl flex items-center justify-center text-gray-400 hover:text-white">
+              <i class="fas fa-times text-xs"></i>
+            </button>
+          </div>
+
+          <!-- Warning Card -->
+          <div class="bg-red-500/10 border border-red-500/20 rounded-2xl p-4 mb-5 flex items-start gap-3">
+            <div class="w-8 h-8 rounded-xl bg-red-500/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+              <i class="fas fa-exclamation-triangle text-red-400 text-xs"></i>
+            </div>
+            <div>
+              <p class="text-[11px] font-black text-red-300 mb-1">Esta acción es irreversible</p>
+              <p class="text-[10px] text-red-400/70 leading-relaxed">Se eliminará permanentemente el usuario y toda su información asociada. Esta acción <span class="font-black text-red-300">no se puede deshacer</span>.</p>
+            </div>
+          </div>
+
+          <!-- User Preview -->
+          <div class="flex items-center gap-3 p-3 bg-white/5 border border-white/10 rounded-2xl mb-5">
+            <div class="w-10 h-10 rounded-xl overflow-hidden border border-white/10 bg-gray-900 flex-shrink-0">
+              <img v-if="selectedUser?.imagen_url" :src="selectedUser.imagen_url" class="w-full h-full object-cover">
+              <div v-else class="w-full h-full bg-red-900/40 flex items-center justify-center text-sm font-black text-red-300">{{ selectedUser?.nombre?.[0] }}</div>
+            </div>
+            <div class="min-w-0">
+              <p class="text-[11px] font-black text-white truncate">{{ selectedUser?.nombre }}</p>
+              <p class="text-[9px] text-gray-500 truncate">{{ selectedUser?.email }}</p>
+            </div>
+            <span class="ml-auto text-[8px] font-black text-red-400 bg-red-500/10 border border-red-500/20 px-2 py-1 rounded-lg uppercase flex-shrink-0">Eliminar</span>
+          </div>
+
+          <!-- Confirm input -->
+          <div class="mb-4">
+            <label class="text-[9px] font-black text-gray-500 uppercase tracking-widest mb-1.5 block px-1">
+              Escribe <span class="text-red-400">ELIMINAR</span> para confirmar
+            </label>
+            <input
+              v-model="deleteModal.confirmText"
+              type="text"
+              placeholder="ELIMINAR"
+              class="w-full bg-white/5 border border-white/10 rounded-2xl py-3 px-4 text-sm font-black text-white tracking-widest focus:outline-none focus:border-red-500/50 focus:ring-1 focus:ring-red-500/50 transition-all"
+              :class="{ 'border-red-500/50': deleteModal.confirmText && deleteModal.confirmText !== 'ELIMINAR' }"
+            >
+          </div>
+
+          <!-- Actions -->
+          <div class="grid grid-cols-2 gap-2">
+            <button 
+              @click="activeDetailModal = null"
+              class="py-3.5 rounded-2xl font-black uppercase tracking-wider text-[9px] bg-white/5 text-gray-400 border border-white/10 hover:bg-white/10 transition-all active:scale-95"
+            >
+              <i class="fas fa-arrow-left mr-1"></i> Cancelar
+            </button>
+            <button 
+              @click="deleteUser"
+              :disabled="deleteModal.confirmText !== 'ELIMINAR' || deleteModal.isLoading"
+              class="py-3.5 rounded-2xl font-black uppercase tracking-wider text-[9px] bg-red-600 hover:bg-red-500 text-white flex items-center justify-center gap-2 shadow-lg shadow-red-500/20 transition-all active:scale-95 disabled:opacity-30 disabled:pointer-events-none"
+            >
+              <i :class="deleteModal.isLoading ? 'fas fa-spinner fa-spin' : 'fas fa-trash-alt'"></i>
+              {{ deleteModal.isLoading ? 'Eliminando...' : 'Confirmar' }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </Transition>
+
+    <!-- ====================================== -->
+    <!-- SUB-MODAL: Cambiar Contraseña          -->
+    <!-- ====================================== -->
+    <Transition name="fade">
+      <div v-if="activeDetailModal === 'changePassword'" class="fixed inset-0 z-[200] flex items-end justify-center">
+        <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" @click="closeChangePasswordModal"></div>
+        <div class="relative w-full max-w-lg bg-[#0d121f] rounded-t-[2.5rem] p-6 border-t border-white/10">
+          <!-- Header -->
+          <div class="flex items-center justify-between mb-6">
+            <div class="flex items-center gap-3">
+              <div class="w-8 h-8 rounded-xl bg-violet-500/20 flex items-center justify-center">
+                <i class="fas fa-key text-violet-400 text-xs"></i>
+              </div>
+              <div>
+                <h3 class="text-sm font-black text-white uppercase tracking-widest">Cambiar Contraseña</h3>
+                <p class="text-[9px] text-gray-500 font-bold mt-0.5 truncate max-w-[200px]">{{ selectedUser?.nombre }}</p>
+              </div>
+            </div>
+            <button @click="closeChangePasswordModal" class="w-8 h-8 bg-white/5 rounded-xl flex items-center justify-center text-gray-400 hover:text-white">
+              <i class="fas fa-times text-xs"></i>
+            </button>
+          </div>
+
+          <!-- Form -->
+          <div class="space-y-3">
+            <!-- Nueva contraseña -->
+            <div class="relative group">
+              <label class="text-[9px] font-black text-gray-500 uppercase tracking-widest mb-1.5 block px-1">Nueva Contraseña</label>
+              <div class="relative">
+                <i class="fas fa-lock absolute left-4 top-1/2 -translate-y-1/2 text-gray-600 group-focus-within:text-violet-400 transition-colors text-xs"></i>
+                <input 
+                  v-model="passwordForm.newPassword"
+                  :type="passwordForm.showNew ? 'text' : 'password'"
+                  placeholder="Escribe la nueva contraseña"
+                  class="w-full bg-white/5 border border-white/10 rounded-2xl py-3.5 pl-10 pr-12 text-sm font-medium text-white focus:outline-none focus:border-violet-500/50 focus:ring-1 focus:ring-violet-500/50 transition-all"
+                  :class="{ 'border-red-500/50': passwordForm.error }"
+                >
+                <button @click="passwordForm.showNew = !passwordForm.showNew" type="button" class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300 transition-colors">
+                  <i :class="passwordForm.showNew ? 'fas fa-eye-slash' : 'fas fa-eye'" class="text-xs"></i>
+                </button>
+              </div>
+            </div>
+
+            <!-- Confirmar contraseña -->
+            <div class="relative group">
+              <label class="text-[9px] font-black text-gray-500 uppercase tracking-widest mb-1.5 block px-1">Confirmar Contraseña</label>
+              <div class="relative">
+                <i class="fas fa-lock-open absolute left-4 top-1/2 -translate-y-1/2 text-gray-600 group-focus-within:text-violet-400 transition-colors text-xs"></i>
+                <input 
+                  v-model="passwordForm.confirmPassword"
+                  :type="passwordForm.showConfirm ? 'text' : 'password'"
+                  placeholder="Repite la contraseña"
+                  class="w-full bg-white/5 border border-white/10 rounded-2xl py-3.5 pl-10 pr-12 text-sm font-medium text-white focus:outline-none focus:border-violet-500/50 focus:ring-1 focus:ring-violet-500/50 transition-all"
+                  :class="{ 'border-red-500/50': passwordForm.error }"
+                >
+                <button @click="passwordForm.showConfirm = !passwordForm.showConfirm" type="button" class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300 transition-colors">
+                  <i :class="passwordForm.showConfirm ? 'fas fa-eye-slash' : 'fas fa-eye'" class="text-xs"></i>
+                </button>
+              </div>
+            </div>
+
+            <!-- Match indicator -->
+            <div v-if="passwordForm.newPassword && passwordForm.confirmPassword" class="flex items-center gap-2 px-1">
+              <div class="w-2 h-2 rounded-full flex-shrink-0" :class="passwordForm.newPassword === passwordForm.confirmPassword ? 'bg-emerald-500' : 'bg-red-500'"></div>
+              <span class="text-[9px] font-bold" :class="passwordForm.newPassword === passwordForm.confirmPassword ? 'text-emerald-400' : 'text-red-400'">
+                {{ passwordForm.newPassword === passwordForm.confirmPassword ? 'Las contraseñas coinciden' : 'Las contraseñas no coinciden' }}
+              </span>
+            </div>
+
+            <!-- Error message -->
+            <div v-if="passwordForm.error" class="flex items-center gap-2 p-3 bg-red-500/10 border border-red-500/20 rounded-2xl">
+              <i class="fas fa-exclamation-circle text-red-400 text-xs flex-shrink-0"></i>
+              <p class="text-[10px] text-red-400 font-bold">{{ passwordForm.error }}</p>
+            </div>
+
+            <!-- Submit -->
+            <button 
+              @click="changePassword"
+              :disabled="passwordForm.isLoading || !passwordForm.newPassword || !passwordForm.confirmPassword"
+              class="w-full py-4 mt-2 bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-500 hover:to-purple-500 text-white rounded-2xl text-[11px] font-black uppercase tracking-widest flex items-center justify-center gap-3 shadow-lg shadow-violet-500/20 active:scale-95 transition-all disabled:opacity-40 disabled:pointer-events-none"
+            >
+              <i :class="passwordForm.isLoading ? 'fas fa-spinner fa-spin' : 'fas fa-save'"></i>
+              {{ passwordForm.isLoading ? 'Guardando...' : 'Guardar Contraseña' }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </Transition>
+
 
     <!-- Large Identity Viewer Overlay -->
     <Transition name="fade">
@@ -555,13 +771,17 @@
         <div class="relative w-full max-w-sm bg-[#0d121f] rounded-[2.5rem] shadow-2xl overflow-hidden border border-white/10">
           <div class="p-6 flex flex-col items-center">
             <!-- Modal Header -->
-            <div class="w-full flex justify-between items-center mb-6">
-              <button v-if="networkModal.history.length > 0" @click="goBackInNetwork" class="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-gray-400 hover:text-white transition-colors">
-                <i class="fas fa-chevron-left text-xs"></i>
-              </button>
-              <div v-else class="w-8"></div>
-              <h4 class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Red de {{ networkModal.currentUser?.name }}</h4>
-              <button @click="closeNetworkModal" class="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-gray-400 hover:text-white transition-colors">
+            <div class="w-full flex justify-between items-center mb-6 gap-2">
+              <div class="flex items-center gap-2 flex-shrink-0">
+                <button v-if="networkModal.history.length > 0" @click="goBackInNetwork" class="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-gray-400 hover:text-white transition-colors">
+                  <i class="fas fa-chevron-left text-xs"></i>
+                </button>
+                <button v-if="networkModal.currentIdPadre" @click="goUpInNetwork" class="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-blue-400 hover:text-blue-300 transition-colors" title="Subir de nivel">
+                  <i class="fas fa-arrow-up text-xs"></i>
+                </button>
+              </div>
+              <h4 class="text-[10px] font-black text-gray-400 uppercase tracking-widest text-center px-2 flex-1 truncate">Red de {{ networkModal.currentUser?.name }}</h4>
+              <button @click="closeNetworkModal" class="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-gray-400 hover:text-white transition-colors flex-shrink-0">
                 <i class="fas fa-times text-xs"></i>
               </button>
             </div>
@@ -623,13 +843,108 @@ const auth = useAuthStore()
 
 // State
 const isLoading = ref(true)
+ const isSearching = ref(false)
 const allUsers = ref([])
-const activeRole = ref(1) // 1: Usuario, 3: Admin
+const activeRole = ref(1) // 1: Usuario, 2: Admin
 const stats = ref({ usuarios: 0, admins: 0 })
 const toast = ref({ show: false, message: '', type: 'success' })
 const selectedUser = ref(null)
 const showIdentityLarge = ref(false)
 const activeDetailModal = ref(null)
+const isUpdatingRed = ref(false)
+
+// Password change state
+const passwordForm = ref({
+  newPassword: '',
+  confirmPassword: '',
+  showNew: false,
+  showConfirm: false,
+  isLoading: false,
+  error: ''
+})
+
+const openChangePasswordModal = () => {
+  passwordForm.value = { newPassword: '', confirmPassword: '', showNew: false, showConfirm: false, isLoading: false, error: '' }
+  activeDetailModal.value = 'changePassword'
+}
+
+const closeChangePasswordModal = () => {
+  activeDetailModal.value = null
+}
+
+// Delete user state
+const deleteModal = ref({
+  confirmText: '',
+  isLoading: false
+})
+
+const openDeleteModal = () => {
+  deleteModal.value = { confirmText: '', isLoading: false }
+  activeDetailModal.value = 'deleteUser'
+}
+
+const deleteUser = async () => {
+  if (deleteModal.value.confirmText !== 'ELIMINAR') return
+  deleteModal.value.isLoading = true
+  try {
+    const res = await $api(`/usuarios/${selectedUser.value.id_usuario}`, {
+      method: 'DELETE'
+    })
+    if (res.success) {
+      showMsg(`Usuario ${selectedUser.value.nombre} eliminado correctamente`)
+      activeDetailModal.value = null
+      selectedUser.value = null
+      clearCache()
+      await fetchPaginatedData(true)
+    } else {
+      showMsg(res.error || 'Error al eliminar el usuario', 'error')
+      activeDetailModal.value = null
+    }
+  } catch (e) {
+    showMsg('Error de conexión al intentar eliminar', 'error')
+    activeDetailModal.value = null
+  } finally {
+    deleteModal.value.isLoading = false
+  }
+}
+
+const changePassword = async () => {
+  const { newPassword, confirmPassword } = passwordForm.value
+  if (newPassword !== confirmPassword) {
+    passwordForm.value.error = 'Las contraseñas no coinciden.'
+    return
+  }
+  passwordForm.value.error = ''
+  passwordForm.value.isLoading = true
+  try {
+    const res = await $api(`/usuarios/${selectedUser.value.id_usuario}`, {
+      method: 'PUT',
+      body: { password: newPassword }
+    })
+    if (res.success) {
+      showMsg('Contraseña actualizada correctamente ✅')
+      closeChangePasswordModal()
+    } else {
+      passwordForm.value.error = res.error || 'Error al cambiar la contraseña.'
+    }
+  } catch (e) {
+    passwordForm.value.error = 'Error de conexión. Intenta de nuevo.'
+  } finally {
+    passwordForm.value.isLoading = false
+  }
+}
+const proximaFechaVencimiento = ref(null)
+
+// Network Visualization State
+const networkModal = ref({
+  show: false,
+  currentUser: null,
+  currentChildren: [],
+  isLoading: false,
+  history: [],
+  currentIdPadre: null,
+  currentParent: null
+})
 
 // Scroll lock
 watch([selectedUser, activeDetailModal, () => networkModal.value.show, showIdentityLarge], ([u, m, n, i]) => {
@@ -640,33 +955,75 @@ watch([selectedUser, activeDetailModal, () => networkModal.value.show, showIdent
   }
 })
 
-// Network Visualization State
-const networkModal = ref({
-  show: false,
-  currentUser: null,
-  currentChildren: [],
-  isLoading: false,
-  history: []
-})
-
 const filters = ref({
   search: ''
 })
 
 const roles = [
   { id: 1, label: 'Usuarios', icon: 'fas fa-user', color: 'blue' },
-  { id: 3, label: 'Admins', icon: 'fas fa-shield-alt', color: 'indigo' }
+  { id: 2, label: 'Admins', icon: 'fas fa-shield-alt', color: 'indigo' }
 ]
 
-// Computed
-const filteredUsers = computed(() => {
-  return allUsers.value.filter(u => {
-    const matchesRole = u.id_rol === activeRole.value
-    const matchesSearch = !filters.value.search || 
-                        u.nombre.toLowerCase().includes(filters.value.search.toLowerCase()) ||
-                        u.identidad.includes(filters.value.search)
-    return matchesRole && matchesSearch
-  })
+
+
+// Pagination & Cache State
+const currentPage = ref(1)
+const PAGE_SIZE = 9
+
+// Estructura de caché: "rol_búsqueda_página" -> Array de usuarios
+const cache = ref({})
+// Total de items en la búsqueda/filtro actual (retornado por count de la API)
+const totalItems = ref(0)
+
+const totalPages = computed(() => {
+  return Math.ceil(totalItems.value / PAGE_SIZE) || 1
+})
+
+// Clave única basada en los filtros activos
+const cacheKey = computed(() => {
+  const cleanSearch = (filters.value.search || '').trim().toLowerCase()
+  return `${activeRole.value}_${cleanSearch}_${currentPage.value}`
+})
+
+const paginatedUsers = computed(() => {
+  return cache.value[cacheKey.value] || []
+})
+
+const prevPage = () => {
+  if (currentPage.value > 1) {
+    currentPage.value--
+    fetchPaginatedData()
+  }
+}
+
+const nextPage = () => {
+  if (currentPage.value < totalPages.value) {
+    currentPage.value++
+    fetchPaginatedData()
+  }
+}
+
+// Limpiar todo el caché cuando se actualice o sane la red
+const clearCache = () => {
+  cache.value = {}
+}
+
+let searchTimeout = null
+
+// Cambios de rol ocurren al instante
+watch(activeRole, () => {
+  currentPage.value = 1
+  fetchPaginatedData()
+})
+
+// Cambios en la búsqueda esperan 1 segundo antes de disparar la consulta
+watch(() => filters.value.search, () => {
+  isSearching.value = true // Mostrar el spinner local sin bloquear la UI
+  if (searchTimeout) clearTimeout(searchTimeout)
+  searchTimeout = setTimeout(() => {
+    currentPage.value = 1
+    fetchPaginatedData()
+  }, 1000)
 })
 
 // Methods
@@ -674,24 +1031,99 @@ const showMsg = (message, type = 'success') => {
   toast.value = { show: true, message, type }
 }
 
-const fetchAll = async () => {
+const actualizarRed = async () => {
+  if (isUpdatingRed.value) return
+  isUpdatingRed.value = true
+  try {
+    const res = await $api('/red/rebuild', {
+      method: 'POST'
+    })
+    if (res.success) {
+      if (res.proximaFechaVencimiento) {
+        proximaFechaVencimiento.value = res.proximaFechaVencimiento
+        const fecha = formatDate(res.proximaFechaVencimiento)
+        showMsg(`Red sanada ✅ — Próximo vencimiento: ${fecha}`)
+      } else {
+        showMsg('Red actualizada y sanada correctamente ✅')
+      }
+      clearCache()
+      await fetchPaginatedData(true) // Forzar recarga de contadores globales e iniciales
+    } else {
+      showMsg(res.error || 'Error al actualizar la red', 'error')
+    }
+  } catch (e) {
+    showMsg('Error de conexión al actualizar la red', 'error')
+  } finally {
+    isUpdatingRed.value = false
+  }
+}
+
+const fetchPaginatedData = async (forceUpdateStats = false) => {
+  const key = cacheKey.value
+  
+  // Si ya tenemos esta página y filtro en caché, no llamamos a la API
+  if (cache.value[key]) {
+    isSearching.value = false
+    // Si se requiere forzar el update de contadores generales (ej. después de rebuild), no retornamos inmediatamente
+    if (!forceUpdateStats) return
+  }
+
   isLoading.value = true
   try {
-    const res = await $api('/usuarios')
+    const offset = (currentPage.value - 1) * PAGE_SIZE
+    const cleanSearch = (filters.value.search || '').trim()
+    
+    const query = {
+      rol: activeRole.value,
+      limit: PAGE_SIZE,
+      offset: offset
+    }
+    
+    if (cleanSearch) {
+      query.search = cleanSearch
+    }
+
+    const res = await $api('/usuarios', { params: query })
     if (res.success) {
-      allUsers.value = res.data
-      updateStats()
+      cache.value[key] = res.data
+      totalItems.value = res.count
+      
+      // Actualizar estadísticas globales (Admins y Miembros totales)
+      if (forceUpdateStats || stats.value.usuarios === 0) {
+        await updateStatsFromServer()
+      }
     }
   } catch (e) {
     showMsg('Error al sincronizar usuarios', 'error')
   } finally {
     isLoading.value = false
+    isSearching.value = false
   }
+}
+
+const updateStatsFromServer = async () => {
+  try {
+    // Hacemos dos counts rápidos y ligeros o cargamos un resumen
+    const [resUsers, resAdmins] = await Promise.all([
+      $api('/usuarios', { params: { rol: 1, limit: 1 } }),
+      $api('/usuarios', { params: { rol: 2, limit: 1 } })
+    ])
+    if (resUsers.success) stats.value.usuarios = resUsers.count
+    if (resAdmins.success) stats.value.admins = resAdmins.count
+  } catch (e) {
+    console.error("Error updating stats:", e)
+  }
+}
+
+// Reemplazo de fetchAll original por la carga paginada inicial
+const fetchAll = async () => {
+  clearCache()
+  await fetchPaginatedData(true)
 }
 
 const updateStats = () => {
   stats.value.usuarios = allUsers.value.filter(u => u.id_rol === 1).length
-  stats.value.admins = allUsers.value.filter(u => u.id_rol === 3 || u.id_rol === 4).length // Including SA
+  stats.value.admins = allUsers.value.filter(u => u.id_rol === 2 || u.id_rol === 4).length // Including SA
 }
 
 const openDetails = async (user) => {
@@ -795,7 +1227,9 @@ const openNetworkModal = async (user, isRecursive = false) => {
   if (isRecursive && networkModal.value.currentUser) {
     networkModal.value.history.push({
       user: networkModal.value.currentUser,
-      children: networkModal.value.currentChildren
+      children: networkModal.value.currentChildren,
+      id_padre: networkModal.value.currentIdPadre,
+      parent: networkModal.value.currentParent
     })
   } else if (!isRecursive) {
     networkModal.value.history = []
@@ -811,6 +1245,8 @@ const openNetworkModal = async (user, isRecursive = false) => {
     const response = await $api(`/red/mi-red/${userId}`)
     if (response.success) {
       networkModal.value.currentChildren = response.data.hijos || []
+      networkModal.value.currentIdPadre = response.data.id_padre
+      networkModal.value.currentParent = response.data.padre
     }
   } catch (error) {
     console.error("Error al cargar red:", error)
@@ -824,7 +1260,26 @@ const goBackInNetwork = () => {
     const prev = networkModal.value.history.pop()
     networkModal.value.currentUser = prev.user
     networkModal.value.currentChildren = prev.children
+    networkModal.value.currentIdPadre = prev.id_padre
+    networkModal.value.currentParent = prev.parent
   }
+}
+
+const goUpInNetwork = async () => {
+  if (!networkModal.value.currentIdPadre) return
+  
+  const parentObj = networkModal.value.currentParent || { 
+    id: networkModal.value.currentIdPadre, 
+    id_usuario: networkModal.value.currentIdPadre,
+    nombre: '...Cargando' 
+  }
+  
+  await openNetworkModal({
+    ...parentObj,
+    name: parentObj.nombre,
+    id: parentObj.id_usuario,
+    level: Math.max(1, (networkModal.value.currentUser?.level || 1) - 1)
+  }, true)
 }
 
 const closeNetworkModal = () => {
