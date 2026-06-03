@@ -80,62 +80,59 @@
             <p class="text-xs font-bold uppercase tracking-widest">No hay membresías en esta categoría</p>
           </div>
 
-          <TransitionGroup name="list">
+          <TransitionGroup name="list" tag="div" class="grid grid-cols-2 gap-3 sm:gap-4">
             <div v-for="item in filteredMembresias" :key="item.id_membresia" 
-                 class="bg-white/5 border border-white/10 rounded-[2rem] p-5 backdrop-blur-sm group hover:border-emerald-500/30 transition-all">
-              <div class="flex items-center justify-between mb-4">
-                <div class="flex items-center gap-4">
-                  <div class="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 overflow-hidden">
-                    <img :src="item.usuario.imagen_url || `https://ui-avatars.com/api/?name=${item.usuario.nombre}&background=random&color=fff`" class="w-full h-full object-cover">
-                  </div>
-                  <div>
-                    <h3 class="text-sm font-black text-white uppercase tracking-tight">{{ item.usuario.nombre }}</h3>
-                    <div class="flex items-center gap-2 mt-0.5">
-                      <span class="text-[9px] font-bold text-gray-500">{{ item.usuario.telefono }}</span>
-                      <div class="w-1 h-1 rounded-full bg-gray-700"></div>
-                      <span class="text-[9px] font-bold text-emerald-500">{{ formatDate(item.fecha) }}</span>
+                 class="bg-white/5 border border-white/10 rounded-[1.5rem] sm:rounded-[2rem] p-3 sm:p-5 backdrop-blur-sm group hover:border-emerald-500/30 transition-all flex flex-col justify-between">
+              <div>
+                <div class="flex items-center justify-between mb-3">
+                  <div class="flex items-center gap-2 sm:gap-4">
+                    <div class="w-9 h-9 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-white/5 border border-white/10 overflow-hidden cursor-zoom-in" @click="viewFullImage(item.usuario.imagen_url || `https://ui-avatars.com/api/?name=${item.usuario.nombre}&background=random&color=fff`)">
+                      <img :src="item.usuario.imagen_url || `https://ui-avatars.com/api/?name=${item.usuario.nombre}&background=random&color=fff`" class="w-full h-full object-cover">
+                    </div>
+                    <div>
+                      <h3 class="text-xs sm:text-sm font-black text-white uppercase tracking-tight">{{ item.usuario.nombre }}</h3>
+                       <div class="flex items-center gap-1 sm:gap-2 mt-0.5">
+                         <span class="text-[7px] sm:text-[9px] font-bold text-emerald-500">{{ formatDate(item.fecha) }}</span>
+                       </div>
                     </div>
                   </div>
                 </div>
-                <div :class="`px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-widest ${getStatusClass(item.estado)}` ">
-                  {{ item.estado }}
-                </div>
-              </div>
 
-              <div class="grid grid-cols-2 gap-4 mb-5 pt-4 border-t border-white/5">
-                <div class="space-y-1">
-                  <span class="text-[8px] font-black text-gray-500 uppercase tracking-widest block">Banco Emisor</span>
-                  <p class="text-xs font-black text-white uppercase">{{ item.cuenta?.banco || '---' }}</p>
-                </div>
-                <div class="space-y-1">
-                  <span class="text-[8px] font-black text-gray-500 uppercase tracking-widest block">
-                    {{ item.pagador ? 'Enviado por' : 'Comprobante' }}
-                  </span>
-                  <p class="text-xs font-black text-emerald-400 select-all">
-                    {{ item.pagador ? item.pagador.nombre : (item.num_comprobante || '---') }}
-                  </p>
-                </div>
-                <div class="space-y-1">
-                  <span class="text-[8px] font-black text-gray-500 uppercase tracking-widest block">Monto Pagado</span>
-                  <p class="text-xs font-black text-white">${{ Number(item.monto || 0).toFixed(2) }}</p>
-                </div>
-                <div class="space-y-1">
-                  <span class="text-[8px] font-black text-gray-500 uppercase tracking-widest block">ID Usuario</span>
-                  <p class="text-xs font-black text-gray-400">#{{ item.usuario.id_usuario }}</p>
+                <div class="grid grid-cols-2 gap-2 sm:gap-4 mb-3 sm:mb-5 pt-3 sm:pt-4 border-t border-white/5">
+                  <div class="space-y-1">
+                    <span class="text-[7px] sm:text-[8px] font-black text-gray-500 uppercase tracking-widest block">Banco Emisor</span>
+                    <p class="text-[10px] sm:text-xs font-black text-white uppercase truncate">{{ item.cuenta?.banco || '---' }}</p>
+                  </div>
+                  <div class="space-y-1">
+                    <span class="text-[7px] sm:text-[8px] font-black text-gray-500 uppercase tracking-widest block">
+                      {{ item.pagador ? 'Enviado por' : 'Comprobante' }}
+                    </span>
+                    <p class="text-[10px] sm:text-xs font-black text-emerald-400 select-all truncate">
+                      {{ item.pagador ? item.pagador.nombre : (item.num_comprobante || '---') }}
+                    </p>
+                  </div>
+                  <div class="space-y-1">
+                    <span class="text-[7px] sm:text-[8px] font-black text-gray-500 uppercase tracking-widest block">Monto Pagado</span>
+                    <p class="text-[10px] sm:text-xs font-black text-white">${{ Number(item.monto || 0).toFixed(2) }}</p>
+                  </div>
+                  <div class="space-y-1">
+                    <span class="text-[7px] sm:text-[8px] font-black text-gray-500 uppercase tracking-widest block">ID Usuario</span>
+                    <p class="text-[10px] sm:text-xs font-black text-gray-400">#{{ item.usuario.id_usuario }}</p>
+                  </div>
                 </div>
               </div>
 
               <!-- Actions -->
-              <div v-if="item.estado === 'pendiente'" class="grid grid-cols-2 gap-3 pt-4 border-t border-white/5">
+              <div v-if="item.estado === 'pendiente'" class="grid grid-cols-2 gap-2 pt-3 sm:pt-4 border-t border-white/5">
                 <button @click="confirmAction(item, 'rechazar', 'membresia')" 
-                  class="py-3 px-4 bg-red-500/10 hover:bg-red-500/20 text-red-500 rounded-2xl text-[10px] font-black uppercase tracking-widest border border-red-500/20 transition-all flex items-center justify-center gap-2">
+                  class="py-2 sm:py-3 px-2 sm:px-4 bg-red-500/10 hover:bg-red-500/20 text-red-500 rounded-xl sm:rounded-2xl text-[8px] sm:text-[10px] font-black uppercase tracking-widest border border-red-500/20 transition-all flex items-center justify-center gap-1 sm:gap-2">
                   <i class="fas fa-times"></i>
                   Rechazar
                 </button>
                 <button @click="confirmAction(item, 'aprobar', 'membresia')" 
-                  class="py-3 px-4 bg-emerald-500 text-[#070b14] rounded-2xl text-[10px] font-black uppercase tracking-widest border border-emerald-500 transition-all flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20">
+                  class="py-2 sm:py-3 px-2 sm:px-4 bg-emerald-500 text-[#070b14] rounded-xl sm:rounded-2xl text-[8px] sm:text-[10px] font-black uppercase tracking-widest border border-emerald-500 transition-all flex items-center justify-center gap-1 sm:gap-2 shadow-lg shadow-emerald-500/20">
                   <i class="fas fa-check"></i>
-                  Aprobar Pago
+                  Aprobar
                 </button>
               </div>
             </div>
@@ -159,50 +156,55 @@
             <p class="text-xs font-bold uppercase tracking-widest">No hay publicaciones pendientes de verificación</p>
           </div>
 
-          <TransitionGroup name="list">
+          <TransitionGroup name="list" tag="div" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div v-for="pub in publicacionesPendientes" :key="pub.id_publicacion"
-              class="bg-white/5 border border-white/10 rounded-[2rem] p-5 backdrop-blur-sm group hover:border-violet-500/30 transition-all">
+              class="bg-white/5 border border-white/10 rounded-[2rem] p-5 backdrop-blur-sm group hover:border-violet-500/30 transition-all flex flex-col justify-between">
               
-              <!-- User info -->
-              <div class="flex items-center justify-between mb-4">
-                <div class="flex items-center gap-3">
-                  <div class="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 overflow-hidden">
-                    <img :src="pub.usuario?.imagen_url || `https://ui-avatars.com/api/?name=${pub.usuario?.nombre}&background=random&color=fff`" class="w-full h-full object-cover">
-                  </div>
-                  <div>
-                    <h3 class="text-sm font-black text-white uppercase tracking-tight">{{ pub.usuario?.nombre }}</h3>
-                    <div class="flex items-center gap-2 mt-0.5">
-                      <span class="text-[9px] font-bold text-gray-500">{{ pub.usuario?.telefono }}</span>
-                      <div class="w-1 h-1 rounded-full bg-gray-700"></div>
-                      <span class="text-[9px] font-bold text-violet-400">{{ formatDate(pub.fecha) }}</span>
+              <div>
+                <!-- User info -->
+                <div class="flex items-center justify-between mb-4">
+                  <div class="flex items-center gap-3">
+                    <div class="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 overflow-hidden cursor-zoom-in" @click="viewFullImage(pub.usuario?.imagen_url || `https://ui-avatars.com/api/?name=${pub.usuario?.nombre}&background=random&color=fff`)">
+                      <img :src="pub.usuario?.imagen_url || `https://ui-avatars.com/api/?name=${pub.usuario?.nombre}&background=random&color=fff`" class="w-full h-full object-cover">
+                    </div>
+                    <div>
+                      <h3 class="text-sm font-black text-white uppercase tracking-tight">{{ pub.usuario?.nombre }}</h3>
+                      <div class="flex items-center gap-2 mt-0.5">
+                        <span class="text-[9px] font-bold text-gray-500">{{ pub.usuario?.telefono }}</span>
+                        <div class="w-1 h-1 rounded-full bg-gray-700"></div>
+                        <span class="text-[9px] font-bold text-violet-400">{{ formatDate(pub.fecha) }}</span>
+                      </div>
                     </div>
                   </div>
+                  <div class="px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-widest bg-amber-500/10 text-amber-400">En Revisión</div>
                 </div>
-                <div class="px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-widest bg-amber-500/10 text-amber-400">En Revisión</div>
-              </div>
 
-              <!-- Content preview -->
-              <div v-if="pub.content" class="mb-4 p-3 bg-white/5 rounded-2xl border border-white/5">
-                <p class="text-xs text-gray-300 leading-relaxed" style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">{{ pub.content }}</p>
-              </div>
-
-              <!-- Media preview -->
-              <div v-if="pub.media && pub.media.length > 0" class="flex gap-2 mb-4 overflow-x-auto pb-1">
-                <div v-for="(item, idx) in pub.media" :key="idx" class="shrink-0 w-16 h-16 rounded-xl overflow-hidden bg-black/40 border border-white/10">
-                  <img v-if="item.type === 'image'" :src="item.url" class="w-full h-full object-cover">
-                  <div v-else class="w-full h-full flex items-center justify-center text-xl">🎥</div>
+                <!-- Content preview -->
+                <div v-if="pub.content" class="mb-4 p-3 bg-white/5 rounded-2xl border border-white/5">
+                  <p class="text-xs text-gray-300 leading-relaxed" style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">{{ pub.content }}</p>
                 </div>
-              </div>
 
-              <!-- Payment details grid -->
-              <div class="grid grid-cols-2 gap-3 mb-4 pt-4 border-t border-white/5">
-                <div class="space-y-1">
-                  <span class="text-[8px] font-black text-gray-500 uppercase tracking-widest block">Presupuesto</span>
-                  <p class="text-sm font-black text-white">$ {{ Number(pub.presupuesto || 0).toFixed(2) }}</p>
+                <!-- Media preview -->
+                <div v-if="pub.media && pub.media.length > 0" class="flex gap-2 mb-4 overflow-x-auto pb-1">
+                  <div v-for="(mediaItem, idx) in pub.media" :key="idx" 
+                       class="shrink-0 w-16 h-16 rounded-xl overflow-hidden bg-black/40 border border-white/10"
+                       :class="mediaItem.type === 'image' ? 'cursor-zoom-in' : ''"
+                       @click="mediaItem.type === 'image' && viewFullImage(mediaItem.url)">
+                    <img v-if="mediaItem.type === 'image'" :src="mediaItem.url" class="w-full h-full object-cover">
+                    <div v-else class="w-full h-full flex items-center justify-center text-xl">🎥</div>
+                  </div>
                 </div>
-                <div class="space-y-1">
-                  <span class="text-[8px] font-black text-gray-500 uppercase tracking-widest block">N° Comprobante</span>
-                  <p class="text-xs font-black text-violet-400 select-all">{{ pub.num_comprobante || '—' }}</p>
+
+                <!-- Payment details grid -->
+                <div class="grid grid-cols-2 gap-3 mb-4 pt-4 border-t border-white/5">
+                  <div class="space-y-1">
+                    <span class="text-[8px] font-black text-gray-500 uppercase tracking-widest block">Presupuesto</span>
+                    <p class="text-sm font-black text-white">$ {{ Number(pub.presupuesto || 0).toFixed(2) }}</p>
+                  </div>
+                  <div class="space-y-1">
+                    <span class="text-[8px] font-black text-gray-500 uppercase tracking-widest block">N° Comprobante</span>
+                    <p class="text-xs font-black text-violet-400 select-all">{{ pub.num_comprobante || '—' }}</p>
+                  </div>
                 </div>
               </div>
 
@@ -243,39 +245,41 @@
             <p class="text-xs font-bold uppercase tracking-widest">No hay identidades por revisar</p>
           </div>
 
-          <TransitionGroup name="list">
+          <TransitionGroup name="list" tag="div" class="grid grid-cols-2 gap-3 sm:gap-4">
             <div v-for="user in filteredIdentidades" :key="user.id_usuario" 
-                 class="bg-white/5 border border-white/10 rounded-[2rem] p-5 backdrop-blur-sm">
-              <div class="flex items-center gap-4 mb-5">
-                <div class="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 overflow-hidden">
-                  <img :src="user.imagen_url || `https://ui-avatars.com/api/?name=${user.nombre}&background=random&color=fff`" class="w-full h-full object-cover">
+                 class="bg-white/5 border border-white/10 rounded-[1.5rem] sm:rounded-[2rem] p-3 sm:p-5 backdrop-blur-sm flex flex-col justify-between">
+              <div>
+                <div class="flex items-center gap-2 sm:gap-4 mb-3 sm:mb-5">
+                  <div class="w-9 h-9 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-white/5 border border-white/10 overflow-hidden cursor-zoom-in" @click="viewFullImage(user.imagen_url || `https://ui-avatars.com/api/?name=${user.nombre}&background=random&color=fff`)">
+                    <img :src="user.imagen_url || `https://ui-avatars.com/api/?name=${user.nombre}&background=random&color=fff`" class="w-full h-full object-cover">
+                  </div>
+                  <div>
+                    <h3 class="text-xs sm:text-sm font-black text-white uppercase tracking-tight">{{ user.nombre }}</h3>
+                    <p class="text-[7px] sm:text-[9px] font-bold text-gray-500 uppercase tracking-widest">DNI: {{ user.identidad || 'No provisto' }}</p>
+                  </div>
                 </div>
-                <div>
-                  <h3 class="text-sm font-black text-white uppercase tracking-tight">{{ user.nombre }}</h3>
-                  <p class="text-[9px] font-bold text-gray-500 uppercase tracking-widest">DNI: {{ user.identidad || 'No provisto' }}</p>
+
+                <div class="aspect-video bg-black/40 rounded-[1rem] sm:rounded-2xl border border-white/5 overflow-hidden mb-3 sm:mb-5 relative group cursor-zoom-in" @click="viewFullImage(user.identidad_url)">
+                  <img :src="user.identidad_url" class="w-full h-full object-contain">
+                  <div class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                    <i class="fas fa-search-plus text-2xl text-white"></i>
+                  </div>
                 </div>
               </div>
 
-              <div class="aspect-video bg-black/40 rounded-2xl border border-white/5 overflow-hidden mb-5 relative group cursor-zoom-in" @click="viewFullImage(user.identidad_url)">
-                <img :src="user.identidad_url" class="w-full h-full object-contain">
-                <div class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                  <i class="fas fa-search-plus text-2xl text-white"></i>
-                </div>
-              </div>
-
-              <div v-if="!user.verificado" class="grid grid-cols-2 gap-3">
+              <div v-if="!user.verificado" class="grid grid-cols-2 gap-2">
                 <button @click="confirmAction(user, 'rechazar', 'identidad')" 
-                  class="py-3 px-4 bg-red-500/10 text-red-500 rounded-2xl text-[10px] font-black uppercase border border-red-500/20">
-                  Rechazar Foto
+                  class="py-2 sm:py-3 px-2 sm:px-4 bg-red-500/10 text-red-500 rounded-xl sm:rounded-2xl text-[8px] sm:text-[10px] font-black uppercase border border-red-500/20 text-center">
+                  Rechazar
                 </button>
                 <button @click="confirmAction(user, 'aprobar', 'identidad')" 
-                  class="py-3 px-4 bg-blue-500 text-white rounded-2xl text-[10px] font-black uppercase shadow-lg shadow-blue-500/20">
-                  Verificar ID
+                  class="py-2 sm:py-3 px-2 sm:px-4 bg-blue-500 text-white rounded-xl sm:rounded-2xl text-[8px] sm:text-[10px] font-black uppercase shadow-lg shadow-blue-500/20 text-center">
+                  Aprobar
                 </button>
               </div>
-              <div v-else class="py-3 px-4 bg-emerald-500/10 text-emerald-500 rounded-2xl text-[10px] font-black uppercase text-center border border-emerald-500/20 flex items-center justify-center gap-2">
+              <div v-else class="py-2 sm:py-3 px-2 sm:px-4 bg-emerald-500/10 text-emerald-500 rounded-xl sm:rounded-2xl text-[8px] sm:text-[10px] font-black uppercase text-center border border-emerald-500/20 flex items-center justify-center gap-1 sm:gap-2">
                 <i class="fas fa-check-circle"></i>
-                Usuario ya Verificado
+                Verificado
               </div>
             </div>
           </TransitionGroup>
@@ -303,38 +307,40 @@
             <p class="text-xs font-bold uppercase tracking-widest">No hay retiros en esta categoría</p>
           </div>
 
-          <TransitionGroup name="list">
+          <TransitionGroup name="list" tag="div" class="grid grid-cols-2 gap-3 sm:gap-4">
             <div v-for="retiro in filteredRetiros" :key="retiro.id_retiro" 
-                 class="bg-white/5 border border-white/10 rounded-[2rem] p-5 backdrop-blur-sm">
-              <div class="flex items-center justify-between mb-4">
-                <div class="flex items-center gap-4">
-                  <div class="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 overflow-hidden">
-                    <img :src="retiro.usuario.imagen_url || `https://ui-avatars.com/api/?name=${retiro.usuario.nombre}&background=random&color=fff`" class="w-full h-full object-cover">
+                 class="bg-white/5 border border-white/10 rounded-[1.5rem] sm:rounded-[2rem] p-3 sm:p-5 backdrop-blur-sm flex flex-col justify-between">
+              <div>
+                <div class="flex items-center justify-between mb-3 sm:mb-4">
+                  <div class="flex items-center gap-2 sm:gap-4">
+                    <div class="w-9 h-9 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-white/5 border border-white/10 overflow-hidden cursor-zoom-in" @click="viewFullImage(retiro.usuario.imagen_url || `https://ui-avatars.com/api/?name=${retiro.usuario.nombre}&background=random&color=fff`)">
+                      <img :src="retiro.usuario.imagen_url || `https://ui-avatars.com/api/?name=${retiro.usuario.nombre}&background=random&color=fff`" class="w-full h-full object-cover">
+                    </div>
+                    <div>
+                      <h3 class="text-xs sm:text-sm font-black text-white uppercase tracking-tight truncate max-w-[80px] sm:max-w-none">{{ retiro.usuario.nombre }}</h3>
+                      <p class="text-[7px] sm:text-[9px] font-bold text-emerald-500">{{ formatDate(retiro.fecha) }}</p>
+                    </div>
                   </div>
-                  <div>
-                    <h3 class="text-sm font-black text-white uppercase tracking-tight">{{ retiro.usuario.nombre }}</h3>
-                    <p class="text-[9px] font-bold text-emerald-500">{{ formatDate(retiro.fecha) }}</p>
+                  <div class="text-right">
+                    <p class="text-xs sm:text-lg font-black text-white">${{ Number(retiro.monto).toFixed(2) }}</p>
+                    <p :class="`text-[7px] sm:text-[8px] font-black uppercase tracking-widest ${getStatusClass(retiro.estado)}`">{{ retiro.estado }}</p>
                   </div>
                 </div>
-                <div class="text-right">
-                  <p class="text-lg font-black text-white">${{ Number(retiro.monto).toFixed(2) }}</p>
-                  <p :class="`text-[8px] font-black uppercase tracking-widest ${getStatusClass(retiro.estado)}`">{{ retiro.estado }}</p>
+
+                <div class="bg-black/20 rounded-xl sm:rounded-2xl p-2 sm:p-4 border border-white/5 mb-3 sm:mb-5">
+                  <span class="text-[7px] sm:text-[8px] font-black text-gray-500 uppercase tracking-widest block mb-1">Detalles</span>
+                  <p class="text-[10px] sm:text-xs font-bold text-gray-300 leading-relaxed truncate">{{ retiro.detalles_cuenta }}</p>
                 </div>
               </div>
 
-              <div class="bg-black/20 rounded-2xl p-4 border border-white/5 mb-5">
-                <span class="text-[8px] font-black text-gray-500 uppercase tracking-widest block mb-1">Detalles de Cobro</span>
-                <p class="text-xs font-bold text-gray-300 leading-relaxed">{{ retiro.detalles_cuenta }}</p>
-              </div>
-
-              <div v-if="retiro.estado === 'pendiente'" class="grid grid-cols-2 gap-3">
+              <div v-if="retiro.estado === 'pendiente'" class="grid grid-cols-2 gap-2">
                 <button @click="confirmAction(retiro, 'rechazado', 'retiro')" 
-                  class="py-3 px-4 bg-red-500/10 text-red-500 rounded-2xl text-[10px] font-black uppercase border border-red-500/20">
+                  class="py-2 sm:py-3 px-2 sm:px-4 bg-red-500/10 text-red-500 rounded-xl sm:rounded-2xl text-[8px] sm:text-[10px] font-black uppercase border border-red-500/20 text-center">
                   Rechazar
                 </button>
                 <button @click="confirmAction(retiro, 'aprobado', 'retiro')" 
-                  class="py-3 px-4 bg-purple-500 text-white rounded-2xl text-[10px] font-black uppercase shadow-lg shadow-purple-500/20">
-                  Completar Pago
+                  class="py-2 sm:py-3 px-2 sm:px-4 bg-purple-500 text-white rounded-xl sm:rounded-2xl text-[8px] sm:text-[10px] font-black uppercase shadow-lg shadow-purple-500/20 text-center">
+                  Aprobar
                 </button>
               </div>
             </div>

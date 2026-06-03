@@ -40,21 +40,23 @@
             <div class="flex items-center justify-between">
               <div class="flex items-center gap-4">
                 <div class="w-14 h-14 rounded-2xl bg-white/5 backdrop-blur-md flex items-center justify-center text-3xl border border-white/10 shadow-2xl group-hover:scale-110 transition-transform duration-700">
-                  {{ isMembershipActive ? '🏆' : (isMembershipPending ? '⏳' : (isMembershipExpired ? '⚠️' : '🔒')) }}
+                  {{ isMembershipActive ? (isMembershipGrace ? '⚠️' : '🏆') : (isMembershipPending ? '⏳' : (isMembershipExpired ? '⚠️' : '🔒')) }}
                 </div>
                 <div>
                   <h3 class="text-xs font-black text-white uppercase tracking-[0.2em] mb-1">Tu Membresía</h3>
                   <div class="flex items-center gap-2">
                     <span class="w-2 h-2 rounded-full animate-pulse"
                       :class="{
-                        'bg-blue-400 shadow-[0_0_8px_rgba(96,165,250,0.8)]': isMembershipActive,
+                        'bg-blue-400 shadow-[0_0_8px_rgba(96,165,250,0.8)]': isMembershipActive && !isMembershipGrace,
+                        'bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.8)]': isMembershipGrace,
                         'bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.8)]': isMembershipPending,
                         'bg-red-400 shadow-[0_0_8px_rgba(248,113,113,0.8)]': isMembershipExpired,
                         'bg-gray-500': isMembershipInactive
                       }"></span>
                     <p class="text-[10px] font-black uppercase tracking-[0.2em]"
                        :class="{
-                         'text-blue-400': isMembershipActive,
+                         'text-blue-400': isMembershipActive && !isMembershipGrace,
+                         'text-amber-500': isMembershipGrace,
                          'text-amber-400': isMembershipPending,
                          'text-red-400': isMembershipExpired,
                          'text-gray-500': isMembershipInactive
@@ -80,9 +82,9 @@
                <!-- Validity Info -->
                <div v-if="!membershipData.isRoot" class="bg-black/40 backdrop-blur-md rounded-2xl p-4 border border-white/5 flex flex-col justify-center space-y-1">
                   <p class="text-[9px] text-gray-500 font-black uppercase tracking-widest">
-                     {{ isMembershipActive ? 'Vencimiento' : (isMembershipPending ? 'Enviado el' : 'Estado') }}
+                     {{ isMembershipGrace ? 'Periodo de Gracia' : (isMembershipActive ? 'Vencimiento' : (isMembershipPending ? 'Enviado el' : 'Estado')) }}
                    </p>
-                   <p class="text-xs font-black text-white">
+                   <p class="text-xs font-black" :class="isMembershipGrace ? 'text-amber-500' : 'text-white'">
                      {{ isMembershipActive ? formatShortDate(membershipData.fechaVencimiento) : (isMembershipInactive ? 'No activada' : formatShortDate(membershipData.fechaInicio)) }}
                    </p>
                </div>
@@ -91,36 +93,50 @@
                   <p class="text-xs font-black text-white italic">Cuenta Administradora</p>
                </div>
 
-               <!-- Activation Button -->
-               <div class="flex items-center">
-                 <button 
-                  v-if="!membershipData.isRoot"
-                   @click="renovarMembresia"
-                   :disabled="isMembershipPending"
-                   class="w-full bg-emerald-500 hover:bg-emerald-400 text-slate-950 py-3.5 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] transition-all active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed shadow-xl shadow-emerald-500/20">
-                   {{ isMembershipActive ? 'Renovar Plan' : (isMembershipInactive || isMembershipExpired ? 'Activar Ahora' : 'Pendiente') }}
-                 </button>
-                 <div v-else class="w-full flex items-center justify-center p-3.5 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl">
-                    <span class="text-[10px] font-black text-emerald-400 uppercase tracking-widest">Acceso Ilimitado</span>
-                 </div>
-               </div>
+                <!-- Activation Button -->
+                <div class="flex flex-col gap-2">
+                  <button 
+                   v-if="!membershipData.isRoot"
+                    @click="renovarMembresia"
+                    :disabled="isMembershipPending"
+                    class="w-full bg-emerald-500 hover:bg-emerald-400 text-slate-950 py-3.5 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] transition-all active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed shadow-xl shadow-emerald-500/20">
+                    {{ isMembershipActive ? 'Renovar Plan' : (isMembershipInactive || isMembershipExpired ? 'Activar Ahora' : 'Pendiente') }}
+                  </button>
+                  <div v-else class="w-full flex items-center justify-center p-3.5 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl">
+                     <span class="text-[10px] font-black text-emerald-400 uppercase tracking-widest">Acceso Ilimitado</span>
+                  </div>
+                  <button 
+                    v-if="!membershipData.isRoot"
+                    @click="openMembershipHistory" 
+                    class="w-full py-2 bg-white/5 hover:bg-white/10 text-white border border-white/10 rounded-2xl text-[9px] font-black uppercase tracking-wider transition-all active:scale-95">
+                    Ver Historial
+                  </button>
+                </div>
             </div>
 
             <!-- Progress Indicator -->
             <div v-if="isMembershipActive && !membershipData.isRoot" class="space-y-3">
               <div class="flex justify-between items-end px-1">
                 <div class="flex flex-col">
-                  <p class="text-[9px] text-gray-500 font-black uppercase tracking-widest">Progreso del Periodo</p>
-                  <p v-if="daysRemaining !== null" class="text-[8px] text-indigo-300 font-bold uppercase tracking-wider">
+                  <p class="text-[9px] font-black uppercase tracking-widest" :class="isMembershipGrace ? 'text-amber-500' : 'text-gray-500'">
+                    {{ isMembershipGrace ? 'Días de Gracia Restantes' : 'Progreso del Periodo' }}
+                  </p>
+                  <p v-if="isMembershipGrace" class="text-[8px] text-amber-500 font-bold uppercase tracking-wider">
+                    {{ Math.max(0, graceDays - Math.floor((new Date() - new Date(membershipData.fechaVencimiento)) / (1000 * 60 * 60 * 24))) }} {{ Math.max(0, graceDays - Math.floor((new Date() - new Date(membershipData.fechaVencimiento)) / (1000 * 60 * 60 * 24))) === 1 ? 'día' : 'días' }} para bloqueo
+                  </p>
+                  <p v-else-if="daysRemaining !== null" class="text-[8px] text-indigo-300 font-bold uppercase tracking-wider">
                     {{ daysRemaining }} {{ daysRemaining === 1 ? 'día' : 'días' }} restante{{ daysRemaining === 1 ? '' : 's' }}
                   </p>
                 </div>
-                <p class="text-[11px] font-black text-indigo-400">{{ membershipProgress }}%</p>
+                <p class="text-[11px] font-black" :class="isMembershipGrace ? 'text-amber-500' : 'text-indigo-400'">
+                  {{ isMembershipGrace ? 'Expirado' : `${membershipProgress}%` }}
+                </p>
               </div>
               <div class="w-full bg-white/5 rounded-full h-1.5 overflow-hidden border border-white/5">
                 <div 
-                  class="h-full rounded-full bg-gradient-to-r from-blue-600 to-indigo-400 transition-all duration-1000 ease-out shadow-[0_0_15px_rgba(37,99,235,0.4)]"
-                  :style="`width: ${membershipProgress}%`"
+                  class="h-full rounded-full transition-all duration-1000 ease-out"
+                  :class="isMembershipGrace ? 'bg-gradient-to-r from-amber-600 to-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.4)]' : 'bg-gradient-to-r from-blue-600 to-indigo-400 shadow-[0_0_15px_rgba(37,99,235,0.4)]'"
+                  :style="`width: ${isMembershipGrace ? '100' : membershipProgress}%`"
                 ></div>
               </div>
             </div>
@@ -147,9 +163,9 @@
                      <svg class="w-5 h-5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
                   </div>
                   <div>
-                    <h4 class="text-xs font-black text-white uppercase tracking-tight mb-1">Acceso Total a Matriz</h4>
+                    <h4 class="text-xs font-black text-white uppercase tracking-tight mb-1">Red de Ganancias Multinivel</h4>
                     <p class="text-[10px] text-gray-400 font-medium leading-relaxed">
-                      Desbloquea los 5 niveles de tu red y cobra bonos por el crecimiento del equipo.
+                      Gana el 100% de la membresía de cada persona que invites, al instante y de forma individual.
                     </p>
                   </div>
                 </div>
@@ -241,8 +257,11 @@
                   </div>
                 </div>
                 <div class="text-right">
-                  <p class="text-xs font-black text-gray-400 uppercase tracking-widest mb-1">Ganancia</p>
-                  <p class="text-lg font-black text-emerald-500 transition-transform origin-right">{{ formatCurrency(level.totalCommission) }}</p>
+                  <p class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-0.5">Ganado</p>
+                  <p class="text-base font-black leading-tight">
+                    <span class="text-emerald-500">{{ formatCurrency((userMatrixInfo.conteos[level.id] || 0) * level.cost) }}</span>
+                    <span class="text-gray-400 font-bold text-[11px]"> / {{ formatCurrency(level.totalCommission) }}</span>
+                  </p>
                 </div>
               </div>
 
@@ -250,7 +269,7 @@
               <div class="space-y-1.5 mt-2">
                 <div class="flex justify-between items-end px-1">
                   <p class="text-[10px] font-black text-gray-500 uppercase tracking-wider">
-                    {{ userMatrixInfo.conteos[level.id] || 0 }} <span class="text-gray-400 font-bold">/ {{ level.people }} Invitados</span>
+                    {{ userMatrixInfo.conteos[level.id] || 0 }} <span class="text-gray-400 font-bold">invitados activos de {{ level.people }} posibles</span>
                   </p>
                   <p class="text-[10px] font-black text-indigo-500">{{ Math.round(((userMatrixInfo.conteos[level.id] || 0) / level.people) * 100) }}%</p>
                 </div>
@@ -258,6 +277,7 @@
                   <div class="h-full bg-indigo-500 rounded-full transition-all duration-1000 ease-out"
                        :style="{ width: `${((userMatrixInfo.conteos[level.id] || 0) / level.people) * 100}%` }"></div>
                 </div>
+                <p class="text-[9px] text-gray-400 font-medium px-1">Ganas <span class="text-emerald-500 font-black">{{ formatCurrency(level.cost) }}</span> al instante por cada nuevo invitado</p>
               </div>
             </div>
           </div>
@@ -281,9 +301,9 @@
                   </div>
                   <span class="font-black text-[10px] uppercase tracking-wider">Crecimiento Directo</span>
                 </div>
-                <h4 class="text-sm font-black mb-1">Gana el 100%</h4>
+                <h4 class="text-sm font-black mb-1">Gana el 100% al instante</h4>
                 <p class="text-[10px] text-indigo-100 leading-tight">
-                  Recibes el <span class="font-bold underline decoration-white/50">100% de la membresía</span> al instante por cada invitado.
+                  Cada vez que alguien paga su membresía usando tu link, <span class="font-bold underline decoration-white/50">recibes el 100% de ese valor de inmediato</span>. No hay mínimos ni esperas.
                 </p>
               </div>
             </div>
@@ -298,9 +318,9 @@
                   </div>
                   <span class="font-black text-[10px] uppercase tracking-wider">Crecimiento en Equipo</span>
                 </div>
-                <h4 class="text-sm font-black mb-1">Desempeño Global</h4>
+                <h4 class="text-sm font-black mb-1">Potencial Máximo</h4>
                 <p class="text-[10px] text-emerald-100 leading-tight">
-                  Recibe asociados automáticamente y <span class="font-bold">cobra bonos</span> por desarrollo de equipo.
+                  Mientras más personas invites, más ganas. Desbloquea niveles superiores para <span class="font-bold">multiplicar tu red y tus ingresos</span>.
                 </p>
               </div>
             </div>
@@ -648,6 +668,72 @@
       @withdraw="isWithdrawalModalOpen = true"
     />
 
+    <!-- Membership History Modal -->
+    <Transition name="fade">
+      <div v-if="showMembershipHistoryModal" @click.self="showMembershipHistoryModal = false" class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+        <div class="relative w-full max-w-sm bg-[#0f172a] rounded-[2.5rem] border border-white/10 shadow-2xl overflow-hidden flex flex-col max-h-[80vh] animate-modal-in">
+          <!-- Header -->
+          <div class="p-6 border-b border-white/5 flex items-center justify-between bg-[#0f172a]/50 backdrop-blur-xl">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center text-xl">
+                💳
+              </div>
+              <div>
+                <h3 class="text-sm font-black text-white uppercase tracking-wider">Historial de Membresías</h3>
+                <p class="text-[9px] text-gray-500 font-bold uppercase tracking-widest">Tus compras y activaciones</p>
+              </div>
+            </div>
+            <button @click="showMembershipHistoryModal = false" class="p-2 text-gray-400 hover:text-white transition-colors">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+            </button>
+          </div>
+
+          <!-- Body -->
+          <div class="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar no-scrollbar">
+            <div v-if="isLoadingMembershipHistory" class="flex flex-col items-center justify-center py-12 space-y-4">
+              <div class="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+              <p class="text-[10px] text-gray-500 font-bold uppercase tracking-widest">Cargando historial...</p>
+            </div>
+            
+            <template v-else-if="membershipHistory.length > 0">
+              <div v-for="item in membershipHistory" :key="item.id_membresia" class="bg-white/5 border border-white/5 p-3 rounded-2xl flex items-center justify-between hover:bg-white/10 transition-all group">
+                <div class="flex-1 min-w-0">
+                  <div class="flex items-center gap-2">
+                    <span class="text-xs font-black text-white">
+                      Membresía {{ item.estado === 'activa' ? 'Activa' : (item.estado === 'pendiente' ? 'Pendiente' : (item.estado === 'vencida' ? 'Vencida' : 'Rechazada')) }}
+                    </span>
+                    <span v-if="item.id_pagador && item.id_pagador !== authStore.userId" class="px-2 py-0.5 rounded-lg bg-emerald-500/10 text-emerald-400 text-[8px] font-black uppercase tracking-wider">
+                      Regalo 🎁
+                    </span>
+                    <span v-else-if="item.id_pagador && item.id_pagador === authStore.userId" class="px-2 py-0.5 rounded-lg bg-blue-500/10 text-blue-400 text-[8px] font-black uppercase tracking-wider">
+                      Tú Regalaste
+                    </span>
+                  </div>
+                  <p class="text-[9px] text-gray-400 font-bold uppercase tracking-tighter mt-1">
+                    {{ item.id_pagador && item.id_pagador !== authStore.userId ? 'Regalado por patrocinador' : 'Pago directo / Saldo' }}
+                  </p>
+                  <p class="text-[8px] text-gray-500 font-medium mt-0.5">{{ formatShortDate(item.fecha) }}</p>
+                </div>
+                <div class="text-right shrink-0">
+                  <span class="text-xs font-black text-white">{{ formatCurrency(item.monto) }}</span>
+                  <p class="text-[7px]" :class="{
+                    'text-emerald-400': item.estado === 'activa',
+                    'text-amber-400': item.estado === 'pendiente',
+                    'text-red-400': item.estado === 'vencida' || item.estado === 'rechazada'
+                  }">{{ item.estado.toUpperCase() }}</p>
+                </div>
+              </div>
+            </template>
+
+            <div v-else class="flex flex-col items-center justify-center py-12 text-center">
+              <div class="text-4xl mb-4 opacity-20">💳</div>
+              <p class="text-[10px] text-gray-500 font-bold uppercase tracking-widest">No hay registros de membresías</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </Transition>
+
     <!-- Bottom Navigation -->
     <BottomNav />
   </div>
@@ -737,6 +823,7 @@ const membershipData = ref({
   fechaInicio: null,
   fechaVencimiento: null
 })
+const graceDays = ref(5) // Valor por defecto
 const membershipCost = ref(0)
 const bankAccounts = ref([])
 const selectedAccount = ref('')
@@ -746,7 +833,8 @@ const showRenewalModal = ref(false)
 const empresaPhoneNumber = ref('')
 const comprobante = ref('')
 
-const isMembershipActive = computed(() => membershipData.value.status === 'activa')
+const isMembershipActive = computed(() => ['activa', 'gracia'].includes(membershipData.value.status))
+const isMembershipGrace = computed(() => membershipData.value.status === 'gracia')
 const isMembershipPending = computed(() => membershipData.value.status === 'pendiente')
 const isMembershipExpired = computed(() => membershipData.value.status === 'vencida')
 const isMembershipInactive = computed(() => ['inactiva', 'rechazada'].includes(membershipData.value.status) || !membershipData.value.status)
@@ -760,7 +848,7 @@ const daysRemaining = computed(() => {
   return Math.max(0, diffDays)
 })
 const membershipStatus = computed(() => {
-  const map = { activa: 'Activa', pendiente: 'Pendiente', vencida: 'Vencida', inactiva: 'Inactiva', rechazada: 'Rechazada' }
+  const map = { activa: 'Activa', gracia: 'Periodo Gracia ⚠️', pendiente: 'Pendiente', vencida: 'Vencida', inactiva: 'Inactiva', rechazada: 'Rechazada' }
   if (membershipData.value.isRoot) return 'Vitalicia'
   return map[membershipData.value.status] || 'Inactiva'
 })
@@ -811,6 +899,31 @@ const history = ref([])
 const isLoadingHistory = ref(false)
 const minWithdrawal = ref(0)
 const route = useRoute()
+
+// Membership History State
+const showMembershipHistoryModal = ref(false)
+const membershipHistory = ref([])
+const isLoadingMembershipHistory = ref(false)
+
+const openMembershipHistory = () => {
+  showMembershipHistoryModal.value = true
+  fetchMembershipHistory()
+}
+
+const fetchMembershipHistory = async () => {
+  if (!authStore.userId) return
+  isLoadingMembershipHistory.value = true
+  try {
+    const res = await $api(`/membresia/historial/${authStore.userId}`)
+    if (res.status === 'success') {
+      membershipHistory.value = res.data
+    }
+  } catch (e) {
+    console.error('Error fetching membership history:', e)
+  } finally {
+    isLoadingMembershipHistory.value = false
+  }
+}
 
 const openHistory = () => {
   showHistory.value = true
@@ -879,12 +992,15 @@ const totalInNetwork = computed(() => {
 
 const fetchConfig = async () => {
   try {
-    const keys = networkStructure.map(l => l.configKey).join(',')
+    const keys = networkStructure.map(l => l.configKey).join(',') + ',dias_gracia_membresia'
     const response = await $api(`/config/multi?tipos=${keys}`)
     if (response.success && response.data) {
       configPrices.value = { ...configPrices.value, ...response.data }
       if (response.data.valor_membresia) {
         giftCost.value = parseFloat(response.data.valor_membresia)
+      }
+      if (response.data.dias_gracia_membresia) {
+        graceDays.value = parseInt(response.data.dias_gracia_membresia, 10) || 5
       }
     }
   } catch (error) {
@@ -1017,20 +1133,43 @@ const refreshAll = async () => {
 const fetchMembershipData = async () => {
   try {
     const data = await $api(`/membresia/${authStore.userId}`)
+    console.log('[Membresía] Datos crudos de membresía recibidos:', data)
     if (data && data.status === 'success' && data.data) {
       const m = data.data
       const fechaInicio = new Date(m.fecha)
       const fechaFin = new Date(m.fecha)
+      
+      // Ajustado exactamente a 30 días, sin días de gracia adicionales para el progreso visible
       fechaFin.setDate(fechaFin.getDate() + 30)
       
       // Calcular progreso
       const hoy = new Date()
-      const total = fechaFin - fechaInicio
+      const total = 30 * 24 * 60 * 60 * 1000 // 30 días exactos en ms
       const transcurrido = hoy - fechaInicio
       let progreso = Math.min(100, Math.max(0, Math.round((transcurrido / total) * 100)))
       
+      console.log(`[Membresía] Hoy: ${hoy.toISOString()} | Fin ciclo 30 días: ${fechaFin.toISOString()}`)
+      console.log(`[Membresía] Progreso calculado: ${progreso}% | Estado BD: ${m.estado}`)
+      
+      // Si ya pasaron los 30 días pero la membresía sigue 'activa' en el backend porque está dentro de los días de gracia
+      let statusCalculado = m.estado
+      if (progreso >= 100 && m.estado === 'activa' && m.id_membresia !== 0) {
+        const diasDesdeFin = Math.floor((hoy - fechaFin) / (1000 * 60 * 60 * 24))
+        const diasGraciaRestantes = Math.max(0, graceDays.value - diasDesdeFin)
+        
+        console.log(`[Membresía] Días de gracia configurados: ${graceDays.value}`)
+        console.log(`[Membresía] Días transcurridos desde vencimiento: ${diasDesdeFin}`)
+        console.log(`[Membresía] Días de gracia restantes para el usuario: ${diasGraciaRestantes}`)
+        
+        if (diasDesdeFin <= graceDays.value) {
+          statusCalculado = 'gracia'
+        } else {
+          statusCalculado = 'vencida'
+        }
+      }
+      
       membershipData.value = {
-        status: (progreso >= 100 && m.estado === 'activa' && m.id_membresia !== 0) ? 'vencida' : m.estado,
+        status: statusCalculado,
         progress: m.id_membresia === 0 ? 0 : progreso,
         fechaInicio: fechaInicio,
         fechaVencimiento: m.id_membresia === 0 ? null : fechaFin,
@@ -1261,6 +1400,9 @@ onMounted(async () => {
   if (!authStore.user) {
     await authStore.fetchUser()
   }
+  
+  // Esperar primero a que cargue la configuración de gracia para tener graceDays.value disponible
+  await fetchConfig()
   
   await Promise.all([
     fetchUserProgress(),

@@ -24,7 +24,7 @@
           </div>
           
           <template v-else-if="history.length > 0">
-            <div v-for="item in history" :key="item.id_interaccion" class="bg-white/5 border border-white/5 p-3 rounded-2xl flex items-center gap-3 hover:bg-white/10 transition-all group">
+            <div v-for="item in history" :key="item.id_unico" class="bg-white/5 border border-white/5 p-3 rounded-2xl flex items-center gap-3 hover:bg-white/10 transition-all group">
               <!-- Publication Image Thumbnail -->
               <div 
                 @click="openViewer(item)"
@@ -45,11 +45,11 @@
 
               <div class="flex-1 min-w-0">
                 <h4 class="text-[11px] font-black text-white truncate">{{ getInteractionLabel(item.tipo) }}</h4>
-                <p class="text-[9px] text-gray-400 font-bold uppercase tracking-tighter truncate">{{ item.publicacion?.usuario?.nombre || 'Anunciante' }}</p>
+                <p class="text-[9px] text-gray-400 font-bold uppercase tracking-tighter truncate">{{ item.anunciante || item.publicacion?.usuario?.nombre || 'Anunciante' }}</p>
                 <p class="text-[8px] text-gray-500 font-medium mt-0.5">{{ formatDate(item.fecha) }}</p>
               </div>
               <div class="text-right">
-                <span class="text-xs font-black text-emerald-400">+{{ item.monto_ganado }}</span>
+                <span class="text-xs font-black text-emerald-400">+${{ item.monto_ganado }}</span>
                 <p class="text-[7px] text-gray-500 font-bold uppercase">GANADO</p>
               </div>
             </div>
@@ -104,7 +104,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, watch, onBeforeUnmount } from 'vue'
 
 const props = defineProps({
   show: Boolean,
@@ -122,6 +122,22 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['close', 'withdraw'])
+
+watch(() => props.show, (newVal) => {
+  if (process.client) {
+    if (newVal) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = ''
+    }
+  }
+}, { immediate: true })
+
+onBeforeUnmount(() => {
+  if (process.client) {
+    document.body.style.overflow = ''
+  }
+})
 
 // Viewer state
 const isViewerOpen = ref(false)
@@ -151,7 +167,8 @@ const getInteractionLabel = (type) => {
     video_view: 'Video publicitario visto',
     click: 'Clic en anuncio',
     visita_web: 'Visita a sitio web',
-    visita_whatsapp: 'Contacto por WhatsApp'
+    visita_whatsapp: 'Contacto por WhatsApp',
+    comision_red: 'Comisión de Red'
   }
   return labels[type] || 'Interacción'
 }
@@ -196,7 +213,8 @@ const getInteractionIcon = (type) => {
     video_view: '🎥',
     click: '🖱️',
     visita_web: '🌐',
-    visita_whatsapp: '💬'
+    visita_whatsapp: '💬',
+    comision_red: '👥'
   }
   return icons[type] || '✨'
 }
