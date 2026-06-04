@@ -44,7 +44,7 @@
               </div>
 
               <div class="flex-1 min-w-0">
-                <h4 class="text-[11px] font-black text-white truncate">{{ getInteractionLabel(item.tipo) }}</h4>
+                <h4 class="text-[11px] font-black text-white truncate">{{ item.tipo === 'comision_red' ? item.descripcion : getInteractionLabel(item.tipo) }}</h4>
                 <p class="text-[9px] text-gray-400 font-bold uppercase tracking-tighter truncate">{{ item.anunciante || item.publicacion?.usuario?.nombre || 'Anunciante' }}</p>
                 <p class="text-[8px] text-gray-500 font-medium mt-0.5">{{ formatDate(item.fecha) }}</p>
               </div>

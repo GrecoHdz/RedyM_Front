@@ -206,14 +206,134 @@
         <div :class="{ 'grayscale opacity-50 transition-all duration-700': !isMembershipActive }">
 
 
+      <!-- Summary of Earnings Section -->
+      <section class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <!-- Direct Referral Earnings Card -->
+        <div class="bg-gradient-to-br from-indigo-500/10 to-blue-500/5 backdrop-blur-md rounded-3xl p-5 border border-indigo-500/15 relative overflow-hidden group hover:border-indigo-500/30 transition-all duration-300">
+          <div class="absolute -right-6 -bottom-6 w-24 h-24 bg-indigo-500/10 rounded-full blur-2xl group-hover:bg-indigo-500/15 transition-all"></div>
+          <div class="flex items-center gap-4">
+            <div class="w-12 h-12 rounded-2xl bg-indigo-500/20 flex items-center justify-center text-indigo-400 group-hover:scale-110 transition-all">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
+            </div>
+            <div>
+              <p class="text-[9px] text-indigo-300/80 font-black uppercase tracking-[0.2em]">Ganado Directo (Membresías)</p>
+              <h4 class="text-2xl font-black text-white leading-tight mt-0.5">{{ formatCurrency(directReferralEarnings) }}</h4>
+              <p class="text-[10px] text-gray-400 font-bold mt-1">
+                {{ realReferidos.filter(r => r.nivel_actual > 0).length }} referidos directos activos
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Network Expansion Earnings Card -->
+        <div class="bg-gradient-to-br from-emerald-500/10 to-teal-500/5 backdrop-blur-md rounded-3xl p-5 border border-emerald-500/15 relative overflow-hidden group hover:border-emerald-500/30 transition-all duration-300">
+          <div class="absolute -right-6 -bottom-6 w-24 h-24 bg-emerald-500/10 rounded-full blur-2xl group-hover:bg-emerald-500/15 transition-all"></div>
+          <div class="flex items-center gap-4">
+            <div class="w-12 h-12 rounded-2xl bg-emerald-500/20 flex items-center justify-center text-emerald-400 group-hover:scale-110 transition-all">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
+            </div>
+            <div>
+              <p class="text-[9px] text-emerald-300/80 font-black uppercase tracking-[0.2em]">Ganado en Red (Upgrades)</p>
+              <h4 class="text-2xl font-black text-white leading-tight mt-0.5">{{ formatCurrency(networkExpansionEarnings) }}</h4>
+              <p class="text-[10px] text-gray-400 font-bold mt-1">
+                {{ totalInNetwork }} usuarios activos en red
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <!-- Network Matrix Stats -->
       <section class="space-y-4">
+
+        <!-- How it works -->
+        <div class="mt-8 space-y-6">
+          <div class="flex items-center justify-between px-1">
+            <h3 class="font-black text-xl text-gray-900 dark:text-white">¿Cómo cobras en la red?</h3>
+            <span class="px-3 py-1 bg-emerald-500/10 text-emerald-500 text-[10px] font-black uppercase rounded-lg tracking-widest">Reglas Claras</span>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <!-- Nivel 1 (Hijos) -->
+            <div class="bg-black/35 backdrop-blur-md rounded-[1.5rem] p-5 border border-purple-500/10 relative overflow-hidden">
+              <div class="flex items-center gap-3 mb-2.5">
+                <span class="w-7 h-7 rounded-xl bg-purple-500/20 text-purple-400 flex items-center justify-center font-black text-xs">1</span>
+                <h4 class="text-xs font-black uppercase text-white tracking-wider">Tus Hijos (Nivel 1)</h4>
+              </div>
+              <p class="text-[10.5px] text-gray-400 font-medium leading-relaxed">
+                Solo obtienes beneficio si tú los invitaste directamente con tu link. Si tus hijos cayeron por derrame (invitados de tu patrocinador arriba), tú ganas <span class="text-white font-black">$0</span> y la comisión del 100% va para quien los invitó.
+              </p>
+            </div>
+
+            <!-- Nivel 2 (Nietos) -->
+            <div class="bg-black/35 backdrop-blur-md rounded-[1.5rem] p-5 border border-indigo-500/10 relative overflow-hidden">
+              <div class="flex items-center gap-3 mb-2.5">
+                <span class="w-7 h-7 rounded-xl bg-indigo-500/20 text-indigo-400 flex items-center justify-center font-black text-xs">2</span>
+                <h4 class="text-xs font-black uppercase text-white tracking-wider">Tus Nietos (Nivel 2)</h4>
+              </div>
+              <p class="text-[10.5px] text-gray-400 font-medium leading-relaxed">
+                Tus nietos son los invitados de tus hijos. Cobras <span class="text-emerald-400 font-black">$40 por cada uno</span> de ellos, sin importar quién los invitó, en el momento exacto en el que ellos paguen para subir a su Nivel 2.
+              </p>
+            </div>
+
+            <!-- Nivel 3 (Bisnietos) -->
+            <div class="bg-black/35 backdrop-blur-md rounded-[1.5rem] p-5 border border-blue-500/10 relative overflow-hidden">
+              <div class="flex items-center gap-3 mb-2.5">
+                <span class="w-7 h-7 rounded-xl bg-blue-500/20 text-blue-400 flex items-center justify-center font-black text-xs">3</span>
+                <h4 class="text-xs font-black uppercase text-white tracking-wider">Tus Bisnietos (Nivel 3)</h4>
+              </div>
+              <p class="text-[10.5px] text-gray-400 font-medium leading-relaxed">
+                Tus bisnietos son el tercer nivel en tu matriz. Cobras <span class="text-emerald-400 font-black">$160 por cada uno</span> cuando decidan hacer su expansión para subir a su Nivel 3.
+              </p>
+            </div>
+
+            <!-- Regla de Calificación -->
+            <div class="bg-gradient-to-br from-amber-500/10 to-orange-500/5 rounded-[1.5rem] p-5 border border-amber-500/15 relative overflow-hidden">
+              <div class="flex items-center gap-3 mb-2.5">
+                <span class="w-7 h-7 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center font-black text-xs">⚠️</span>
+                <h4 class="text-xs font-black uppercase text-white tracking-wider">Calificación de Red</h4>
+              </div>
+              <p class="text-[10.5px] text-gray-400 font-medium leading-relaxed">
+                Para cobrar comisiones de tus Nietos (N2), Bisnietos (N3), etc., tú debes estar en el mismo nivel o superior. Si no lo estás, la comisión se saltará tu posición hacia arriba.
+              </p>
+            </div>
+          </div>     
+        </div>
+        
         <div class="flex items-center justify-between">
           <h3 class="font-black text-xl text-gray-900 dark:text-white">Estado de la Matriz</h3>
           <span class="text-[9px] font-bold px-3 py-1 bg-gray-200 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-full border border-gray-300 dark:border-gray-700 uppercase tracking-widest">
             Bono de Equipo Activo
           </span>
         </div>
+
+        <!-- Upgrade Notification Banner -->
+        <Transition name="fade">
+          <div v-if="upgradeNotification" class="relative overflow-hidden rounded-[1.5rem] border p-5 shadow-lg transition-all bg-gradient-to-br from-amber-500/10 to-amber-600/5 border-amber-500/20">
+            <div class="absolute -right-8 -top-8 w-32 h-32 rounded-full blur-3xl opacity-20 pointer-events-none bg-amber-500"></div>
+            <div class="relative z-10 flex items-start gap-4">
+              <div class="w-10 h-10 rounded-2xl bg-amber-500/20 flex items-center justify-center shrink-0 text-amber-500">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+              </div>
+              <div class="flex-1 min-w-0">
+                <p class="text-xs font-black uppercase tracking-wide text-amber-500 mb-1">
+                  ¡Ya puedes desbloquear tu Nivel {{ upgradeNotification.nextLevel }}!
+                </p>
+                <p class="text-[10.5px] text-gray-400 font-bold leading-relaxed">
+                  Ya tienes los invitados necesarios pero te faltan <span class="text-white underline">{{ formatCurrency(upgradeNotification.deficit) }}</span> para desbloquearlo. Ten cuidado, ya que si tus Nietos o Bisnietos suben de nivel antes de que tú lo hagas, perderás sus comisiones.
+                </p>
+                <div class="mt-3 flex items-center justify-between border-t border-amber-500/10 pt-2.5">
+                  <span class="text-[9px] text-gray-500 font-black uppercase tracking-widest">
+                    Sigue invitando o paga por transferencia
+                  </span>
+                  <span class="text-[9px] bg-amber-500/10 text-amber-500 px-2.5 py-1 rounded-lg font-black uppercase tracking-wider">
+                    {{ upgradeNotification.referrals }} Directos Activos
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </Transition>
 
         <div class="grid grid-cols-1 gap-3">
           <div v-for="level in dynamicLevels" :key="level.id" 
@@ -226,13 +346,20 @@
               
               <!-- Compact Floating Price Button -->
               <button 
-                @click.stop="intentarDesbloqueo(level)"
-                class="relative z-30 flex items-center gap-3 px-5 py-2.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl shadow-2xl active:scale-95 transition-all group/btn">
-                <div class="w-6 h-6 rounded-lg bg-emerald-500/20 flex items-center justify-center text-emerald-500">
+                @click.stop="canUnlockLevel(level.id) ? intentarDesbloqueo(level) : null"
+                :disabled="!canUnlockLevel(level.id)"
+                :class="canUnlockLevel(level.id)
+                  ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-2xl active:scale-95 cursor-pointer'
+                  : 'bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-400 cursor-not-allowed opacity-70'"
+                class="relative z-30 flex items-center gap-3 px-5 py-2.5 rounded-xl transition-all">
+                <div :class="canUnlockLevel(level.id) ? 'bg-emerald-500/20 text-emerald-500' : 'bg-gray-400/20 text-gray-400'"
+                     class="w-6 h-6 rounded-lg flex items-center justify-center">
                   <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 24 24"><path d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
                 </div>
                 <div class="flex flex-col items-start leading-none gap-0.5">
-                  <span class="text-[7px] font-black uppercase tracking-widest opacity-60">Activar Nivel</span>
+                  <span class="text-[7px] font-black uppercase tracking-widest opacity-60">
+                    {{ canUnlockLevel(level.id) ? 'Activar Nivel' : 'Activar Nivel' }}
+                  </span>
                   <span class="text-xs font-black">{{ formatCurrency(level.cost) }}</span>
                 </div>
               </button>
@@ -257,9 +384,9 @@
                   </div>
                 </div>
                 <div class="text-right">
-                  <p class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-0.5">Ganado</p>
+                  <p class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-0.5">Ganado por Red</p>
                   <p class="text-base font-black leading-tight">
-                    <span class="text-emerald-500">{{ formatCurrency((userMatrixInfo.conteos[level.id] || 0) * level.cost) }}</span>
+                    <span class="text-emerald-500">{{ formatCurrency((userMatrixInfo.pagados[level.id] || 0) * level.cost) }}</span>
                     <span class="text-gray-400 font-bold text-[11px]"> / {{ formatCurrency(level.totalCommission) }}</span>
                   </p>
                 </div>
@@ -269,7 +396,7 @@
               <div class="space-y-1.5 mt-2">
                 <div class="flex justify-between items-end px-1">
                   <p class="text-[10px] font-black text-gray-500 uppercase tracking-wider">
-                    {{ userMatrixInfo.conteos[level.id] || 0 }} <span class="text-gray-400 font-bold">invitados activos de {{ level.people }} posibles</span>
+                    {{ userMatrixInfo.conteos[level.id] || 0 }} <span class="text-gray-400 font-bold">usuarios activos de {{ level.people }} posibles</span>
                   </p>
                   <p class="text-[10px] font-black text-indigo-500">{{ Math.round(((userMatrixInfo.conteos[level.id] || 0) / level.people) * 100) }}%</p>
                 </div>
@@ -277,54 +404,10 @@
                   <div class="h-full bg-indigo-500 rounded-full transition-all duration-1000 ease-out"
                        :style="{ width: `${((userMatrixInfo.conteos[level.id] || 0) / level.people) * 100}%` }"></div>
                 </div>
-                <p class="text-[9px] text-gray-400 font-medium px-1">Ganas <span class="text-emerald-500 font-black">{{ formatCurrency(level.cost) }}</span> al instante por cada nuevo invitado</p>
+                <p class="text-[9px] text-gray-400 font-medium px-1">Ganas <span class="text-emerald-500 font-black">{{ formatCurrency(level.cost) }}</span> por cada usuario que se expanda a este nivel</p>
               </div>
             </div>
           </div>
-        </div>
-
-        <!-- How it works -->
-        <div class="mt-8 space-y-6">
-          <div class="flex items-center justify-between px-1">
-            <h3 class="font-black text-xl text-gray-900 dark:text-white">¿Cómo funciona la red?</h3>
-            <span class="px-3 py-1 bg-emerald-500/10 text-emerald-500 text-[10px] font-black uppercase rounded-lg tracking-widest">Guía de Ganancias</span>
-          </div>
-
-          <div class="grid grid-cols-2 gap-3">
-            <!-- Option A: Direct -->
-            <div class="bg-gradient-to-br from-indigo-500 to-blue-600 rounded-[1.5rem] p-4 text-white shadow-xl shadow-indigo-500/20 relative overflow-hidden group">
-              <div class="absolute -right-4 -top-4 w-16 h-16 bg-white/10 rounded-full blur-xl group-hover:bg-white/20 transition-all"></div>
-              <div class="relative z-10">
-                <div class="flex items-center gap-2 mb-2">
-                  <div class="w-8 h-8 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center">
-                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
-                  </div>
-                  <span class="font-black text-[10px] uppercase tracking-wider">Crecimiento Directo</span>
-                </div>
-                <h4 class="text-sm font-black mb-1">Gana el 100% al instante</h4>
-                <p class="text-[10px] text-indigo-100 leading-tight">
-                  Cada vez que alguien paga su membresía usando tu link, <span class="font-bold underline decoration-white/50">recibes el 100% de ese valor de inmediato</span>. No hay mínimos ni esperas.
-                </p>
-              </div>
-            </div>
-
-            <!-- Option B: Passive -->
-            <div class="bg-gradient-to-br from-emerald-500 to-teal-600 rounded-[1.5rem] p-4 text-white shadow-xl shadow-emerald-500/20 relative overflow-hidden group">
-              <div class="absolute -right-4 -top-4 w-16 h-16 bg-white/10 rounded-full blur-xl group-hover:bg-white/20 transition-all"></div>
-              <div class="relative z-10">
-                <div class="flex items-center gap-2 mb-2">
-                  <div class="w-8 h-8 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center">
-                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
-                  </div>
-                  <span class="font-black text-[10px] uppercase tracking-wider">Crecimiento en Equipo</span>
-                </div>
-                <h4 class="text-sm font-black mb-1">Potencial Máximo</h4>
-                <p class="text-[10px] text-emerald-100 leading-tight">
-                  Mientras más personas invites, más ganas. Desbloquea niveles superiores para <span class="font-bold">multiplicar tu red y tus ingresos</span>.
-                </p>
-              </div>
-            </div>
-          </div>     
         </div>
       </section>
 
@@ -810,6 +893,7 @@ const configPrices = ref({
 const isLoading = ref(true)
 const userMatrixInfo = ref({
   conteos: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 },
+  pagados: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 },
   mi_nivel: 0
 })
 const totalEarnings = ref(0)
@@ -869,6 +953,16 @@ const isRequestingWithdrawal = ref(false)
 const isLevelUnlocked = (lId) => {
   if (lId === 1 && (isMembershipActive.value || membershipData.value.isRoot)) return true
   return userMatrixInfo.value.mi_nivel >= lId
+}
+
+// Verifica si el usuario tiene los referidos necesarios para poder desbloquear el nivel (nivel previo completo)
+const canUnlockLevel = (lId) => {
+  if (lId === 1) return true // Nivel 1 = activar membresía, siempre habilitado
+  const networkStructureMap = { 1: 3, 2: 9, 3: 27, 4: 81, 5: 243 }
+  const prevLevel = lId - 1
+  const required = networkStructureMap[prevLevel] || 3
+  const current = userMatrixInfo.value.conteos?.[prevLevel] || 0
+  return current >= required
 }
 
 // Level Upgrade State
@@ -988,6 +1082,46 @@ const dynamicLevels = computed(() => {
 const totalInNetwork = computed(() => {
   if (!userMatrixInfo.value.conteos) return 0
   return Object.values(userMatrixInfo.value.conteos).reduce((a, b) => a + b, 0)
+})
+
+// Ganancias por invitaciones directas (referidos directos activos * membresía)
+const directReferralEarnings = computed(() => {
+  const activeReferrals = realReferidos.value.filter(r => r.nivel_actual > 0).length
+  const cost = parseFloat(configPrices.value.valor_membresia || 20)
+  return activeReferrals * cost
+})
+
+// Ganancias acumuladas por upgrades de red
+const networkExpansionEarnings = computed(() => {
+  if (!userMatrixInfo.value.pagados || !dynamicLevels.value) return 0
+  return dynamicLevels.value.reduce((total, level) => {
+    const activeCount = userMatrixInfo.value.pagados[level.id] || 0
+    return total + (activeCount * level.cost)
+  }, 0)
+})
+
+// Notification: user qualifies for next level by referrals but lacks balance
+const upgradeNotification = computed(() => {
+  if (!isMembershipActive.value && !membershipData.value.isRoot) return null
+  const currentLevel = userMatrixInfo.value.mi_nivel
+  if (currentLevel === undefined || currentLevel < 1 || currentLevel >= 5) return null
+
+  const nextLevel = currentLevel + 1
+  if (!canUnlockLevel(nextLevel)) return null
+
+  const nextLevelData = dynamicLevels.value.find(l => l.id === nextLevel)
+  if (!nextLevelData) return null
+
+  const cost = nextLevelData.cost
+  const balance = totalEarnings.value
+  
+  // ONLY show if they DON'T have enough balance to trigger automatic upgrade
+  if (balance >= cost) return null
+
+  const deficit = Math.max(0, cost - balance)
+  const referrals = userMatrixInfo.value.conteos[1] || 0
+
+  return { nextLevel, cost, deficit, referrals }
 })
 
 const fetchConfig = async () => {
@@ -1261,7 +1395,7 @@ const closeGiftModal = () => {
   searchError.value = ''
 }
 
-const sendWhatsAppMessage = async (amount, receiptNumber, membershipId, bankName) => {
+const sendWhatsAppMessage = async (amount, receiptNumber, membershipId, bankName, isUpgrade = false) => {
   try {
     if (!empresaPhoneNumber.value) {
       await fetchEmpresaPhoneNumber();
@@ -1276,8 +1410,8 @@ const sendWhatsAppMessage = async (amount, receiptNumber, membershipId, bankName
     ].join('');
     
     const message = `*Comprobante de Pago*\n\n` +
-      `*ID de Membresía:* ${formattedDate}-${membershipId || 'N/A'}\n` +
-      `*Tipo de pago:* Pago de Membresía\n` + 
+      `*${isUpgrade ? 'ID de Solicitud' : 'ID de Membresía'}:* ${formattedDate}-${membershipId || 'N/A'}\n` +
+      `*Tipo de pago:* ${isUpgrade ? `Upgrade Nivel ${upgradeTargetLevel.value?.id}` : 'Pago de Membresía'}\n` + 
       `*N° de comprobante:* ${receiptNumber}\n` +
       `*Banco destino:* ${bankName || 'N/A'}\n` +
       `*Monto:* $${Number(amount).toFixed(2)}\n\n` +
@@ -1309,19 +1443,36 @@ const fetchEmpresaPhoneNumber = async () => {
 const confirmRenewal = async () => {
   isRenewing.value = true
   try {
-    const res = await $api('/membresia', {
-      method: 'POST',
-      body: {
-        id_usuario: authStore.userId,
-        id_cuenta: selectedAccount.value,
-        num_comprobante: comprobante.value,
-        monto: membershipCost.value,
-      }
-    })
+    let res
+    const isUpgrade = isUpgradeFromTransfer.value
+    const targetLevelId = upgradeTargetLevel.value?.id
+
+    if (isUpgrade) {
+      res = await $api('/red-solicitudes', {
+        method: 'POST',
+        body: {
+          id_usuario: authStore.userId,
+          id_cuenta: selectedAccount.value,
+          num_comprobante: comprobante.value,
+          monto: membershipCost.value,
+          nivel_destino: targetLevelId
+        }
+      })
+    } else {
+      res = await $api('/membresia', {
+        method: 'POST',
+        body: {
+          id_usuario: authStore.userId,
+          id_cuenta: selectedAccount.value,
+          num_comprobante: comprobante.value,
+          monto: membershipCost.value,
+        }
+      })
+    }
     
     showRenewalModal.value = false
     
-    if (isUpgradeFromTransfer.value) {
+    if (isUpgrade) {
       showMsg('¡Solicitud de upgrade enviada! El admin revisará tu comprobante.', 'success')
     } else {
       showMsg('¡Pago de membresía enviado para revisión!', 'success')
@@ -1331,8 +1482,9 @@ const confirmRenewal = async () => {
     await sendWhatsAppMessage(
       membershipCost.value, 
       comprobante.value, 
-      res.id_membresia,
-      selectedAccountObject.value?.banco
+      isUpgrade ? res.data?.id_solicitud : res.id_membresia,
+      selectedAccountObject.value?.banco,
+      isUpgrade
     );
 
     isUpgradeFromTransfer.value = false

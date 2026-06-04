@@ -140,6 +140,86 @@
         </div>
       </template>
 
+      <!-- Section: SOLICITUDES DE NIVEL -->
+      <template v-if="currentSection === 'solicitudes_nivel'">
+        <!-- Tabs Filter -->
+        <div class="flex gap-2 mb-6 bg-white/5 p-1 rounded-2xl border border-white/10">
+          <button v-for="tab in levelTabs" :key="tab.id"
+            @click="activeLevelTab = tab.id"
+            :class="`relative flex-1 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeLevelTab === tab.id ? 'bg-emerald-500 text-[#070b14] shadow-lg' : 'text-gray-500 hover:text-white'}`">
+            <div v-if="tab.id === 'pendiente' && pendingCounts.solicitudes_nivel > 0" 
+              class="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-red-500 text-white text-[9px] flex items-center justify-center border-2 border-[#070b14]">
+              {{ pendingCounts.solicitudes_nivel }}
+            </div>
+            {{ tab.label }}
+          </button>
+        </div>
+
+        <!-- Requests List -->
+        <div class="space-y-4">
+          <div v-if="filteredSolicitudesNivel.length === 0" class="py-20 text-center opacity-40">
+            <i class="fas fa-folder-open text-4xl mb-4"></i>
+            <p class="text-xs font-bold uppercase tracking-widest">No hay solicitudes de nivel en esta categoría</p>
+          </div>
+
+          <TransitionGroup name="list" tag="div" class="grid grid-cols-2 gap-3 sm:gap-4">
+            <div v-for="item in filteredSolicitudesNivel" :key="item.id_solicitud" 
+                 class="bg-white/5 border border-white/10 rounded-[1.5rem] sm:rounded-[2rem] p-3 sm:p-5 backdrop-blur-sm group hover:border-emerald-500/30 transition-all flex flex-col justify-between">
+              <div>
+                <div class="flex items-center justify-between mb-3">
+                  <div class="flex items-center gap-2 sm:gap-4">
+                    <div class="w-9 h-9 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-white/5 border border-white/10 overflow-hidden cursor-zoom-in" @click="viewFullImage(item.usuario.imagen_url || `https://ui-avatars.com/api/?name=${item.usuario.nombre}&background=random&color=fff`)">
+                      <img :src="item.usuario.imagen_url || `https://ui-avatars.com/api/?name=${item.usuario.nombre}&background=random&color=fff`" class="w-full h-full object-cover">
+                    </div>
+                    <div>
+                      <h3 class="text-xs sm:text-sm font-black text-white uppercase tracking-tight">{{ item.usuario.nombre }}</h3>
+                       <div class="flex items-center gap-1 sm:gap-2 mt-0.5">
+                         <span class="text-[7px] sm:text-[9px] font-bold text-emerald-500">{{ formatDate(item.fecha) }}</span>
+                       </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-2 sm:gap-4 mb-3 sm:mb-5 pt-3 sm:pt-4 border-t border-white/5">
+                  <div class="space-y-1">
+                    <span class="text-[7px] sm:text-[8px] font-black text-gray-500 uppercase tracking-widest block">Banco Emisor</span>
+                    <p class="text-[10px] sm:text-xs font-black text-white uppercase truncate">{{ item.cuenta?.banco || '---' }}</p>
+                  </div>
+                  <div class="space-y-1">
+                    <span class="text-[7px] sm:text-[8px] font-black text-gray-500 uppercase tracking-widest block">Nivel Objetivo</span>
+                    <p class="text-[10px] sm:text-xs font-black text-emerald-400 select-all truncate">
+                      Nivel {{ item.nivel_destino }}
+                    </p>
+                  </div>
+                  <div class="space-y-1">
+                    <span class="text-[7px] sm:text-[8px] font-black text-gray-500 uppercase tracking-widest block">Monto Pagado</span>
+                    <p class="text-[10px] sm:text-xs font-black text-white">${{ Number(item.monto || 0).toFixed(2) }}</p>
+                  </div>
+                  <div class="space-y-1">
+                    <span class="text-[7px] sm:text-[8px] font-black text-gray-500 uppercase tracking-widest block">Comprobante</span>
+                    <p class="text-[10px] sm:text-xs font-black text-gray-400 select-all truncate">{{ item.num_comprobante || '---' }}</p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Actions -->
+              <div v-if="item.estado === 'pendiente'" class="grid grid-cols-2 gap-2 pt-3 sm:pt-4 border-t border-white/5">
+                <button @click="confirmAction(item, 'rechazar', 'solicitudes_nivel')" 
+                  class="py-2 sm:py-3 px-2 sm:px-4 bg-red-500/10 hover:bg-red-500/20 text-red-500 rounded-xl sm:rounded-2xl text-[8px] sm:text-[10px] font-black uppercase tracking-widest border border-red-500/20 transition-all flex items-center justify-center gap-1 sm:gap-2">
+                  <i class="fas fa-times"></i>
+                  Rechazar
+                </button>
+                <button @click="confirmAction(item, 'aprobar', 'solicitudes_nivel')" 
+                  class="py-2 sm:py-3 px-2 sm:px-4 bg-emerald-500 text-[#070b14] rounded-xl sm:rounded-2xl text-[8px] sm:text-[10px] font-black uppercase tracking-widest border border-emerald-500 transition-all flex items-center justify-center gap-1 sm:gap-2 shadow-lg shadow-emerald-500/20">
+                  <i class="fas fa-check"></i>
+                  Aprobar
+                </button>
+              </div>
+            </div>
+          </TransitionGroup>
+        </div>
+      </template>
+
       <!-- Section: PUBLICACIONES (Pagos pendientes) -->
       <template v-if="currentSection === 'publicaciones'">
         <div class="mb-6 bg-violet-500/10 border border-violet-500/20 rounded-3xl p-4 flex items-start gap-3">
@@ -401,6 +481,7 @@ const currentSection = ref('membresias') // 'membresias', 'publicaciones', 'iden
 
 // Data
 const membresias = ref([])
+const solicitudesNivel = ref([])
 const identidades = ref([])
 const retiros = ref([])
 const publicacionesPendientes = ref([])
@@ -408,11 +489,13 @@ const estadisticas = ref({ total: 0, pendientes: 0, aprobados: 0 })
 
 // Tabs
 const activeMembershipTab = ref('pendiente')
+const activeLevelTab = ref('pendiente')
 const activeIdentityTab = ref('pendiente')
 const activeWithdrawTab = ref('pendiente')
 
 const mainSections = [
   { id: 'membresias', label: 'Membresías', icon: 'fas fa-id-badge' },
+  { id: 'solicitudes_nivel', label: 'Solicitudes Nivel', icon: 'fas fa-layer-group' },
   { id: 'publicaciones', label: 'Publicaciones', icon: 'fas fa-bullhorn' },
   { id: 'identidad', label: 'Identidad', icon: 'fas fa-fingerprint' },
   { id: 'retiros', label: 'Retiros', icon: 'fas fa-hand-holding-usd' }
@@ -421,6 +504,12 @@ const mainSections = [
 const membershipTabs = [
   { id: 'pendiente', label: 'Pendientes' },
   { id: 'activa', label: 'Aprobadas' },
+  { id: 'rechazada', label: 'Rechazadas' }
+]
+
+const levelTabs = [
+  { id: 'pendiente', label: 'Pendientes' },
+  { id: 'aprobada', label: 'Aprobadas' },
   { id: 'rechazada', label: 'Rechazadas' }
 ]
 
@@ -442,7 +531,7 @@ const fullImageUrl = ref(null)
 
 // --- COMPUTED ---
 const sectionTitle = computed(() => {
-  const map = { membresias: 'Gestión de Membresías', publicaciones: 'Pagos de Publicaciones', identidad: 'Revisión de Identidad', retiros: 'Solicitudes de Retiro' }
+  const map = { membresias: 'Gestión de Membresías', solicitudes_nivel: 'Solicitudes de Nivel de Red', publicaciones: 'Pagos de Publicaciones', identidad: 'Revisión de Identidad', retiros: 'Solicitudes de Retiro' }
   return map[currentSection.value]
 })
 
@@ -453,6 +542,7 @@ const modalPrompt = computed(() => {
 })
 
 const filteredMembresias = computed(() => membresias.value.filter(m => m.estado === activeMembershipTab.value))
+const filteredSolicitudesNivel = computed(() => solicitudesNivel.value.filter(s => s.estado === activeLevelTab.value))
 const filteredRetiros = computed(() => retiros.value.filter(r => r.estado === activeWithdrawTab.value))
 const filteredIdentidades = computed(() => {
   if (activeIdentityTab.value === 'pendiente') {
@@ -463,6 +553,7 @@ const filteredIdentidades = computed(() => {
 
 const pendingCounts = computed(() => ({
   membresias: membresias.value.filter(m => m.estado === 'pendiente').length,
+  solicitudes_nivel: solicitudesNivel.value.filter(s => s.estado === 'pendiente').length,
   publicaciones: publicacionesPendientes.value.length,
   identidad: identidades.value.filter(u => u.identidad_url && !u.verificado).length,
   retiros: retiros.value.filter(r => r.estado === 'pendiente').length
@@ -482,6 +573,7 @@ const fetchData = async () => {
   isLoading.value = true
   try {
     if (currentSection.value === 'membresias') await fetchMembresias()
+    else if (currentSection.value === 'solicitudes_nivel') await fetchSolicitudesNivel()
     else if (currentSection.value === 'publicaciones') await fetchPublicacionesPendientes()
     else if (currentSection.value === 'identidad') await fetchIdentidades()
     else if (currentSection.value === 'retiros') await fetchRetiros()
@@ -497,6 +589,13 @@ const fetchMembresias = async () => {
   if (res.success) {
     membresias.value = res.data
     estadisticas.value = res.estadisticas
+  }
+}
+
+const fetchSolicitudesNivel = async () => {
+  const res = await $api('/red-solicitudes')
+  if (res.success) {
+    solicitudesNivel.value = res.data
   }
 }
 
@@ -534,6 +633,11 @@ const processAction = async () => {
     if (category === 'membresia') {
       if (type === 'aprobar') res = await $api(`/membresia/aprobar/${item.id_membresia}`, { method: 'POST' })
       else res = await $api(`/membresia/rechazar/${item.id_membresia}`, { method: 'POST' })
+    } else if (category === 'solicitudes_nivel') {
+      res = await $api(`/red-solicitudes/procesar/${item.id_solicitud}`, {
+        method: 'POST',
+        body: { estado: type === 'aprobar' ? 'aprobada' : 'rechazada' }
+      })
     } else if (category === 'publicacion') {
       if (type === 'aprobar') res = await $api(`/publicaciones/admin/aprobar/${item.id_publicacion}`, { method: 'POST' })
       else res = await $api(`/publicaciones/admin/rechazar/${item.id_publicacion}`, { method: 'POST' })
@@ -585,6 +689,7 @@ onMounted(async () => {
     // Cargar todo al inicio para mostrar los contadores de pendientes
     await Promise.all([
       fetchMembresias(),
+      fetchSolicitudesNivel(),
       fetchPublicacionesPendientes(),
       fetchIdentidades(),
       fetchRetiros()
