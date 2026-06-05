@@ -503,11 +503,15 @@
       :show="showHistory"
       :history="history"
       :loading="isLoadingHistory"
+      :has-next-page="hasNextPage"
+      :has-prev-page="hasPrevPage"
       :total-balance="totalEarnings"
       :show-withdraw-button="true"
       :min-withdrawal="minWithdrawal"
       @close="showHistory = false"
       @withdraw="handleWithdraw"
+      @next-page="nextPage"
+      @prev-page="prevPage"
     />
   </div>
 </template>
@@ -522,6 +526,7 @@ import Toast from '~/components/ui/Toast.vue'
 import Multiselect from 'vue-multiselect'
 import { usePushNotifications } from '~/composables/usePushNotifications'
 import InteractionHistoryModal from '~/components/ui/InteractionHistoryModal.vue'
+import { useInteractionHistory } from '~/composables/useInteractionHistory'
 
 const auth = useAuthStore()
 const config = useRuntimeConfig()
@@ -551,13 +556,13 @@ const showLogoutModal = ref(false)
 
 // History State
 const showHistory = ref(false)
-const history = ref([])
-const isLoadingHistory = ref(false)
 const minWithdrawal = ref(0)
+
+const { history, isLoading: isLoadingHistory, hasNextPage, hasPrevPage, loadInitial, nextPage, prevPage } = useInteractionHistory()
 
 const openHistory = () => {
   showHistory.value = true
-  fetchHistory()
+  loadInitial()
   fetchMinWithdrawal()
 }
 
@@ -575,21 +580,6 @@ const fetchMinWithdrawal = async () => {
 const handleWithdraw = () => {
   showHistory.value = false
   navigateTo('/cliente/red?withdraw=true')
-}
-
-const fetchHistory = async () => {
-  if (!auth.userId) return
-  isLoadingHistory.value = true
-  try {
-    const res = await $api(`/interacciones/usuario/${auth.userId}`)
-    if (res.success) {
-      history.value = res.data
-    }
-  } catch (e) {
-    console.error('Error fetching history:', e)
-  } finally {
-    isLoadingHistory.value = false
-  }
 }
 
 // Form Data

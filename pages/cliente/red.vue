@@ -10,7 +10,6 @@
         </div>
       </div>
     </header>
-
     <!-- Toast Notification -->
     <Toast 
       :show="toast.show"
@@ -19,7 +18,6 @@
       :duration="toast.duration"
       @close="toast.show = false"
     />
-
     <main class="max-w-2xl mx-auto pt-20 px-4 space-y-6">
       
       <!-- Unified Membership Panel -->
@@ -66,7 +64,6 @@
                   </div>
                 </div>
               </div>
-
               <!-- Retirable Balance Card -->
               <button @click="openHistory" class="flex flex-col items-end gap-1 group/balance active:scale-95 transition-all">
                 <p class="text-[9px] text-indigo-300 font-bold uppercase tracking-widest group-hover/balance:text-emerald-400 transition-colors">Saldo Retirable</p>
@@ -76,7 +73,6 @@
                 </div>
               </button>
             </div>
-
             <!-- Dashboard Grid: Stats & Actions -->
             <div class="grid grid-cols-2 gap-4">
                <!-- Validity Info -->
@@ -92,7 +88,6 @@
                   <p class="text-[9px] text-indigo-400 font-black uppercase tracking-widest">Tipo de Cuenta</p>
                   <p class="text-xs font-black text-white italic">Cuenta Administradora</p>
                </div>
-
                 <!-- Activation Button -->
                 <div class="flex flex-col gap-2">
                   <button 
@@ -113,7 +108,6 @@
                   </button>
                 </div>
             </div>
-
             <!-- Progress Indicator -->
             <div v-if="isMembershipActive && !membershipData.isRoot" class="space-y-3">
               <div class="flex justify-between items-end px-1">
@@ -140,7 +134,6 @@
                 ></div>
               </div>
             </div>
-
             <!-- Integrated Benefits (More Explanatory) -->
             <div class="space-y-3 pt-2">
               <p class="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-500/80 px-1">Tus Beneficios Activos:</p>
@@ -157,7 +150,6 @@
                     </p>
                   </div>
                 </div>
-
                 <div class="group/benefit bg-white/5 backdrop-blur-sm border border-white/5 p-4 rounded-[1.5rem] flex items-start gap-4 transition-all hover:bg-white/10 hover:border-indigo-500/30">
                   <div class="w-10 h-10 rounded-2xl bg-indigo-500/10 flex items-center justify-center shrink-0 group-hover/benefit:scale-110 transition-transform">
                      <svg class="w-5 h-5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
@@ -171,7 +163,6 @@
                 </div>
               </div>
             </div>
-
             <!-- Invitation Link Integrated -->
             <div class="pt-4 border-t border-white/5">
               <div class="flex items-center justify-between mb-3 px-1">
@@ -187,7 +178,6 @@
                 </button>
               </div>
             </div>
-
             <!-- Gift Button -->
             <div v-if="totalEarnings >= giftCost" class="pt-4 flex justify-center">
               <button @click="isGiftModalOpen = true" class="flex items-center gap-2 px-6 py-3 bg-emerald-500/10 hover:bg-emerald-500 border border-emerald-500/20 text-emerald-500 hover:text-white rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all active:scale-95">
@@ -204,8 +194,6 @@
         
         <!-- Blurred Content Area -->
         <div :class="{ 'grayscale opacity-50 transition-all duration-700': !isMembershipActive }">
-
-
       <!-- Summary of Earnings Section -->
       <section class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <!-- Direct Referral Earnings Card -->
@@ -224,7 +212,6 @@
             </div>
           </div>
         </div>
-
         <!-- Network Expansion Earnings Card -->
         <div class="bg-gradient-to-br from-emerald-500/10 to-teal-500/5 backdrop-blur-md rounded-3xl p-5 border border-emerald-500/15 relative overflow-hidden group hover:border-emerald-500/30 transition-all duration-300">
           <div class="absolute -right-6 -bottom-6 w-24 h-24 bg-emerald-500/10 rounded-full blur-2xl group-hover:bg-emerald-500/15 transition-all"></div>
@@ -242,17 +229,14 @@
           </div>
         </div>
       </section>
-
       <!-- Network Matrix Stats -->
       <section class="space-y-4">
-
         <!-- How it works -->
         <div class="mt-8 space-y-6">
           <div class="flex items-center justify-between px-1">
             <h3 class="font-black text-xl text-gray-900 dark:text-white">¿Cómo cobras en la red?</h3>
             <span class="px-3 py-1 bg-emerald-500/10 text-emerald-500 text-[10px] font-black uppercase rounded-lg tracking-widest">Reglas Claras</span>
           </div>
-
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <!-- Nivel 1 (Hijos) -->
             <div class="bg-black/35 backdrop-blur-md rounded-[1.5rem] p-5 border border-purple-500/10 relative overflow-hidden">
@@ -264,7 +248,6 @@
                 Solo obtienes beneficio si tú los invitaste directamente con tu link. Si tus hijos cayeron por derrame (invitados de tu patrocinador arriba), tú ganas <span class="text-white font-black">$0</span> y la comisión del 100% va para quien los invitó.
               </p>
             </div>
-
             <!-- Nivel 2 (Nietos) -->
             <div class="bg-black/35 backdrop-blur-md rounded-[1.5rem] p-5 border border-indigo-500/10 relative overflow-hidden">
               <div class="flex items-center gap-3 mb-2.5">
@@ -275,7 +258,6 @@
                 Tus nietos son los invitados de tus hijos. Cobras <span class="text-emerald-400 font-black">$40 por cada uno</span> de ellos, sin importar quién los invitó, en el momento exacto en el que ellos paguen para subir a su Nivel 2.
               </p>
             </div>
-
             <!-- Nivel 3 (Bisnietos) -->
             <div class="bg-black/35 backdrop-blur-md rounded-[1.5rem] p-5 border border-blue-500/10 relative overflow-hidden">
               <div class="flex items-center gap-3 mb-2.5">
@@ -286,7 +268,6 @@
                 Tus bisnietos son el tercer nivel en tu matriz. Cobras <span class="text-emerald-400 font-black">$160 por cada uno</span> cuando decidan hacer su expansión para subir a su Nivel 3.
               </p>
             </div>
-
             <!-- Regla de Calificación -->
             <div class="bg-gradient-to-br from-amber-500/10 to-orange-500/5 rounded-[1.5rem] p-5 border border-amber-500/15 relative overflow-hidden">
               <div class="flex items-center gap-3 mb-2.5">
@@ -306,7 +287,6 @@
             Bono de Equipo Activo
           </span>
         </div>
-
         <!-- Upgrade Notification Banner -->
         <Transition name="fade">
           <div v-if="upgradeNotification" class="relative overflow-hidden rounded-[1.5rem] border p-5 shadow-lg transition-all bg-gradient-to-br from-amber-500/10 to-amber-600/5 border-amber-500/20">
@@ -326,7 +306,7 @@
                   <span class="text-[9px] text-gray-500 font-black uppercase tracking-widest">
                     Sigue invitando o paga por transferencia
                   </span>
-                  <span class="text-[9px] bg-amber-500/10 text-amber-500 px-2.5 py-1 rounded-lg font-black uppercase tracking-wider">
+                  <span class="text-[9px] font-black text-amber-500 bg-amber-500/10 px-2 py-1 rounded-md">
                     {{ upgradeNotification.referrals }} Directos Activos
                   </span>
                 </div>
@@ -335,76 +315,99 @@
           </div>
         </Transition>
 
-        <div class="grid grid-cols-1 gap-3">
+        <div class="grid grid-cols-1 gap-4">
           <div v-for="level in dynamicLevels" :key="level.id" 
-               class="bg-white dark:bg-gray-800 rounded-2xl p-4 border border-gray-100 dark:border-gray-700 flex flex-col gap-3 transition-all hover:border-emerald-500/30 group relative overflow-hidden">
-            
-            <!-- Minimal Overlay for Locked Levels -->
-            <div v-if="!isLevelUnlocked(level.id)" class="absolute inset-0 z-20 flex flex-col items-center justify-center p-4">
-              <!-- Barely there background to keep numbers perfectly readable -->
-              <div class="absolute inset-0 bg-white/5 dark:bg-gray-900/10"></div>
-              
-              <!-- Compact Floating Price Button -->
+               class="bg-white dark:bg-gray-800 rounded-3xl border border-gray-100 dark:border-gray-700 overflow-hidden transition-all hover:border-emerald-500/30 group relative shadow-sm">
+
+            <!-- Locked Overlay -->
+            <div v-if="!isLevelUnlocked(level.id)" class="absolute inset-0 z-20 flex items-center justify-center">
+              <div class="absolute inset-0 bg-white/40 dark:bg-gray-900/60 backdrop-blur-[2px]"></div>
               <button 
                 @click.stop="canUnlockLevel(level.id) ? intentarDesbloqueo(level) : null"
                 :disabled="!canUnlockLevel(level.id)"
                 :class="canUnlockLevel(level.id)
                   ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-2xl active:scale-95 cursor-pointer'
-                  : 'bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-400 cursor-not-allowed opacity-70'"
-                class="relative z-30 flex items-center gap-3 px-5 py-2.5 rounded-xl transition-all">
+                  : 'bg-gray-200 dark:bg-gray-800 text-gray-500 dark:text-gray-400 cursor-not-allowed border border-gray-300 dark:border-gray-700'"
+                class="relative z-30 flex items-center gap-3 px-6 py-3 rounded-2xl transition-all">
                 <div :class="canUnlockLevel(level.id) ? 'bg-emerald-500/20 text-emerald-500' : 'bg-gray-400/20 text-gray-400'"
-                     class="w-6 h-6 rounded-lg flex items-center justify-center">
-                  <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 24 24"><path d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+                     class="w-8 h-8 rounded-xl flex items-center justify-center">
+                  <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
                 </div>
-                <div class="flex flex-col items-start leading-none gap-0.5">
-                  <span class="text-[7px] font-black uppercase tracking-widest opacity-60">
-                    {{ canUnlockLevel(level.id) ? 'Activar Nivel' : 'Activar Nivel' }}
-                  </span>
-                  <span class="text-xs font-black">{{ formatCurrency(level.cost) }}</span>
+                <div class="flex flex-col items-start leading-tight">
+                  <span class="text-[9px] font-black uppercase tracking-widest opacity-70">Activar Nivel</span>
+                  <span class="text-sm font-black">{{ formatCurrency(level.cost) }}</span>
                 </div>
               </button>
             </div>
 
-            <!-- Content (Fully visible but slightly transparent to indicate inactive status) -->
-            <div :class="{ 'opacity-100': isLevelUnlocked(level.id), 'opacity-60': !isLevelUnlocked(level.id) }">
-              
+            <!-- Header -->
+            <div :class="`bg-gradient-to-r from-${level.color}-500/10 to-transparent`"
+                 class="px-5 py-4 border-b border-gray-100 dark:border-gray-700/50 flex items-center gap-4">
+              <div :class="`w-12 h-12 rounded-2xl bg-gradient-to-br from-${level.color}-500 to-${level.color}-600 flex items-center justify-center text-white text-lg font-black shadow-lg shadow-${level.color}-500/30`">
+                {{ level.id }}
+              </div>
+              <div>
+                <h4 class="text-base font-black text-gray-900 dark:text-white leading-tight">{{ level.label }}</h4>
+                <p class="text-xs font-bold text-gray-500 mt-0.5">
+                  Costo: <span :class="`text-${level.color}-500`">{{ formatCurrency(level.cost) }}</span>
+                </p>
+              </div>
+            </div>
 
-              <div class="flex items-center justify-between">
-                <div class="flex items-center gap-3">
-                  <div :class="`w-10 h-10 rounded-full bg-gradient-to-br from-${level.color}-500 to-${level.color}-600 flex items-center justify-center text-white font-black shadow-lg shadow-${level.color}-500/20` ">
-                    {{ level.id }}
-                  </div>
-                  <div>
-                    <p class="font-bold text-gray-900 dark:text-white">{{ level.label }}</p>
-                    <div class="flex items-center gap-1.5 font-bold uppercase tracking-tighter">
-                      <span class="text-[10px] text-emerald-500">{{ formatCurrency(level.cost) }}</span>
-                      <span class="text-[10px] text-gray-300">/</span>
-                      <span class="text-[10px] text-gray-400">Expansión</span>
-                    </div>
-                  </div>
-                </div>
-                <div class="text-right">
-                  <p class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-0.5">Ganado por Red</p>
-                  <p class="text-base font-black leading-tight">
-                    <span class="text-emerald-500">{{ formatCurrency((userMatrixInfo.pagados[level.id] || 0) * level.cost) }}</span>
-                    <span class="text-gray-400 font-bold text-[11px]"> / {{ formatCurrency(level.totalCommission) }}</span>
+            <div :class="{ 'opacity-50 grayscale-[50%]': !isLevelUnlocked(level.id) }" class="p-5 flex flex-col gap-4">
+              
+              <!-- Ganancias Highlight -->
+              <div class="bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-100 dark:border-emerald-500/20 rounded-2xl p-4 flex justify-between items-center">
+                <div>
+                  <span class="text-[10px] font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-widest flex items-center gap-1.5">
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    Tus Ganancias
+                  </span>
+                  <p class="text-2xl font-black text-emerald-500 mt-1">
+                    {{ formatCurrency((userMatrixInfo.pagados[level.id] || 0) * level.cost) }}
                   </p>
+                </div>
+                <div class="text-right flex flex-col items-end">
+                  <span class="text-[9px] font-bold text-gray-400 uppercase tracking-wider">Potencial Máx.</span>
+                  <span class="text-sm font-black text-gray-400">{{ formatCurrency(level.totalCommission) }}</span>
                 </div>
               </div>
 
-              <!-- Progress Bar (Crystal Clear) -->
-              <div class="space-y-1.5 mt-2">
-                <div class="flex justify-between items-end px-1">
-                  <p class="text-[10px] font-black text-gray-500 uppercase tracking-wider">
-                    {{ userMatrixInfo.conteos[level.id] || 0 }} <span class="text-gray-400 font-bold">usuarios activos de {{ level.people }} posibles</span>
-                  </p>
-                  <p class="text-[10px] font-black text-indigo-500">{{ Math.round(((userMatrixInfo.conteos[level.id] || 0) / level.people) * 100) }}%</p>
+              <!-- Matrix Status Simple List -->
+              <div class="bg-gray-50 dark:bg-gray-900/50 rounded-2xl p-4 space-y-3 border border-gray-100 dark:border-gray-800">
+                
+                <div class="flex justify-between items-center">
+                  <span class="text-sm font-bold text-gray-700 dark:text-gray-300">Usuarios en este nivel</span>
+                  <span class="text-sm font-black text-gray-900 dark:text-white bg-white dark:bg-gray-800 px-2 py-0.5 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm">
+                    {{ userMatrixInfo.conteos[level.id] || 0 }} <span class="text-gray-400 text-xs">/ {{ level.people }}</span>
+                  </span>
                 </div>
-                <div class="h-1.5 w-full bg-gray-100 dark:bg-gray-700/50 rounded-full overflow-hidden">
-                  <div class="h-full bg-indigo-500 rounded-full transition-all duration-1000 ease-out"
-                       :style="{ width: `${((userMatrixInfo.conteos[level.id] || 0) / level.people) * 100}%` }"></div>
+
+                <div class="pl-3 border-l-2 border-gray-200 dark:border-gray-700 space-y-2">
+                  <!-- Directos/Comisionables -->
+                  <div class="flex justify-between items-center">
+                    <div class="flex items-center gap-2">
+                      <div class="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>
+                      <span class="text-xs font-bold text-gray-600 dark:text-gray-400">Por tu invitación <span class="text-[9px] text-emerald-500 uppercase tracking-wider ml-1">(Pagan comisión)</span></span>
+                    </div>
+                    <span class="text-xs font-black text-emerald-600 dark:text-emerald-400">{{ userMatrixInfo.pagados[level.id] || 0 }}</span>
+                  </div>
+                  
+                  <!-- Derrame -->
+                  <div class="flex justify-between items-center">
+                    <div class="flex items-center gap-2">
+                      <div class="w-1.5 h-1.5 rounded-full bg-gray-400"></div>
+                      <span class="text-xs font-bold text-gray-500 dark:text-gray-500">Por derrame <span class="text-[9px] text-gray-400 uppercase tracking-wider ml-1">(Sin comisión)</span></span>
+                    </div>
+                    <span class="text-xs font-black text-gray-500">{{ Math.max(0, (userMatrixInfo.conteos[level.id] || 0) - (userMatrixInfo.pagados[level.id] || 0)) }}</span>
+                  </div>
                 </div>
-                <p class="text-[9px] text-gray-400 font-medium px-1">Ganas <span class="text-emerald-500 font-black">{{ formatCurrency(level.cost) }}</span> por cada usuario que se expanda a este nivel</p>
+
+                <div class="pt-3 mt-1 border-t border-gray-200 dark:border-gray-800 flex justify-between items-center">
+                  <span class="text-xs font-bold text-gray-500 uppercase tracking-widest">Espacios Libres</span>
+                  <span class="text-sm font-black text-indigo-500">{{ level.people - (userMatrixInfo.conteos[level.id] || 0) }}</span>
+                </div>
+
               </div>
             </div>
           </div>
@@ -432,7 +435,6 @@
             <span class="text-[10px] font-black mt-2 text-emerald-500 uppercase tracking-tighter">Tú</span>
             <div class="w-0.5 h-8 bg-gradient-to-b from-emerald-500 to-indigo-500 mt-1"></div>
           </div>
-
           <!-- Level 1 Children (In Matrix) -->
           <div class="grid grid-cols-3 gap-6 w-full max-w-xs mb-4">
             <div v-for="hijo in realHijos" :key="hijo.id_usuario"
@@ -447,7 +449,6 @@
               <span class="text-[10px] font-bold mt-2 text-gray-700 dark:text-gray-300 truncate w-full text-center">{{ hijo.nombre }}</span>
               <span class="text-[8px] font-black text-indigo-500 uppercase tracking-widest mt-0.5">Nivel {{ hijo.nivel_actual }}</span>
             </div>
-
             <!-- Empty spots in matrix -->
             <div v-for="i in (3 - realHijos.length)" :key="'empty-'+i" 
                  class="flex flex-col items-center opacity-40">
@@ -460,7 +461,6 @@
           <p class="text-[9px] text-gray-400 font-bold uppercase tracking-wider mt-4">Estos son tus socios directos en la matriz (Derrame)</p>
         </div>
       </section>
-
       <!-- Direct Referrals (Everyone you invited) -->
       <section class="bg-gray-50 dark:bg-gray-900/50 border border-gray-100 dark:border-gray-800 rounded-3xl p-5 mt-6">
         <h3 class="font-black text-xs uppercase tracking-[0.2em] text-gray-400 mb-6 flex items-center gap-2">
@@ -482,7 +482,6 @@
             <span v-if="!ref.nivel_actual || ref.nivel_actual == 0" class="text-[8px] font-black text-amber-500 uppercase tracking-tighter">Pendiente</span>
             <span v-else class="text-[8px] font-black text-emerald-500 uppercase tracking-tighter">Nivel {{ ref.nivel_actual }}</span>
           </div>
-
           <!-- Empty state -->
           <div v-if="realReferidos.length === 0" class="w-full py-4 text-center">
             <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest italic">Aún no tienes invitados directos. ¡Comparte tu link!</p>
@@ -491,7 +490,6 @@
       </section>
     </div><!-- End of Blurred Area -->
   </div><!-- End of Access Control Container -->
-
       <!-- Network Modal (Recursive Browsing) -->
       <Transition name="fade">
         <div v-if="networkModal.show" class="fixed inset-0 z-[100] flex items-center justify-center p-4">
@@ -510,7 +508,6 @@
                   <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
                 </button>
               </div>
-
               <!-- Parent Info -->
               <div class="flex flex-col items-center mb-8">
                 <div class="w-16 h-16 rounded-full border-4 border-indigo-500 p-0.5 mb-2 overflow-hidden shadow-lg bg-white dark:bg-gray-800">
@@ -519,7 +516,6 @@
                 <span class="text-xs font-black text-indigo-500 uppercase tracking-tighter">Nivel {{ networkModal.currentUser?.level }}</span>
                 <div class="w-0.5 h-6 bg-gray-200 dark:bg-gray-800 mt-2"></div>
               </div>
-
               <!-- Children Grid -->
               <div v-if="networkModal.isLoading" class="flex justify-center py-12">
                 <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-500"></div>
@@ -537,15 +533,12 @@
               <div v-else class="py-8 text-center">
                 <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Sin asociados en este nivel</p>
               </div>
-
               <p v-if="networkModal.currentUser?.level < 5" class="text-[9px] text-gray-400 font-bold uppercase tracking-widest text-center">Puedes seguir navegando clicando en los hijos hasta llegar al nivel 5</p>
             </div>
           </div>
         </div>
       </Transition>
-
     </main>
-
     <!-- Modal Solicitar Retiro -->
     <Transition name="fade">
       <div v-if="isWithdrawalModalOpen" @click.self="isWithdrawalModalOpen = false" class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
@@ -555,12 +548,10 @@
             <h3 class="text-xl font-black text-white uppercase tracking-tight">Solicitar Retiro</h3>
             <p class="text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-1">Transfiere tus ganancias a tu banco</p>
           </div>
-
           <div class="bg-emerald-500/10 border border-emerald-500/20 p-4 rounded-2xl mb-6 text-center">
             <span class="text-[10px] text-emerald-400 font-black uppercase tracking-widest block mb-1">Monto a Retirar</span>
             <span class="text-2xl font-black text-white">{{ formatCurrency(totalEarnings) }}</span>
           </div>
-
           <div class="space-y-6">
             <div class="space-y-2">
               <label class="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">Datos de tu Cuenta</label>
@@ -570,7 +561,6 @@
                 class="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 outline-none focus:border-emerald-500 transition-all text-white font-bold text-xs min-h-[120px] resize-none"
               ></textarea>
             </div>
-
             <div class="flex flex-col gap-3 pt-4">
               <button 
                 @click="handleWithdrawalRequest"
@@ -584,7 +574,6 @@
         </div>
       </div>
     </Transition>
-
     <!-- Modal Renovación Membresía (Moved from Perfil) -->
     <Transition name="fade">
       <div v-if="showRenewalModal" @click.self="showRenewalModal = false" class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
@@ -600,12 +589,10 @@
               {{ isUpgradeFromTransfer ? 'Realiza el pago para subir de nivel' : 'Disfruta beneficios exclusivos' }}
             </p>
           </div>
-
           <div class="bg-blue-500/10 border border-blue-500/20 p-4 rounded-2xl mb-6 text-center">
             <span class="text-[10px] text-blue-400 font-black uppercase tracking-widest block mb-1">Total a Pagar</span>
             <span class="text-2xl font-black text-white">{{ formatCurrency(membershipCost) }}</span>
           </div>
-
           <div class="space-y-6">
             <div class="space-y-2">
               <label class="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">Selecciona Banco</label>
@@ -623,7 +610,6 @@
                 selected-label=""
               />
             </div>
-
             <div v-if="selectedAccountObject" class="bg-white/5 border border-white/10 p-4 rounded-2xl space-y-2">
               <div class="flex justify-between items-center text-[10px] uppercase font-bold">
                 <span class="text-gray-500">Banco:</span>
@@ -642,12 +628,10 @@
                 <span class="text-white">{{ selectedAccountObject.tipo }}</span>
               </div>
             </div>
-
             <div class="space-y-2">
               <label class="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">N° Comprobante</label>
               <input v-model="comprobante" type="text" placeholder="Ej: 9812739" class="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 outline-none focus:border-blue-500 transition-all text-white font-bold">
             </div>
-
             <div class="flex flex-col gap-3 pt-4">
               <button 
                 @click="confirmRenewal"
@@ -661,7 +645,6 @@
         </div>
       </div>
     </Transition>
-
     <!-- Modal Regalar Membresía -->
     <Transition name="fade">
       <div v-if="isGiftModalOpen" @click.self="closeGiftModal" class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
@@ -671,7 +654,6 @@
             <h3 class="text-xl font-black text-white uppercase tracking-tight">Regalar Membresía</h3>
             <p class="text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-1">Activa a un amigo usando tu saldo</p>
           </div>
-
           <div class="space-y-6">
             <!-- Search field -->
             <div class="space-y-2">
@@ -692,7 +674,6 @@
                 </button>
               </div>
             </div>
-
             <!-- Found User -->
             <div v-if="foundUser" class="bg-white/5 border border-white/10 p-4 rounded-2xl flex items-center gap-4 animate-fade-in">
               <div class="w-12 h-12 rounded-xl overflow-hidden border border-emerald-500/30">
@@ -711,17 +692,14 @@
                  </div>
               </div>
             </div>
-
             <!-- Error/Not Found -->
             <div v-if="searchError" class="p-3 bg-red-500/10 border border-red-500/20 rounded-xl text-center">
               <p class="text-[10px] font-bold text-red-400">{{ searchError }}</p>
             </div>
-
             <div class="bg-emerald-500/10 border border-emerald-500/20 p-4 rounded-2xl text-center">
               <span class="text-[10px] text-emerald-400 font-black uppercase tracking-widest block mb-1">Costo de Regalo</span>
               <span class="text-2xl font-black text-white">{{ formatCurrency(giftCost) }}</span>
             </div>
-
             <div class="flex flex-col gap-3 pt-4">
               <button 
                 @click="confirmGift"
@@ -738,19 +716,21 @@
         </div>
       </div>
     </Transition>
-
     <!-- Interactions History Modal -->
     <InteractionHistoryModal 
       :show="showHistory"
       :history="history"
       :loading="isLoadingHistory"
+      :has-next-page="hasNextPage"
+      :has-prev-page="hasPrevPage"
       :total-balance="totalEarnings"
       :show-withdraw-button="true"
       :min-withdrawal="minWithdrawal"
       @close="showHistory = false"
-      @withdraw="isWithdrawalModalOpen = true"
+      @withdraw="handleWithdraw"
+      @next-page="nextPage"
+      @prev-page="prevPage"
     />
-
     <!-- Membership History Modal -->
     <Transition name="fade">
       <div v-if="showMembershipHistoryModal" @click.self="showMembershipHistoryModal = false" class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
@@ -770,7 +750,6 @@
               <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
             </button>
           </div>
-
           <!-- Body -->
           <div class="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar no-scrollbar">
             <div v-if="isLoadingMembershipHistory" class="flex flex-col items-center justify-center py-12 space-y-4">
@@ -807,7 +786,6 @@
                 </div>
               </div>
             </template>
-
             <div v-else class="flex flex-col items-center justify-center py-12 text-center">
               <div class="text-4xl mb-4 opacity-20">💳</div>
               <p class="text-[10px] text-gray-500 font-bold uppercase tracking-widest">No hay registros de membresías</p>
@@ -816,12 +794,10 @@
         </div>
       </div>
     </Transition>
-
     <!-- Bottom Navigation -->
     <BottomNav />
   </div>
 </template>
-
 <script setup>
 import { ref, computed, onMounted, watch, nextTick } from 'vue'
 import { useRoute } from 'vue-router'
@@ -830,11 +806,10 @@ import Toast from '~/components/ui/Toast.vue'
 import LoadingSpinner from '~/components/ui/LoadingSpinner.vue'
 import Multiselect from 'vue-multiselect'
 import InteractionHistoryModal from '~/components/ui/InteractionHistoryModal.vue'
+import { useInteractionHistory } from '~/composables/useInteractionHistory'
 import { useAuthStore } from '~/middleware/auth.store'
-
 const { $api } = useNuxtApp()
 const authStore = useAuthStore()
-
 // Link de Referido Dinámico
 const copied = ref(false)
 const referralLink = computed(() => {
@@ -842,7 +817,6 @@ const referralLink = computed(() => {
   const baseUrl = window.location.origin
   return `${baseUrl}/?ref=${authStore.userId || '1'}`
 })
-
 const copyToClipboard = async (text) => {
   try {
     if (!text) return
@@ -869,7 +843,6 @@ const copyToClipboard = async (text) => {
     return false
   }
 }
-
 const copyLink = async () => {
   if (process.client) {
     const success = await copyToClipboard(referralLink.value)
@@ -879,8 +852,6 @@ const copyLink = async () => {
     }
   }
 }
-
-
 // Precios dinámicos cargados desde el backend
 const configPrices = ref({
   valor_membresia: "20.00",
@@ -889,7 +860,6 @@ const configPrices = ref({
   nivel4_costo: "320.00",
   nivel5_costo: "640.00"
 })
-
 const isLoading = ref(true)
 const userMatrixInfo = ref({
   conteos: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 },
@@ -899,7 +869,6 @@ const userMatrixInfo = ref({
 const totalEarnings = ref(0)
 const realHijos = ref([])
 const realReferidos = ref([])
-
 // Membresía
 const membershipData = ref({
   status: 'inactiva',
@@ -916,7 +885,6 @@ const isRenewing = ref(false)
 const showRenewalModal = ref(false)
 const empresaPhoneNumber = ref('')
 const comprobante = ref('')
-
 const isMembershipActive = computed(() => ['activa', 'gracia'].includes(membershipData.value.status))
 const isMembershipGrace = computed(() => membershipData.value.status === 'gracia')
 const isMembershipPending = computed(() => membershipData.value.status === 'pendiente')
@@ -936,25 +904,20 @@ const membershipStatus = computed(() => {
   if (membershipData.value.isRoot) return 'Vitalicia'
   return map[membershipData.value.status] || 'Inactiva'
 })
-
 // Legacy hasMembership for compatibility
 const hasMembership = computed(() => isMembershipActive.value)
-
 watch(selectedAccountObject, (newVal) => {
   selectedAccount.value = newVal ? newVal.id_cuenta : ''
 })
-
 // Withdrawal State
 const isWithdrawalModalOpen = ref(false)
 const withdrawalDetails = ref('')
 const isRequestingWithdrawal = ref(false)
-
 // Utils
 const isLevelUnlocked = (lId) => {
   if (lId === 1 && (isMembershipActive.value || membershipData.value.isRoot)) return true
   return userMatrixInfo.value.mi_nivel >= lId
 }
-
 // Verifica si el usuario tiene los referidos necesarios para poder desbloquear el nivel (nivel previo completo)
 const canUnlockLevel = (lId) => {
   if (lId === 1) return true // Nivel 1 = activar membresía, siempre habilitado
@@ -964,12 +927,10 @@ const canUnlockLevel = (lId) => {
   const current = userMatrixInfo.value.conteos?.[prevLevel] || 0
   return current >= required
 }
-
 // Level Upgrade State
 const isUpgrading = ref(false)
 const upgradeTargetLevel = ref(null)
 const isUpgradeFromTransfer = ref(false)
-
 // Gift State
 const isGiftModalOpen = ref(false)
 const searchIdentidad = ref('')
@@ -978,7 +939,6 @@ const isSearchingUser = ref(false)
 const searchError = ref('')
 const isSendingGift = ref(false)
 const giftCost = ref(20) // Default membership cost
-
 // Toast
 const toast = ref({
   show: false,
@@ -986,24 +946,20 @@ const toast = ref({
   type: 'info',
   duration: 5000
 })
-
 // History State
 const showHistory = ref(false)
-const history = ref([])
-const isLoadingHistory = ref(false)
+
+const { history, isLoading: isLoadingHistory, hasNextPage, hasPrevPage, loadInitial, nextPage, prevPage } = useInteractionHistory()
 const minWithdrawal = ref(0)
 const route = useRoute()
-
 // Membership History State
 const showMembershipHistoryModal = ref(false)
 const membershipHistory = ref([])
 const isLoadingMembershipHistory = ref(false)
-
 const openMembershipHistory = () => {
   showMembershipHistoryModal.value = true
   fetchMembershipHistory()
 }
-
 const fetchMembershipHistory = async () => {
   if (!authStore.userId) return
   isLoadingMembershipHistory.value = true
@@ -1018,13 +974,11 @@ const fetchMembershipHistory = async () => {
     isLoadingMembershipHistory.value = false
   }
 }
-
 const openHistory = () => {
   showHistory.value = true
-  fetchHistory()
+  loadInitial()
   fetchMinWithdrawal()
 }
-
 const fetchMinWithdrawal = async () => {
   try {
     const res = await $api('/config/multi?tipos=retiro_minimo')
@@ -1035,29 +989,16 @@ const fetchMinWithdrawal = async () => {
     console.error('Error fetching min withdrawal:', e)
   }
 }
-
-const fetchHistory = async () => {
-  if (!authStore.userId) return
-  isLoadingHistory.value = true
-  try {
-    const res = await $api(`/interacciones/usuario/${authStore.userId}`)
-    if (res.success) {
-      history.value = res.data
-    }
-  } catch (e) {
-    console.error('Error fetching history:', e)
-  } finally {
-    isLoadingHistory.value = false
-  }
+const handleWithdraw = () => {
+  showHistory.value = false
+  navigateTo('/cliente/red?withdraw=true')
 }
-
 const showMsg = (message, type = 'info') => {
   toast.value.show = false
   nextTick(() => {
     toast.value = { show: true, message, type, duration: 5000 }
   })
 }
-
 // Configuración de la estructura (personas por nivel)
 const networkStructure = [
   { id: 1, label: 'Nivel 1', people: 3, configKey: 'valor_membresia', color: 'purple' },
@@ -1066,7 +1007,6 @@ const networkStructure = [
   { id: 4, label: 'Nivel 4', people: 81, configKey: 'nivel4_costo', color: 'teal' },
   { id: 5, label: 'Nivel 5', people: 243, configKey: 'nivel5_costo', color: 'emerald' }
 ]
-
 // Calcular niveles dinámicos basados en la configuración recibida
 const dynamicLevels = computed(() => {
   return networkStructure.map(level => {
@@ -1078,19 +1018,16 @@ const dynamicLevels = computed(() => {
     }
   })
 })
-
 const totalInNetwork = computed(() => {
   if (!userMatrixInfo.value.conteos) return 0
   return Object.values(userMatrixInfo.value.conteos).reduce((a, b) => a + b, 0)
 })
-
 // Ganancias por invitaciones directas (referidos directos activos * membresía)
 const directReferralEarnings = computed(() => {
   const activeReferrals = realReferidos.value.filter(r => r.nivel_actual > 0).length
   const cost = parseFloat(configPrices.value.valor_membresia || 20)
   return activeReferrals * cost
 })
-
 // Ganancias acumuladas por upgrades de red
 const networkExpansionEarnings = computed(() => {
   if (!userMatrixInfo.value.pagados || !dynamicLevels.value) return 0
@@ -1099,31 +1036,24 @@ const networkExpansionEarnings = computed(() => {
     return total + (activeCount * level.cost)
   }, 0)
 })
-
 // Notification: user qualifies for next level by referrals but lacks balance
 const upgradeNotification = computed(() => {
   if (!isMembershipActive.value && !membershipData.value.isRoot) return null
   const currentLevel = userMatrixInfo.value.mi_nivel
   if (currentLevel === undefined || currentLevel < 1 || currentLevel >= 5) return null
-
   const nextLevel = currentLevel + 1
   if (!canUnlockLevel(nextLevel)) return null
-
   const nextLevelData = dynamicLevels.value.find(l => l.id === nextLevel)
   if (!nextLevelData) return null
-
   const cost = nextLevelData.cost
   const balance = totalEarnings.value
   
   // ONLY show if they DON'T have enough balance to trigger automatic upgrade
   if (balance >= cost) return null
-
   const deficit = Math.max(0, cost - balance)
   const referrals = userMatrixInfo.value.conteos[1] || 0
-
   return { nextLevel, cost, deficit, referrals }
 })
-
 const fetchConfig = async () => {
   try {
     const keys = networkStructure.map(l => l.configKey).join(',') + ',dias_gracia_membresia'
@@ -1141,7 +1071,6 @@ const fetchConfig = async () => {
     console.error("Error cargando configuración de precios:", error)
   }
 }
-
 const fetchUserProgress = async () => {
   try {
     if (!authStore.userId) return
@@ -1153,7 +1082,6 @@ const fetchUserProgress = async () => {
     console.error("Error al obtener progreso:", error)
   }
 }
-
 const fetchNetworkData = async () => {
   try {
     if (!authStore.userId) return
@@ -1168,7 +1096,6 @@ const fetchNetworkData = async () => {
     console.error("Error al obtener datos de red:", error)
   }
 }
-
 const fetchCreditBalance = async () => {
   try {
     if (!authStore.userId) return
@@ -1183,7 +1110,6 @@ const fetchCreditBalance = async () => {
     console.error('Error fetching credit:', error)
   }
 }
-
 const upgradeLevel = async () => {
   if (isUpgrading.value) return
   isUpgrading.value = true
@@ -1206,21 +1132,17 @@ const upgradeLevel = async () => {
     isUpgrading.value = false
   }
 }
-
 const checkAutoUpgrade = async () => {
   if (!isMembershipActive.value && !membershipData.value.isRoot) return
   if (!userMatrixInfo.value || userMatrixInfo.value.mi_nivel === undefined) return
-
   const currentLevel = userMatrixInfo.value.mi_nivel
   // Auto-upgrade only for L2+ because L1 is linked to membership status/approval
   if (currentLevel < 1 || currentLevel >= 5) return
-
   // Regla: Para subir al Nivel 2, debe tener al menos 3 personas en su Nivel 1
   if (currentLevel === 1) {
     const hijosL1 = userMatrixInfo.value.conteos[1] || 0
     if (hijosL1 < 3) return
   }
-
   const nextLevelId = currentLevel + 1
   const nextLevel = dynamicLevels.value.find(l => l.id === nextLevelId)
   
@@ -1229,13 +1151,11 @@ const checkAutoUpgrade = async () => {
     await upgradeLevel()
   }
 }
-
 const intentarDesbloqueo = (level) => {
   if (level.id === 1) {
     renovarMembresia()
     return
   }
-
   if (totalEarnings.value >= level.cost) {
     // Si tiene saldo, se intenta el upgrade directo
     upgradeLevel()
@@ -1250,9 +1170,6 @@ const intentarDesbloqueo = (level) => {
     fetchBankAccounts()
   }
 }
-
-
-
 const refreshAll = async () => {
   isLoading.value = true
   await Promise.all([
@@ -1263,7 +1180,6 @@ const refreshAll = async () => {
   ])
   isLoading.value = false
 }
-
 const fetchMembershipData = async () => {
   try {
     const data = await $api(`/membresia/${authStore.userId}`)
@@ -1315,7 +1231,6 @@ const fetchMembershipData = async () => {
     showMsg('Error al cargar membresía', 'error')
   }
 }
-
 const fetchBankAccounts = async () => {
   try {
     const data = await $api('/cuentas')
@@ -1325,7 +1240,6 @@ const fetchBankAccounts = async () => {
     showMsg('Error al cargar cuentas bancarias', 'error')
   }
 }
-
 const renovarMembresia = async () => {
   selectedAccountObject.value = null
   comprobante.value = ''
@@ -1341,7 +1255,6 @@ const renovarMembresia = async () => {
     membershipCost.value = 0
   }
 }
-
 const buscarUsuario = async () => {
   if (!searchIdentidad.value) return
   isSearchingUser.value = true
@@ -1362,7 +1275,6 @@ const buscarUsuario = async () => {
     isSearchingUser.value = false
   }
 }
-
 const confirmGift = async () => {
   if (!foundUser.value || isSendingGift.value) return
   isSendingGift.value = true
@@ -1387,14 +1299,12 @@ const confirmGift = async () => {
     isSendingGift.value = false
   }
 }
-
 const closeGiftModal = () => {
   isGiftModalOpen.value = false
   searchIdentidad.value = ''
   foundUser.value = null
   searchError.value = ''
 }
-
 const sendWhatsAppMessage = async (amount, receiptNumber, membershipId, bankName, isUpgrade = false) => {
   try {
     if (!empresaPhoneNumber.value) {
@@ -1425,7 +1335,6 @@ const sendWhatsAppMessage = async (amount, receiptNumber, membershipId, bankName
     console.error('Error al preparar el mensaje de WhatsApp:', error);
   }
 };
-
 const fetchEmpresaPhoneNumber = async () => {
   try {
     const response = await $api('/config/valor/numero_empresa', { method: 'GET' });
@@ -1439,14 +1348,12 @@ const fetchEmpresaPhoneNumber = async () => {
     empresaPhoneNumber.value = '1234567890';
   }
 };
-
 const confirmRenewal = async () => {
   isRenewing.value = true
   try {
     let res
     const isUpgrade = isUpgradeFromTransfer.value
     const targetLevelId = upgradeTargetLevel.value?.id
-
     if (isUpgrade) {
       res = await $api('/red-solicitudes', {
         method: 'POST',
@@ -1486,7 +1393,6 @@ const confirmRenewal = async () => {
       selectedAccountObject.value?.banco,
       isUpgrade
     );
-
     isUpgradeFromTransfer.value = false
     upgradeTargetLevel.value = null
     comprobante.value = ''
@@ -1503,12 +1409,10 @@ const confirmRenewal = async () => {
     isRenewing.value = false
   }
 }
-
 const formatShortDate = (d) => {
   if (!d) return '--/--/----'
   return new Date(d).toLocaleDateString('es-HN', { day: '2-digit', month: 'short', year: 'numeric' })
 }
-
 const handleWithdrawalRequest = async () => {
   if (!withdrawalDetails.value) {
     return showMsg('Por favor ingresa los datos de tu cuenta', 'error')
@@ -1542,11 +1446,9 @@ const handleWithdrawalRequest = async () => {
     isRequestingWithdrawal.value = false
   }
 }
-
 const formatCurrency = (val) => {
   return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(val)
 }
-
 onMounted(async () => {
   await authStore.initAuth()
   if (!authStore.user) {
@@ -1563,19 +1465,15 @@ onMounted(async () => {
     fetchMembershipData(),
     fetchMinWithdrawal()
   ])
-
   // Check for withdraw redirect
   if (route.query.withdraw === 'true') {
     isWithdrawalModalOpen.value = true
   }
-
   isLoading.value = false
 })
-
 const levelsData = [
   { id: 1, label: 'Nivel 1', count: 3, guests: ['Ana', 'Luis', 'Mía'], color: 'indigo' },
 ]
-
 // Modal Logic for recursive browsing
 const networkModal = ref({
   show: false,
@@ -1584,7 +1482,6 @@ const networkModal = ref({
   isLoading: false,
   history: []
 })
-
 const openNetworkModal = async (user) => {
   if (user.level > 5) return // Limite de la matriz
   
@@ -1600,7 +1497,6 @@ const openNetworkModal = async (user) => {
   networkModal.value.show = true
   networkModal.value.isLoading = true
   networkModal.value.currentChildren = []
-
   try {
     const userId = user.id || user.id_usuario
     const response = await $api(`/red/mi-red/${userId}`)
@@ -1613,7 +1509,6 @@ const openNetworkModal = async (user) => {
     networkModal.value.isLoading = false
   }
 }
-
 const goBackInNetwork = () => {
   if (networkModal.value.history.length > 0) {
     const prev = networkModal.value.history.pop()
@@ -1621,19 +1516,16 @@ const goBackInNetwork = () => {
     networkModal.value.currentChildren = prev.children
   }
 }
-
 const closeNetworkModal = () => {
   networkModal.value.show = false
   networkModal.value.currentUser = null
   networkModal.value.currentChildren = []
   networkModal.value.history = []
 }
-
 useHead({
   title: 'Mi Red | RedPlus'
 })
 </script>
-
 <style scoped>
 /* Estilos globales para multiselect en modo oscuro */
 .multiselect-custom-dark :deep(.multiselect__tags) {
@@ -1644,7 +1536,6 @@ useHead({
   min-height: 44px !important;
   transition: all 0.3s ease !important;
 }
-
 .multiselect-custom-dark :deep(.multiselect__single), 
 .multiselect-custom-dark :deep(.multiselect__input) {
   background: transparent !important;
@@ -1652,7 +1543,6 @@ useHead({
   font-size: 0.875rem !important;
   font-weight: 700 !important;
 }
-
 .multiselect-custom-dark :deep(.multiselect__content-wrapper) {
   background: #0f172a !important;
   border: 1px solid rgba(255, 255, 255, 0.1) !important;
@@ -1661,22 +1551,18 @@ useHead({
   box-shadow: 0 10px 25px rgba(0,0,0,0.5) !important;
   z-index: 100 !important;
 }
-
 .multiselect-custom-dark :deep(.multiselect__option) {
   padding: 12px 16px !important;
   color: white !important;
 }
-
 .multiselect-custom-dark :deep(.multiselect__option--highlight) {
   background: transparent !important;
   color: white !important;
 }
-
 .multiselect-custom-dark :deep(.multiselect__option--selected) {
   background: rgba(255, 255, 255, 0.15) !important;
   color: white !important;
 }
-
 .fade-slide-enter-active {
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }

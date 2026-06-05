@@ -53,6 +53,34 @@
                 <p class="text-[7px] text-gray-500 font-bold uppercase">GANADO</p>
               </div>
             </div>
+
+            <div class="flex justify-between items-center pt-2 pb-4 px-2">
+              <button 
+                v-if="hasPrevPage"
+                @click="$emit('prev-page')"
+                class="px-4 py-2 bg-white/5 hover:bg-white/10 text-emerald-400 text-xs font-bold rounded-xl transition-colors disabled:opacity-50 flex items-center gap-1"
+                :disabled="loading"
+              >
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                Anterior
+              </button>
+              <div v-else class="w-[96px]"></div>
+
+              <div v-if="loading" class="text-[10px] text-gray-500 font-bold uppercase tracking-widest">
+                Cargando...
+              </div>
+
+              <button 
+                v-if="hasNextPage"
+                @click="$emit('next-page')"
+                class="px-4 py-2 bg-white/5 hover:bg-white/10 text-emerald-400 text-xs font-bold rounded-xl transition-colors disabled:opacity-50 flex items-center gap-1"
+                :disabled="loading"
+              >
+                Siguiente
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+              </button>
+              <div v-else class="w-[100px]"></div>
+            </div>
           </template>
 
           <div v-else class="flex flex-col items-center justify-center py-12 text-center">
@@ -110,6 +138,14 @@ const props = defineProps({
   show: Boolean,
   history: Array,
   loading: Boolean,
+  hasNextPage: {
+    type: Boolean,
+    default: false
+  },
+  hasPrevPage: {
+    type: Boolean,
+    default: false
+  },
   totalBalance: Number,
   showWithdrawButton: {
     type: Boolean,
@@ -121,7 +157,7 @@ const props = defineProps({
   }
 })
 
-const emit = defineEmits(['close', 'withdraw'])
+const emit = defineEmits(['close', 'withdraw', 'next-page', 'prev-page'])
 
 watch(() => props.show, (newVal) => {
   if (process.client) {

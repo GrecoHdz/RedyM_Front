@@ -40,12 +40,16 @@
     <InteractionHistoryModal 
       :show="showHistory"
       :history="history"
-      :loading="isLoadingHistory"
+      :loading="isLoading"
+      :has-next-page="hasNextPage"
+      :has-prev-page="hasPrevPage"
       :total-balance="earnings"
       :show-withdraw-button="true"
       :min-withdrawal="minWithdrawal"
       @close="showHistory = false"
       @withdraw="handleWithdraw"
+      @next-page="nextPage"
+      @prev-page="prevPage"
     />
   </div>
 </template>
@@ -54,6 +58,7 @@
 import { ref } from 'vue'
 import { useAuthStore } from '~/middleware/auth.store'
 import InteractionHistoryModal from '~/components/ui/InteractionHistoryModal.vue'
+import { useInteractionHistory } from '~/composables/useInteractionHistory'
 
 const { $api } = useNuxtApp()
 const authStore = useAuthStore()
@@ -70,13 +75,13 @@ const props = defineProps({
 })
 
 const showHistory = ref(false)
-const history = ref([])
-const isLoadingHistory = ref(false)
 const minWithdrawal = ref(0)
+
+const { history, isLoading, hasNextPage, hasPrevPage, loadInitial, nextPage, prevPage } = useInteractionHistory()
 
 const openHistory = () => {
   showHistory.value = true
-  fetchHistory()
+  loadInitial()
   fetchMinWithdrawal()
 }
 
@@ -95,21 +100,6 @@ const handleWithdraw = () => {
   showHistory.value = false
   // Redirect to red page with withdraw flag
   navigateTo('/cliente/red?withdraw=true')
-}
-
-const fetchHistory = async () => {
-  if (!authStore.userId) return
-  isLoadingHistory.value = true
-  try {
-    const res = await $api(`/interacciones/usuario/${authStore.userId}`)
-    if (res.success) {
-      history.value = res.data
-    }
-  } catch (e) {
-    console.error('Error fetching history:', e)
-  } finally {
-    isLoadingHistory.value = false
-  }
 }
 </script>
 
