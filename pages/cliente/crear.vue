@@ -259,6 +259,10 @@
               <!-- Stats row -->
               <div class="flex items-center gap-0 border-t border-white/5 divide-x divide-white/5">
                 <div class="flex-1 py-3 text-center">
+                  <p class="text-[8px] font-black text-gray-600 uppercase tracking-widest">Vistas</p>
+                  <p class="text-sm font-black text-white">{{ pub.vistas || 0 }}</p>
+                </div>
+                <div class="flex-1 py-3 text-center">
                   <p class="text-[8px] font-black text-gray-600 uppercase tracking-widest">Interacciones</p>
                   <p class="text-sm font-black text-white">{{ pub.total_interacciones || 0 }}</p>
                 </div>
@@ -269,12 +273,6 @@
                 <div class="flex-1 py-3 text-center">
                   <p class="text-[8px] font-black text-gray-600 uppercase tracking-widest">Creada</p>
                   <p class="text-[10px] font-black text-gray-400">{{ formatDate(pub.fecha) }}</p>
-                </div>
-                <div class="flex-1 py-3 text-center">
-                  <p class="text-[8px] font-black text-gray-600 uppercase tracking-widest">Finaliza</p>
-                  <p class="text-[10px] font-black" :class="pub.fecha_finalizacion ? 'text-gray-400' : 'text-gray-600'">
-                    {{ pub.fecha_finalizacion ? formatDate(pub.fecha_finalizacion) : '—' }}
-                  </p>
                 </div>
               </div>
             </div>

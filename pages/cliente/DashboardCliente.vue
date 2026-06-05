@@ -65,8 +65,9 @@
 
         <!-- Card-Based Feed -->
         <div class="space-y-6 px-2">
-          <article v-for="post in feedPosts" :key="post.id" 
-                   class="bg-white dark:bg-gray-800 rounded-[2.5rem] overflow-hidden border border-gray-100 dark:border-gray-700 shadow-xl shadow-gray-200/50 dark:shadow-none">
+          <article v-for="post in feedPosts" :key="post.id"
+                   :data-post-id="post.id"
+                   class="bg-white dark:bg-gray-800 rounded-[2.5rem] overflow-hidden border border-gray-100 dark:border-gray-700 shadow-xl shadow-gray-200/50 dark:shadow-none post-observer">
             
             <!-- Simplified Post Header -->
             <div class="p-3 flex items-center gap-3">
@@ -270,6 +271,21 @@ const pollModal = ref({ show: false, post: null })
 // Media viewer state
 const showMediaViewer = ref(false)
 const mediaToView = ref(null)
+
+// View tracking
+const viewedPostIds = ref(new Set())
+let viewObserver = null
+const viewTimers = {}
+
+const registerView = async (postId) => {
+  if (viewedPostIds.value.has(postId)) return
+  viewedPostIds.value.add(postId)
+  try {
+    await $api(`/publicaciones/${postId}/vista`, { method: 'POST' })
+  } catch (e) {
+    console.warn('Error registrando vista:', e)
+  }
+}
 
 const totalEarnings = ref(0.00) // Will be updated from DB
 const rewardsConfig = ref({
@@ -711,11 +727,40 @@ onMounted(async () => {
   } catch (e) {}
   
   isLoading.value = false
+
+  // Setup IntersectionObserver para contar vistas
+  await nextTick()
+  viewObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      const postId = parseInt(entry.target.dataset.postId)
+      if (!postId) return
+      if (entry.isIntersecting) {
+        // Iniciar timer: si permanece visible 1 segundo, contamos la vista
+        if (!viewTimers[postId]) {
+          viewTimers[postId] = setTimeout(() => {
+            registerView(postId)
+          }, 500)
+        }
+      } else {
+        // Salió del viewport, cancelar timer si no se completó
+        if (viewTimers[postId]) {
+          clearTimeout(viewTimers[postId])
+          delete viewTimers[postId]
+        }
+      }
+    })
+  }, { threshold: 0.5 })
+
+  document.querySelectorAll('.post-observer').forEach(el => {
+    viewObserver.observe(el)
+  })
 })
 
 onUnmounted(() => {
   document.removeEventListener('visibilitychange', handlePageShow)
   window.removeEventListener('focus', handlePageShow)
+  if (viewObserver) viewObserver.disconnect()
+  Object.values(viewTimers).forEach(t => clearTimeout(t))
 })
 
 useHead({
