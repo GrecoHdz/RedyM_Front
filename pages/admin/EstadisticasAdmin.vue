@@ -45,102 +45,34 @@
       </div>
     </header>
 
-    <main class="max-w-7xl mx-auto p-4 sm:p-6 space-y-12">
+    <main class="max-w-7xl mx-auto p-3 sm:p-6 space-y-6 sm:space-y-12">
       
-      <!-- Sección: Usuarios y Red -->
-      <section class="space-y-6">
-        <div class="flex items-center gap-3 px-2">
-          <div class="w-10 h-10 rounded-2xl bg-blue-500/10 flex items-center justify-center text-blue-500">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
-          </div>
-          <div>
-            <h2 class="text-lg font-black text-gray-900 dark:text-white uppercase tracking-tight">Usuarios y Crecimiento</h2>
-            <p class="text-[10px] text-gray-500 font-bold uppercase tracking-widest">Gestión de comunidad y referidos</p>
-          </div>
-        </div>
-
-        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <div v-for="key in ['usuarios', 'membresiasActivas', 'periodoGracia', 'membresiasVencidas']" :key="key" 
+      <!-- Sección: KPIs Compactos -->
+      <section class="space-y-4">
+        <div class="grid grid-cols-3 lg:grid-cols-5 gap-2 sm:gap-4">
+          <div v-for="key in ['usuarios', 'membresiasActivas', 'periodoGracia', 'membresiasVencidas', 'publicacionesActivas', 'publicacionesVencidas', 'ingresosMembresias', 'ingresosPublicaciones', 'ingresosTotales']" :key="key" 
                @click="openDetailModal(key)"
-               class="bg-white dark:bg-gray-800 p-5 rounded-[2rem] shadow-sm border border-gray-100 dark:border-gray-700 cursor-pointer hover:scale-[1.02] active:scale-[0.98] transition-all group relative overflow-hidden">
-            <div :class="`absolute -right-4 -top-4 w-16 h-16 opacity-10 rounded-full ${kpiConfig[key].color}`"></div>
+               class="bg-white dark:bg-gray-800 p-2 sm:p-5 rounded-xl sm:rounded-[2rem] shadow-sm border border-gray-100 dark:border-gray-700 cursor-pointer hover:scale-[1.02] active:scale-[0.98] transition-all group relative overflow-hidden">
+            <div :class="`absolute -right-4 -top-4 w-12 h-12 sm:w-16 sm:h-16 opacity-10 rounded-full ${kpiConfig[key]?.color || 'bg-gray-500'}`"></div>
             <div class="relative">
-              <p class="text-[10px] font-black text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-1">{{ kpiConfig[key].label }}</p>
-              <p class="text-2xl font-black text-gray-900 dark:text-white">{{ stats.kpis[key] }}</p>
-            </div>
-            <div class="mt-4 flex items-center justify-between">
-              <span class="text-[9px] font-bold text-emerald-500 uppercase tracking-wider group-hover:underline">Ver detalles</span>
-              <div :class="`p-2 rounded-xl bg-gray-50 dark:bg-gray-900/50 ${kpiConfig[key].textColor}`">
-                <svg v-if="key === 'usuarios'" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
-                <svg v-else-if="key === 'membresiasActivas'" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                <svg v-else-if="key === 'periodoGracia'" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                <svg v-else-if="key === 'membresiasVencidas'" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+              <p class="text-[6px] sm:text-[10px] font-black text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-0.5 sm:mb-1 truncate">{{ kpiConfig[key]?.label }}</p>
+              <div class="flex items-baseline gap-0.5 sm:gap-1">
+                <p class="text-xs sm:text-2xl font-black text-gray-900 dark:text-white">
+                  {{ kpiConfig[key]?.isCurrency ? formatCurrency(stats.kpis[key]).replace('$','') : stats.kpis[key] }}
+                </p>
+                <span v-if="kpiConfig[key]?.isCurrency" class="text-[6px] sm:text-[10px] font-bold text-gray-400">USD</span>
               </div>
             </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- Sección: Publicidad -->
-      <section class="space-y-6">
-        <div class="flex items-center gap-3 px-2">
-          <div class="w-10 h-10 rounded-2xl bg-purple-500/10 flex items-center justify-center text-purple-500">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" /></svg>
-          </div>
-          <div>
-            <h2 class="text-lg font-black text-gray-900 dark:text-white uppercase tracking-tight">Publicidad y Actividad</h2>
-            <p class="text-[10px] text-gray-500 font-bold uppercase tracking-widest">Rendimiento de anuncios y contenido</p>
-          </div>
-        </div>
-
-        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <div v-for="key in ['publicacionesActivas', 'publicacionesVencidas']" :key="key" 
-               @click="openDetailModal(key)"
-               class="bg-white dark:bg-gray-800 p-5 rounded-[2rem] shadow-sm border border-gray-100 dark:border-gray-700 cursor-pointer hover:scale-[1.02] active:scale-[0.98] transition-all group relative overflow-hidden">
-            <div :class="`absolute -right-4 -top-4 w-16 h-16 opacity-10 rounded-full ${kpiConfig[key].color}`"></div>
-            <div class="relative">
-              <p class="text-[10px] font-black text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-1">{{ kpiConfig[key].label }}</p>
-              <p class="text-2xl font-black text-gray-900 dark:text-white">{{ stats.kpis[key] }}</p>
-            </div>
-            <div class="mt-4 flex items-center justify-between">
-              <span class="text-[9px] font-bold text-emerald-500 uppercase tracking-wider group-hover:underline">Ver detalles</span>
-              <div :class="`p-2 rounded-xl bg-gray-50 dark:bg-gray-900/50 ${kpiConfig[key].textColor}`">
-                <svg v-if="key === 'publicacionesActivas'" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" /></svg>
-                <svg v-else-if="key === 'publicacionesVencidas'" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" /></svg>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- Sección: Finanzas -->
-      <section class="space-y-6">
-        <div class="flex items-center gap-3 px-2">
-          <div class="w-10 h-10 rounded-2xl bg-emerald-500/10 flex items-center justify-center text-emerald-500">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-          </div>
-          <div>
-            <h2 class="text-lg font-black text-gray-900 dark:text-white uppercase tracking-tight">Finanzas Globales</h2>
-            <p class="text-[10px] text-gray-500 font-bold uppercase tracking-widest">Ingresos y circulación monetaria</p>
-          </div>
-        </div>
-
-        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <div v-for="key in ['ingresosMembresias', 'ingresosPublicaciones', 'ingresosTotales']" :key="key" 
-               @click="openDetailModal(key)"
-               class="bg-white dark:bg-gray-800 p-5 rounded-[2rem] shadow-sm border border-gray-100 dark:border-gray-700 cursor-pointer hover:scale-[1.02] active:scale-[0.98] transition-all group relative overflow-hidden">
-            <div :class="`absolute -right-4 -top-4 w-16 h-16 opacity-10 rounded-full ${kpiConfig[key].color}`"></div>
-            <div class="relative">
-              <p class="text-[10px] font-black text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-1">{{ kpiConfig[key].label }}</p>
-              <div class="flex items-baseline gap-1">
-                <p class="text-2xl font-black text-gray-900 dark:text-white">{{ formatCurrency(stats.kpis[key]) }}</p>
-                <span class="text-[10px] font-bold text-gray-400">USD</span>
-              </div>
-            </div>
-            <div class="mt-4 flex items-center justify-between">
-              <span class="text-[9px] font-bold text-emerald-500 uppercase tracking-wider group-hover:underline">Ver detalles</span>
-              <div :class="`p-2 rounded-xl bg-gray-50 dark:bg-gray-900/50 ${kpiConfig[key].textColor}`">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+            <div class="mt-1.5 sm:mt-4 flex items-center justify-between">
+              <span class="text-[6px] sm:text-[9px] font-bold text-emerald-500 uppercase tracking-wider group-hover:underline">Info</span>
+              <div :class="`p-1 sm:p-2 rounded-lg sm:rounded-xl bg-gray-50 dark:bg-gray-900/50 ${kpiConfig[key]?.textColor}`">
+                <svg v-if="key === 'usuarios'" class="w-2.5 h-2.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
+                <svg v-else-if="key === 'membresiasActivas'" class="w-2.5 h-2.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                <svg v-else-if="key === 'periodoGracia'" class="w-2.5 h-2.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                <svg v-else-if="key === 'membresiasVencidas'" class="w-2.5 h-2.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                <svg v-else-if="key === 'publicacionesActivas'" class="w-2.5 h-2.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" /></svg>
+                <svg v-else-if="key === 'publicacionesVencidas'" class="w-2.5 h-2.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" /></svg>
+                <svg v-else class="w-2.5 h-2.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
               </div>
             </div>
           </div>
@@ -148,92 +80,99 @@
       </section>
 
       <!-- Gráficos Principales -->
-      <section class="space-y-4">
-        <div class="bg-white dark:bg-gray-800 p-6 rounded-[2.5rem] border border-gray-100 dark:border-gray-700 shadow-sm">
-          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-            <h3 class="text-sm font-black text-gray-900 dark:text-white uppercase tracking-widest">Análisis Visual</h3>
-            <select v-model="activeChart" class="text-[10px] font-black uppercase bg-gray-50 dark:bg-gray-700 border-none rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-emerald-500">
-              <option value="ingresos">Ingresos Mensuales</option>
-              <option value="usuarios">Crecimiento Usuarios</option>
-              <option value="publicaciones">Crecimiento Publicaciones</option>
-              <option value="ciudades">Distribución por Ciudad</option>
+      <section class="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+        <!-- Análisis Visual -->
+        <div class="bg-white dark:bg-gray-800 p-4 sm:p-6 rounded-3xl sm:rounded-[2.5rem] border border-gray-100 dark:border-gray-700 shadow-sm">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 sm:mb-6">
+            <h3 class="text-xs sm:text-sm font-black text-gray-900 dark:text-white uppercase tracking-widest">Tendencias</h3>
+            <select v-model="activeChart" class="text-[9px] sm:text-[10px] font-black uppercase bg-gray-50 dark:bg-gray-700 border-none rounded-lg px-2 sm:px-3 py-1.5 sm:py-2 outline-none">
+              <option value="ingresos">Ingresos</option>
+              <option value="usuarios">Usuarios</option>
+              <option value="publicaciones">Publicaciones</option>
             </select>
           </div>
+          <div class="h-[250px] sm:h-[350px] flex justify-center items-center">
+            <Bar v-if="activeChart === 'ingresos' && chartData.ingresos" :key="'chart-ingresos'" :data="chartData.ingresos" :options="chartOptions" :plugins="[DataLabelsPlugin]" />
+            <Line v-else-if="activeChart === 'usuarios' && chartData.usuarios" :key="'chart-usuarios'" :data="chartData.usuarios" :options="chartOptions" :plugins="[DataLabelsPlugin]" />
+            <Line v-else-if="activeChart === 'publicaciones' && chartData.publicaciones" :key="'chart-publicaciones'" :data="chartData.publicaciones" :options="chartOptions" :plugins="[DataLabelsPlugin]" />
+          </div>
+        </div>
 
-          <div class="h-[300px] sm:h-[400px] flex justify-center items-center">
-            <Bar v-if="activeChart === 'ingresos' && chartData.ingresos" :data="chartData.ingresos" :options="chartOptions" />
-            <Line v-else-if="activeChart === 'usuarios' && chartData.usuarios" :data="chartData.usuarios" :options="chartOptions" />
-            <Line v-else-if="activeChart === 'publicaciones' && chartData.publicaciones" :data="chartData.publicaciones" :options="chartOptions" />
-            <Doughnut v-else-if="activeChart === 'ciudades' && chartData.ciudades" :data="chartData.ciudades" :options="donutOptions" />
+        <!-- Análisis Demográfico -->
+        <div class="bg-white dark:bg-gray-800 p-4 sm:p-6 rounded-3xl sm:rounded-[2.5rem] border border-gray-100 dark:border-gray-700 shadow-sm">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 sm:mb-6">
+            <h3 class="text-xs sm:text-sm font-black text-gray-900 dark:text-white uppercase tracking-widest">Demografía</h3>
+            <select v-model="activeDemoChart" class="text-[9px] sm:text-[10px] font-black uppercase bg-gray-50 dark:bg-gray-700 border-none rounded-lg px-2 sm:px-3 py-1.5 sm:py-2 outline-none">
+              <option value="generos">Género</option>
+              <option value="ciudades">Ciudad</option>
+              <option value="edades">Edad</option>
+            </select>
+          </div>
+          <div class="h-[250px] sm:h-[350px] flex justify-center items-center">
+            <Doughnut v-if="activeDemoChart === 'generos' && chartData.generos" :key="'chart-generos'" :data="chartData.generos" :options="donutOptions" :plugins="[DataLabelsPlugin]" />
+            <Doughnut v-else-if="activeDemoChart === 'ciudades' && chartData.ciudades" :key="'chart-ciudades-demo'" :data="chartData.ciudades" :options="donutOptions" :plugins="[DataLabelsPlugin]" />
+            <Bar v-else-if="activeDemoChart === 'edades' && chartData.edades" :key="'chart-edades-demo'" :data="chartData.edades" :options="horizontalBarOptions" :plugins="[DataLabelsPlugin]" />
           </div>
         </div>
       </section>
 
       <!-- Rankings -->
-      <section class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <section class="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
         <!-- Publicaciones -->
-        <div class="lg:col-span-2 space-y-6">
-          <div class="bg-white dark:bg-gray-800 p-6 rounded-[2.5rem] border border-gray-100 dark:border-gray-700 shadow-sm">
-            <div class="flex items-center justify-between mb-6">
-              <h3 class="text-sm font-black text-gray-900 dark:text-white uppercase tracking-widest">Top Publicaciones</h3>
-              <select v-model="activeRanking" class="text-[10px] font-black uppercase bg-gray-50 dark:bg-gray-700 border-none rounded-lg px-2 py-1 outline-none">
-                <option value="vistas">Más Vistas</option>
-                <option value="likes">Más Likes</option>
-                <option value="shares">Más Compartidas</option>
-                <option value="whatsapp">Más WhatsApp</option>
-                <option value="web">Más Visitas Web</option>
-                <option value="masPublicaciones">Más Publicaciones</option>
-                <option value="masReferidos">Más Referidos</option>
+        <div class="lg:col-span-2">
+          <div class="bg-white dark:bg-gray-800 p-4 sm:p-6 rounded-3xl sm:rounded-[2.5rem] border border-gray-100 dark:border-gray-700 shadow-sm h-full">
+            <div class="flex items-center justify-between mb-4 sm:mb-6">
+              <h3 class="text-xs sm:text-sm font-black text-gray-900 dark:text-white uppercase tracking-widest">Ranking Pubs</h3>
+              <select v-model="activeRanking" class="text-[9px] sm:text-[10px] font-black uppercase bg-gray-50 dark:bg-gray-700 border-none rounded-lg px-2 py-1 outline-none">
+                <option value="vistas">Vistas</option>
+                <option value="likes">Likes</option>
+                <option value="shares">Shares</option>
+                <option value="whatsapp">Wha</option>
+                <option value="web">Web</option>
               </select>
             </div>
             
-            <div class="space-y-3">
-              <div v-for="(item, index) in stats.rankings[activeRanking]" :key="index" 
+            <div class="space-y-2 sm:space-y-3">
+              <div v-for="(item, index) in stats.rankings[activeRanking]?.slice(0, 5)" :key="index" 
                    @click="handleRankingClick(item, activeRanking)"
-                   class="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-900/50 rounded-2xl cursor-pointer hover:bg-emerald-500/10 transition-all">
-                <div class="flex items-center gap-3">
-                  <span class="w-6 h-6 rounded-lg bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-[10px] font-black">{{ index + 1 }}</span>
-                  <div>
-                    <p class="text-xs font-bold text-gray-900 dark:text-white line-clamp-1">
-                      {{ item.content || item.publicacion?.content || item.usuario?.nombre || item.patrocinador?.nombre }}
+                   class="flex items-center justify-between p-2 sm:p-3 bg-gray-50 dark:bg-gray-900/50 rounded-xl sm:rounded-2xl cursor-pointer hover:bg-emerald-500/10 transition-all">
+                <div class="flex items-center gap-2 sm:gap-3 overflow-hidden">
+                  <span class="shrink-0 w-5 h-5 sm:w-6 sm:h-6 rounded-lg bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-[9px] sm:text-[10px] font-black">{{ index + 1 }}</span>
+                  <div class="min-w-0">
+                    <p class="text-[10px] sm:text-xs font-bold text-gray-900 dark:text-white truncate">
+                      {{ truncateText(item.content || item.publicacion?.content || item.usuario?.nombre || item.patrocinador?.nombre, 35) }}
                     </p>
-                    <p class="text-[9px] text-gray-500 uppercase">
-                      {{ item.usuario?.nombre || item.publicacion?.usuario?.nombre || item.usuario?.email || item.patrocinador?.email }}
+                    <p class="text-[8px] sm:text-[9px] text-gray-500 uppercase truncate">
+                      {{ truncateText(item.usuario?.nombre || item.publicacion?.usuario?.nombre || item.usuario?.email || item.patrocinador?.email, 25) }}
                     </p>
                   </div>
                 </div>
-                <p class="text-sm font-black text-emerald-500">{{ item.total || item.vistas || item.likes }}</p>
+                <p class="shrink-0 text-xs sm:text-sm font-black text-emerald-500 ml-2">{{ item.total || item.vistas || item.likes }}</p>
               </div>
             </div>
           </div>
         </div>
 
-        <!-- Usuarios -->
-        <div class="space-y-6">
-          <div class="bg-white dark:bg-gray-800 p-6 rounded-[2.5rem] border border-gray-100 dark:border-gray-700 shadow-sm">
-            <h3 class="text-sm font-black text-gray-900 dark:text-white uppercase tracking-widest mb-6">Top 10 Usuarios (Saldo)</h3>
-            <div class="space-y-3">
-              <div v-for="(user, index) in stats.rankings.saldos" :key="index" 
+        <!-- Usuarios Compactos -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-4 sm:gap-6">
+          <div class="bg-white dark:bg-gray-800 p-4 sm:p-6 rounded-3xl sm:rounded-[2.5rem] border border-gray-100 dark:border-gray-700 shadow-sm">
+            <h3 class="text-xs sm:text-sm font-black text-gray-900 dark:text-white uppercase tracking-widest mb-4">Top Saldo</h3>
+            <div class="space-y-2">
+              <div v-for="(user, index) in stats.rankings.saldos?.slice(0, 5)" :key="index" 
                    @click="openHistoryModal(user)"
-                   class="flex items-center justify-between cursor-pointer hover:bg-emerald-500/5 p-2 rounded-xl transition-all">
-                <div class="flex items-center gap-2">
-                  <div class="w-2 h-2 rounded-full bg-emerald-500"></div>
-                  <p class="text-xs font-bold text-gray-700 dark:text-gray-300">{{ user.usuario?.nombre }}</p>
-                </div>
-                <p class="text-xs font-black text-gray-900 dark:text-white">{{ formatCurrency(user.monto_credito) }}</p>
+                   class="flex items-center justify-between cursor-pointer hover:bg-emerald-500/5 p-1.5 rounded-lg transition-all">
+                <p class="text-[10px] font-bold text-gray-700 dark:text-gray-300 truncate mr-2">{{ user.usuario?.nombre }}</p>
+                <p class="text-[10px] font-black text-gray-900 dark:text-white whitespace-nowrap">{{ formatCurrency(user.monto_credito) }}</p>
               </div>
             </div>
           </div>
 
-          <div class="bg-white dark:bg-gray-800 p-6 rounded-[2.5rem] border border-gray-100 dark:border-gray-700 shadow-sm">
-            <h3 class="text-sm font-black text-gray-900 dark:text-white uppercase tracking-widest mb-6">Top 10 Creadores</h3>
-            <div class="space-y-3">
-              <div v-for="(user, index) in stats.rankings.masPublicaciones" :key="index" class="flex items-center justify-between">
-                <div class="flex items-center gap-2">
-                  <div class="w-2 h-2 rounded-full bg-blue-500"></div>
-                  <p class="text-xs font-bold text-gray-700 dark:text-gray-300">{{ user.usuario?.nombre }}</p>
-                </div>
-                <p class="text-xs font-black text-gray-900 dark:text-white">{{ user.total }} <span class="text-[9px] font-normal text-gray-500">pubs</span></p>
+          <div class="bg-white dark:bg-gray-800 p-4 sm:p-6 rounded-3xl sm:rounded-[2.5rem] border border-gray-100 dark:border-gray-700 shadow-sm">
+            <h3 class="text-xs sm:text-sm font-black text-gray-900 dark:text-white uppercase tracking-widest mb-4">Top Creadores</h3>
+            <div class="space-y-2">
+              <div v-for="(user, index) in stats.rankings.masPublicaciones?.slice(0, 5)" :key="index" class="flex items-center justify-between">
+                <p class="text-[10px] font-bold text-gray-700 dark:text-gray-300 truncate mr-2">{{ user.usuario?.nombre }}</p>
+                <p class="text-[10px] font-black text-gray-900 dark:text-white whitespace-nowrap">{{ user.total }} <span class="text-[8px] font-normal text-gray-500 uppercase">pubs</span></p>
               </div>
             </div>
           </div>
@@ -338,17 +277,19 @@
 
 <script setup>
 import { Bar, Line, Doughnut } from 'vue-chartjs'
-import { Chart as ChartJS, Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale, PointElement, LineElement, ArcElement } from 'chart.js'
+import { Chart as ChartJS, Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale, PointElement, LineElement, ArcElement, Filler } from 'chart.js'
+import DataLabelsPlugin from 'chartjs-plugin-datalabels'
 import Toast from '~/components/ui/Toast.vue'
 import LoadingSpinner from '~/components/ui/LoadingSpinner.vue'
 import InteractionHistoryModal from '~/components/ui/InteractionHistoryModal.vue'
 
-ChartJS.register(Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale, PointElement, LineElement, ArcElement)
+ChartJS.register(Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale, PointElement, LineElement, ArcElement, Filler, DataLabelsPlugin)
 
 const { $api } = useNuxtApp()
 const isLoading = ref(true)
 const activeRanking = ref('vistas')
 const activeChart = ref('ingresos')
+const activeDemoChart = ref('generos')
 
 // Filtros por defecto (Primer día del mes a hoy)
 const now = new Date()
@@ -362,7 +303,16 @@ const toast = ref({ show: false, message: '', type: 'success' })
 const stats = ref({
   kpis: {},
   rankings: { vistas: [], likes: [], shares: [], whatsapp: [], web: [], saldos: [], masPublicaciones: [] },
-  charts: { ingresosMensuales: [], crecimientoUsuarios: [], crecimientoPublicaciones: [], distribucionCiudades: [] }
+  charts: { 
+    ingresosMensuales: [], 
+    crecimientoUsuarios: [], 
+    crecimientoPublicaciones: [], 
+    distribucionCiudades: [],
+    demografia: {
+      generos: { masculino: 0, femenino: 0 },
+      edades: { '13-17': 0, '18-24': 0, '25-34': 0, '35-44': 0, '45-54': 0, '55+': 0, 'Desconocido': 0 }
+    }
+  }
 })
 
 // Configuración de KPIs
@@ -403,6 +353,27 @@ const historyModal = reactive({
 const chartData = computed(() => {
   if (isLoading.value) return {}
   
+  // Función para llenar huecos de fechas
+  const fillGaps = (data, start, end) => {
+    const map = new Map(data.map(i => [i.fecha, parseInt(i.total || 0)]))
+    const result = []
+    let current = new Date(start)
+    const last = new Date(end)
+    
+    while (current <= last) {
+      const dateStr = current.toISOString().split('T')[0]
+      result.push({
+        fecha: dateStr,
+        total: map.get(dateStr) || 0
+      })
+      current.setDate(current.getDate() + 1)
+    }
+    return result
+  }
+
+  const usuariosFill = fillGaps(stats.value.charts.crecimientoUsuarios || [], filters.startDate, filters.endDate)
+  const publicacionesFill = fillGaps(stats.value.charts.crecimientoPublicaciones || [], filters.startDate, filters.endDate)
+
   return {
     ingresos: {
       labels: stats.value.charts.ingresosMensuales.map(m => m.mes),
@@ -414,25 +385,33 @@ const chartData = computed(() => {
       }]
     },
     usuarios: {
-      labels: stats.value.charts.crecimientoUsuarios.map(u => u.fecha),
+      labels: usuariosFill.map(u => formatDate(u.fecha)),
       datasets: [{
         label: 'Nuevos Usuarios',
-        data: stats.value.charts.crecimientoUsuarios.map(u => u.total),
+        data: usuariosFill.map(u => u.total),
         borderColor: '#3b82f6',
-        tension: 0.4,
+        backgroundColor: 'rgba(59, 130, 246, 0.2)',
+        borderWidth: 3,
+        tension: 0.3,
         fill: true,
-        backgroundColor: 'rgba(59, 130, 246, 0.1)'
+        pointBackgroundColor: '#3b82f6',
+        pointRadius: 2,
+        pointHoverRadius: 5
       }]
     },
     publicaciones: {
-      labels: stats.value.charts.crecimientoPublicaciones.map(p => p.fecha),
+      labels: publicacionesFill.map(p => formatDate(p.fecha)),
       datasets: [{
         label: 'Nuevas Publicaciones',
-        data: stats.value.charts.crecimientoPublicaciones.map(p => p.total),
+        data: publicacionesFill.map(p => p.total),
         borderColor: '#8b5cf6',
-        tension: 0.4,
+        backgroundColor: 'rgba(139, 92, 246, 0.2)',
+        borderWidth: 3,
+        tension: 0.3,
         fill: true,
-        backgroundColor: 'rgba(139, 92, 246, 0.1)'
+        pointBackgroundColor: '#8b5cf6',
+        pointRadius: 2,
+        pointHoverRadius: 5
       }]
     },
     ciudades: {
@@ -441,25 +420,135 @@ const chartData = computed(() => {
         data: stats.value.charts.distribucionCiudades.map(c => c.total),
         backgroundColor: ['#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899']
       }]
+    },
+    generos: {
+      labels: ['Masculino', 'Femenino'],
+      datasets: [{
+        data: [
+          stats.value.charts.demografia.generos.masculino,
+          stats.value.charts.demografia.generos.femenino
+        ],
+        backgroundColor: ['#3b82f6', '#ec4899']
+      }]
+    },
+    edades: {
+      labels: Object.keys(stats.value.charts.demografia.edades),
+      datasets: [{
+        label: 'Usuarios',
+        data: Object.values(stats.value.charts.demografia.edades),
+        backgroundColor: '#f59e0b',
+        borderRadius: 8
+      }]
     }
   }
 })
 
-const chartOptions = {
-  responsive: true,
-  maintainAspectRatio: false,
-  plugins: { legend: { display: false } },
-  scales: {
-    y: { grid: { display: false }, ticks: { font: { size: 10 } } },
-    x: { grid: { display: false }, ticks: { font: { size: 10 } } }
+const chartOptions = computed(() => {
+  const isDark = typeof document !== 'undefined' && document.documentElement.classList.contains('dark')
+  
+  return {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: { 
+      legend: {
+        display: true,
+        position: 'top',
+        labels: {
+          color: isDark ? '#F3F4F6' : '#111827',
+          font: { size: 11, weight: 'bold' }
+        }
+      },
+      datalabels: {
+        display: true,
+        align: 'top',
+        color: isDark ? '#F3F4F6' : '#1F2937',
+        font: { weight: 'bold', size: 10 },
+        offset: 2,
+        formatter: (value) => value > 0 ? value : ''
+      }
+    },
+    scales: {
+      y: { 
+        beginAtZero: true,
+        ticks: { 
+          color: isDark ? '#D1D5DB' : '#374151',
+          font: { size: 10 }
+        },
+        grid: { 
+          color: isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)'
+        }
+      },
+      x: { 
+        ticks: { 
+          color: isDark ? '#D1D5DB' : '#374151',
+          font: { size: 10 }
+        },
+        grid: { display: false }
+      }
+    }
   }
-}
+})
 
-const donutOptions = {
-  responsive: true,
-  maintainAspectRatio: false,
-  plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 10 } } } }
-}
+const horizontalBarOptions = computed(() => {
+  const isDark = typeof document !== 'undefined' && document.documentElement.classList.contains('dark')
+  
+  return {
+    indexAxis: 'y',
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: { 
+      legend: { display: false },
+      datalabels: {
+        display: true,
+        anchor: 'end',
+        align: 'right',
+        color: isDark ? '#F3F4F6' : '#1F2937',
+        font: { weight: 'bold', size: 10 }
+      }
+    },
+    scales: {
+      x: { 
+        beginAtZero: true,
+        ticks: { color: isDark ? '#D1D5DB' : '#374151', font: { size: 10 } },
+        grid: { color: isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)' }
+      },
+      y: { 
+        ticks: { color: isDark ? '#D1D5DB' : '#374151', font: { size: 10 } },
+        grid: { display: false }
+      }
+    }
+  }
+})
+
+const donutOptions = computed(() => {
+  const isDark = typeof document !== 'undefined' && document.documentElement.classList.contains('dark')
+  
+  return {
+    responsive: true,
+    maintainAspectRatio: false,
+    cutout: '50%',
+    plugins: {
+      legend: {
+        display: true,
+        position: 'right',
+        labels: {
+          color: isDark ? '#F3F4F6' : '#111827',
+          font: { size: 10, weight: 'bold' }
+        }
+      },
+      datalabels: {
+        display: true,
+        color: '#FFFFFF',
+        font: { weight: 'bold', size: 11 },
+        formatter: (value, context) => {
+          const total = context.dataset.data.reduce((a, b) => a + b, 0)
+          const percentage = Math.round((value / total) * 100)
+          return percentage > 8 ? `${value}\n(${percentage}%)` : percentage > 4 ? `${percentage}%` : ''
+        }
+      }
+    }
+  }
+})
 
 // Actions
 const fetchStats = async () => {
@@ -595,6 +684,12 @@ const navigateToItem = (item) => {
 }
 
 const formatCurrency = (val) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(val || 0)
+
+const truncateText = (text, limit = 50) => {
+  if (!text) return ''
+  return text.length > limit ? text.substring(0, limit) + '...' : text
+}
+
 const formatDate = (date) => {
   if (!date) return 'S/F'
   const d = new Date(date)
