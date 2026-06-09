@@ -9,58 +9,39 @@
     <!-- Content Container with max-w-2xl to match copy.vue -->
     <div class="max-w-2xl mx-auto bg-gray-50 dark:bg-gray-900 min-h-screen relative">
       <main class="pt-16 pb-24">
-        <!-- Welcome Section (Daily Missions) -->
+        <!-- Statistics Button Section -->
         <section class="px-2 pt-1 pb-4">
-          <div class="bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-lg border border-gray-100 dark:border-gray-700 relative overflow-hidden">
+          <NuxtLink 
+            to="/admin/EstadisticasAdmin"
+            class="w-full bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-lg border border-gray-100 dark:border-gray-700 relative overflow-hidden group active:scale-[0.98] transition-all duration-300 block"
+          >
             <!-- Background decoration -->
-            <div class="absolute -top-8 -right-8 w-24 h-24 bg-gradient-to-br from-emerald-400/20 to-teal-400/20 rounded-full blur-xl"></div>
-            <div class="absolute -bottom-6 -left-6 w-20 h-20 bg-gradient-to-br from-blue-400/20 to-indigo-400/20 rounded-full blur-lg"></div>
+            <div class="absolute -top-8 -right-8 w-24 h-24 bg-gradient-to-br from-emerald-400/20 to-teal-400/20 rounded-full blur-xl group-hover:scale-110 transition-transform duration-500"></div>
+            <div class="absolute -bottom-6 -left-6 w-20 h-20 bg-gradient-to-br from-blue-400/20 to-indigo-400/20 rounded-full blur-lg group-hover:scale-110 transition-transform duration-500"></div>
             
-            <div class="relative">
-              <div class="flex items-center justify-between mb-4">
-                <div class="flex items-center space-x-3">
-                  <div class="w-10 h-10 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-xl flex items-center justify-center">
-                    <span class="text-white text-lg">👋</span>
-                  </div>
-                  <div>
-                    <h2 class="text-base font-black text-gray-900 dark:text-white leading-tight">
-                      ¡Hola, {{ shortName }}!
-                    </h2>
-                    <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Misiones del día</p>
-                  </div>
+            <div class="relative flex items-center justify-between">
+              <div class="flex items-center space-x-3">
+                <div class="w-12 h-12 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-xl flex items-center justify-center shadow-lg shadow-emerald-500/20">
+                  <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                  </svg>
                 </div>
-                
-                <button 
-                  @click="handleClaimReward"
-                  :disabled="!isMissionsCompleted || rewardClaimed"
-                  class="px-4 py-2 rounded-xl font-black text-[11px] uppercase tracking-wider transition-all duration-300"
-                  :class="[
-                    isMissionsCompleted && !rewardClaimed
-                      ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/30 animate-pulse'
-                      : rewardClaimed 
-                        ? 'bg-gray-100 dark:bg-gray-700 text-gray-400 dark:text-gray-500 cursor-not-allowed'
-                        : 'bg-gray-100 dark:bg-gray-700 text-gray-400 dark:text-gray-500 cursor-not-allowed'
-                  ]"
-                >
-                  {{ rewardClaimed ? 'Reclamado' : 'Reclamar $ 10' }}
-                </button>
+                <div class="text-left">
+                  <h2 class="text-base font-black text-gray-900 dark:text-white leading-tight">
+                    Estadísticas Globales
+                  </h2>
+                  <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Métricas generales y financieras</p>
+                </div>
               </div>
               
-              <div class="space-y-2">
-                <div v-for="mission in dailyMissions" :key="mission.id" 
-                     class="flex items-center justify-between p-2 rounded-xl bg-gray-50 dark:bg-gray-900/50 border border-gray-100 dark:border-gray-700">
-                  <div class="flex items-center gap-2">
-                    <div class="w-2 h-2 rounded-full transition-colors duration-500" :class="mission.completed ? 'bg-emerald-500' : 'bg-gray-300 dark:bg-gray-600'"></div>
-                    <span class="text-[11px] font-bold text-gray-600 dark:text-gray-300">{{ mission.title }}</span>
-                  </div>
-                  <span class="text-[10px] font-black transition-colors duration-500" :class="mission.completed ? 'text-emerald-500' : 'text-gray-400'">
-                    {{ mission.current }}/{{ mission.goal }}
-                  </span>
-                </div>
+              <div class="flex items-center space-x-2">
+                <svg class="w-5 h-5 text-gray-300 dark:text-gray-600 group-hover:text-emerald-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                </svg>
               </div>
             </div>
-          </div>
-        </section> 
+          </NuxtLink>
+        </section>
 
 
         <!-- Card-Based Feed -->
@@ -233,9 +214,11 @@ import BottomNav from '~/components/footers/BottomNav.vue'
 import MediaCarousel from '~/components/ui/MediaCarousel.vue'
 import Toast from '~/components/ui/Toast.vue'
 import LoadingSpinner from '~/components/ui/LoadingSpinner.vue'
+import { useInteractionHistory } from '~/composables/useInteractionHistory'
 
 const { $api } = useNuxtApp()
 const auth = useAuthStore()
+const { markAsStale } = useInteractionHistory()
 const isLoading = ref(true)
 const shortName = computed(() => auth.user?.nombre?.split(' ')[0] || 'Usuario')
 
@@ -315,6 +298,7 @@ const handleClaimReward = () => {
   if (isMissionsCompleted.value && !rewardClaimed.value) {
     totalEarnings.value += 10.00
     rewardClaimed.value = true
+    markAsStale()
     showToast('¡Recompensa diaria reclamada! +$ 10.00 🎉', 'success')
   }
 }
@@ -466,6 +450,7 @@ const handleVideoComplete = async (post) => {
       post.videoCompleted = true
       const gainValue = rewardsConfig.value.valor_video * earningsMultiplier.value
       totalEarnings.value += gainValue
+      markAsStale()
       showToast(`🎉 ¡Ganaste $ ${gainValue.toFixed(2)}! Video completado.`, 'success')
       
       // Update daily mission (id: 2)
@@ -489,6 +474,7 @@ const handleLike = async (post) => {
   
   const res = await registerInteraction(post.id, 'like')
   if (res.success) {
+    markAsStale()
     if (res.action === 'liked') {
       totalEarnings.value += rewardsConfig.value.valor_like * earningsMultiplier.value
       // Update daily mission (id: 1)
@@ -528,7 +514,10 @@ const handleShare = async (post) => {
   lastShareAttempt.value = { id: post.id, time: Date.now() }
   
   // Registrar interaccion share
-  await registerInteraction(post.id, 'share')
+  const res = await registerInteraction(post.id, 'share')
+  if (res && res.success) {
+    markAsStale()
+  }
   
   // Abrir WhatsApp
   window.open(whatsappUrl, '_blank')
@@ -553,6 +542,7 @@ const submitPollAnswer = async (option) => {
     if (res.success) {
       post.poll.answered = true
       pollModal.value.show = false
+      markAsStale()
       
       if (option === post.poll.correctAnswer) {
         const reward = rewardsConfig.value.valor_encuesta * earningsMultiplier.value

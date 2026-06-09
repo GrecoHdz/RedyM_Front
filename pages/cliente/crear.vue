@@ -115,7 +115,83 @@
                   :style="{ left: showPoll ? '22px' : '3px' }"></div>
               </div>
             </div>
+
+            <!-- Targeting Toggle -->
+            <div @click="showTargeting = !showTargeting"
+              class="bg-[#0d121f]/50 border border-white/5 p-4 rounded-3xl cursor-pointer transition-all active:scale-[0.98] select-none flex items-center justify-between"
+              :class="showTargeting ? 'border-violet-500/30 bg-violet-500/5' : ''">
+              <div class="flex items-center gap-3">
+                <span class="text-[18px]">🎯</span>
+                <div>
+                  <p class="text-[10px] font-black text-white uppercase tracking-wider leading-none">Segmentación</p>
+                  <p class="text-[8px] font-bold uppercase mt-0.5" :class="showTargeting ? 'text-violet-400' : 'text-gray-500'">{{ showTargeting ? 'Configurada' : 'Todos los usuarios' }}</p>
+                </div>
+              </div>
+              <!-- Toggle pill -->
+              <div class="w-10 h-5 rounded-full relative flex-shrink-0 transition-colors duration-300"
+                :class="showTargeting ? 'bg-violet-500' : 'bg-gray-700'">
+                <div class="absolute top-[3px] w-3.5 h-3.5 bg-white rounded-full shadow transition-all duration-300"
+                  :style="{ left: showTargeting ? '22px' : '3px' }"></div>
+              </div>
+            </div>
           </div>
+
+          <!-- Targeting Form -->
+          <Transition name="fade">
+            <div v-if="showTargeting" class="bg-[#0d121f]/50 border border-white/5 rounded-3xl p-5 space-y-5 shadow-inner">
+              
+              <!-- Ciudad -->
+              <div class="space-y-2">
+                <label class="text-[9px] font-black text-gray-500 uppercase tracking-widest ml-1">Ciudad Específica (Opcional)</label>
+                <multiselect
+                  v-model="selectedCiudadObj"
+                  :options="ciudades"
+                  :searchable="false"
+                  label="nombre_ciudad"
+                  track-by="id_ciudad"
+                  class="multiselect-custom-dark"
+                  placeholder="Todas las ciudades"
+                  select-label=""
+                  deselect-label=""
+                  selected-label=""
+                  @update:modelValue="post.target_id_ciudad = $event?.id_ciudad || null"
+                />
+              </div>
+
+              <!-- Género -->
+              <div class="space-y-2">
+                <label class="text-[9px] font-black text-gray-500 uppercase tracking-widest ml-1">Género</label>
+                <div class="grid grid-cols-2 gap-2">
+                  <button 
+                    v-for="gen in generosOptions" :key="gen.value"
+                    @click="post.target_genero = gen.value"
+                    class="py-2.5 rounded-xl border text-[10px] font-black uppercase tracking-wider transition-all"
+                    :class="post.target_genero === gen.value ? 'bg-violet-500 border-violet-400 text-white' : 'bg-white/5 border-white/10 text-gray-500 hover:bg-white/10'"
+                  >
+                    {{ gen.label }}
+                  </button>
+                </div>
+              </div>
+
+              <!-- Rango de Edad -->
+              <div class="space-y-3">
+                <div class="flex items-center justify-between ml-1">
+                  <label class="text-[9px] font-black text-gray-500 uppercase tracking-widest">Rango de Edad</label>
+                  <span class="text-[10px] font-black text-violet-400">{{ post.target_edad_min }} - {{ post.target_edad_max }} años</span>
+                </div>
+                <div class="flex items-center gap-4 px-2">
+                  <div class="flex-1 space-y-1">
+                    <span class="text-[8px] text-gray-600 font-bold uppercase">Mín</span>
+                    <input v-model.number="post.target_edad_min" type="range" min="13" max="100" class="w-full accent-violet-500">
+                  </div>
+                  <div class="flex-1 space-y-1">
+                    <span class="text-[8px] text-gray-600 font-bold uppercase">Máx</span>
+                    <input v-model.number="post.target_edad_max" type="range" :min="post.target_edad_min" max="100" class="w-full accent-violet-500">
+                  </div>
+                </div>
+              </div>
+            </div>
+          </Transition>
 
           <!-- Poll Form -->
           <Transition name="fade">
@@ -125,13 +201,21 @@
                 <input v-model="post.poll.question" type="text" class="w-full px-4 py-2.5 bg-[#0d121f] border border-white/10 rounded-xl focus:border-blue-500 outline-none text-white text-sm transition-all" placeholder="Escribe tu pregunta aquí...">
               </div>
               <div class="space-y-2">
-                <label class="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">Opciones (Marca la correcta ✅)</label>
-                <div v-for="(opt, idx) in post.poll.options" :key="idx" class="flex items-center gap-2">
+                <div class="flex items-center justify-between ml-1">
+                  <label class="text-[8px] font-black text-gray-600 uppercase tracking-widest">Opciones (Marca la correcta ✅)</label>
+                  <button v-if="post.poll.options.length < 6" @click="addOption" class="text-[8px] font-black text-blue-500 uppercase tracking-widest hover:text-blue-400 transition-colors">
+                    + Añadir Opción
+                  </button>
+                </div>
+                <div v-for="(opt, idx) in post.poll.options" :key="idx" class="flex items-center gap-2 group">
                   <button @click="post.poll.correct_index = idx" class="w-8 h-8 rounded-lg flex items-center justify-center transition-all border shrink-0"
                     :class="post.poll.correct_index === idx ? 'bg-emerald-500 border-emerald-400 text-[#070b14]' : 'bg-white/5 border-white/10 text-gray-500'">
                     {{ post.poll.correct_index === idx ? '✓' : '' }}
                   </button>
                   <input v-model="post.poll.options[idx]" type="text" class="flex-1 px-4 py-2.5 bg-[#0d121f] border border-white/10 rounded-xl focus:border-emerald-500 outline-none text-white text-xs transition-all" :placeholder="'Opción ' + (idx + 1)">
+                  <button v-if="post.poll.options.length > 2" @click="removeOption(idx)" class="w-8 h-8 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 flex items-center justify-center hover:bg-red-500/20 active:scale-90 transition-all shrink-0 sm:opacity-0 sm:group-hover:opacity-100">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12"/></svg>
+                  </button>
                 </div>
               </div>
             </div>
@@ -198,81 +282,82 @@
             </div>
           </div>
 
-          <div v-else class="space-y-4">
+          <div v-else class="grid grid-cols-2 gap-3 sm:gap-4">
             <div v-for="pub in misPublicaciones" :key="pub.id_publicacion"
-              class="bg-white/5 border border-white/10 rounded-3xl overflow-hidden transition-all hover:border-white/20">
+              class="bg-white/5 border border-white/10 rounded-[1.5rem] sm:rounded-[2rem] overflow-hidden backdrop-blur-sm group hover:border-violet-500/30 transition-all flex flex-col">
               
               <!-- Header: status + actions -->
-              <div class="flex items-center justify-between px-5 pt-4 pb-2">
-                <span class="text-[8px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full" :class="getStatusClass(pub.estado)">
+              <div class="flex items-center justify-between px-3 sm:px-5 pt-3 sm:pt-4 pb-1.5 sm:pb-2">
+                <span class="text-[7px] sm:text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full" :class="getStatusClass(pub.estado)">
                   {{ getStatusLabel(pub.estado) }}
                 </span>
-                <div class="flex items-center gap-2">
+                <div class="flex items-center gap-1.5 sm:gap-2">
                   <!-- Pagar button for pendiente_pago or rechazada -->
                   <button v-if="pub.estado === 'pendiente_pago' || pub.estado === 'rechazada'"
                     @click="abrirModalPago(pub)"
-                    class="text-[9px] font-black uppercase tracking-widest px-3 py-1.5 bg-emerald-500 text-[#070b14] rounded-xl active:scale-95 transition-all">
-                    {{ pub.estado === 'rechazada' ? '🔄 Reintentar' : '💳 Pagar' }}
+                    class="text-[7px] sm:text-[9px] font-black uppercase tracking-widest px-2 sm:px-3 py-1 sm:py-1.5 bg-emerald-500 text-[#070b14] rounded-lg sm:rounded-xl active:scale-95 transition-all">
+                    {{ pub.estado === 'rechazada' ? '🔄' : '💳' }}
                   </button>
-                  <button @click="eliminarPublicacion(pub.id_publicacion)" class="w-7 h-7 bg-red-500/10 border border-red-500/20 text-red-400 rounded-xl flex items-center justify-center hover:bg-red-500/20 active:scale-90 transition-all">
-                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                  <button v-if="pub.estado === 'activa' || pub.estado === 'borrada'"
+                    @click="verEstadisticas(pub)"
+                    class="w-6 h-6 sm:w-8 sm:h-8 bg-violet-500/10 border border-violet-500/20 text-violet-400 rounded-lg sm:rounded-xl flex items-center justify-center hover:bg-violet-500/20 active:scale-90 transition-all">
+                    <svg class="w-3 sm:w-4 h-3 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+                  </button>
+                  <button @click="eliminarPublicacion(pub.id_publicacion)" class="w-6 h-6 sm:w-8 sm:h-8 bg-red-500/10 border border-red-500/20 text-red-400 rounded-lg sm:rounded-xl flex items-center justify-center hover:bg-red-500/20 active:scale-90 transition-all">
+                    <svg class="w-3 sm:w-4 h-3 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                   </button>
                 </div>
               </div>
 
-              <!-- Media strip -->
-              <div v-if="pub.media && pub.media.length > 0" class="flex gap-1.5 px-5 pb-3 overflow-x-auto no-scrollbar">
-                <div v-for="(item, idx) in pub.media" :key="idx" 
-                  @click="abrirVisor(item)"
-                  class="shrink-0 w-16 h-16 rounded-xl overflow-hidden bg-black/40 border border-white/10 cursor-pointer active:scale-95 transition-transform">
-                  <img v-if="item.type === 'image'" :src="item.url" class="w-full h-full object-cover">
-                  <div v-else class="w-full h-full flex items-center justify-center text-xl">🎥</div>
+              <!-- Media preview -->
+              <div v-if="pub.media && pub.media.length > 0" class="px-3 sm:px-5 pb-2 sm:pb-3">
+                <div class="flex gap-1.5 sm:gap-2 overflow-x-auto pb-1 no-scrollbar">
+                  <div v-for="(item, idx) in pub.media" :key="idx" 
+                       @click="abrirVisor(item)"
+                       class="shrink-0 w-10 h-10 sm:w-12 sm:h-12 rounded-lg overflow-hidden bg-black/40 border border-white/10 cursor-pointer active:scale-95 transition-transform">
+                    <img v-if="item.type === 'image'" :src="item.url" class="w-full h-full object-cover">
+                    <div v-else class="w-full h-full flex items-center justify-center text-[10px] sm:text-sm">🎥</div>
+                  </div>
                 </div>
               </div>
 
               <!-- Content preview -->
-              <div class="px-5 pb-3" v-if="pub.content">
-                <p class="text-sm text-gray-300 leading-relaxed line-clamp-2">{{ pub.content }}</p>
+              <div class="px-3 sm:px-5 pb-2 sm:pb-3" v-if="pub.content">
+                <p class="text-[9px] sm:text-[11px] text-gray-300 leading-relaxed line-clamp-2">{{ pub.content }}</p>
               </div>
 
-              <!-- Budget bar (only for active) -->
-              <div v-if="pub.estado === 'activa'" class="px-5 pb-4">
-                <div class="flex items-center justify-between mb-1.5">
-                  <span class="text-[9px] font-black text-gray-500 uppercase tracking-widest">Presupuesto restante</span>
-                  <span class="text-[10px] font-black" :class="getBudgetColor(pub)">
-                    $ {{ parseFloat(pub.presupuesto_restante || 0).toFixed(2) }} / $ {{ parseFloat(pub.presupuesto || 0).toFixed(2) }}
-                  </span>
+              <div class="mt-auto">
+                <!-- Budget bar (only for active) -->
+                <div v-if="pub.estado === 'activa'" class="px-3 sm:px-5 pb-3 sm:pb-4">
+                  <div class="flex items-center justify-between mb-1">
+                    <span class="text-[7px] sm:text-[8px] font-black text-gray-500 uppercase tracking-widest">Resto</span>
+                    <span class="text-[8px] sm:text-[9px] font-black" :class="getBudgetColor(pub)">
+                      $ {{ parseFloat(pub.presupuesto_restante || 0).toFixed(0) }}
+                    </span>
+                  </div>
+                  <div class="w-full h-1 sm:h-1.5 bg-white/10 rounded-full overflow-hidden">
+                    <div class="h-full rounded-full transition-all" :class="getBudgetBarClass(pub)" :style="{ width: getBudgetPercent(pub) + '%' }"></div>
+                  </div>
                 </div>
-                <div class="w-full h-2 bg-white/10 rounded-full overflow-hidden">
-                  <div class="h-full rounded-full transition-all" :class="getBudgetBarClass(pub)" :style="{ width: getBudgetPercent(pub) + '%' }"></div>
-                </div>
-              </div>
 
-              <!-- Amount info for non-active -->
-              <div v-else class="px-5 pb-3">
-                <div class="bg-[#0d121f] border border-white/5 rounded-2xl px-4 py-2 flex items-center justify-between">
-                  <span class="text-[9px] font-black text-gray-500 uppercase tracking-widest">Presupuesto</span>
-                  <span class="text-sm font-black text-white">$ {{ parseFloat(pub.presupuesto || 0).toFixed(2) }}</span>
+                <!-- Amount info for non-active -->
+                <div v-else class="px-3 sm:px-5 pb-3 sm:pb-4">
+                  <div class="bg-[#0d121f] border border-white/5 rounded-xl sm:rounded-2xl px-3 sm:px-4 py-1.5 sm:py-2 flex items-center justify-between">
+                    <span class="text-[7px] sm:text-[8px] font-black text-gray-500 uppercase tracking-widest">Presupuesto</span>
+                    <span class="text-[9px] sm:text-xs font-black text-white">$ {{ parseFloat(pub.presupuesto || 0).toFixed(0) }}</span>
+                  </div>
                 </div>
-              </div>
 
-              <!-- Stats row -->
-              <div class="flex items-center gap-0 border-t border-white/5 divide-x divide-white/5">
-                <div class="flex-1 py-3 text-center">
-                  <p class="text-[8px] font-black text-gray-600 uppercase tracking-widest">Vistas</p>
-                  <p class="text-sm font-black text-white">{{ pub.vistas || 0 }}</p>
-                </div>
-                <div class="flex-1 py-3 text-center">
-                  <p class="text-[8px] font-black text-gray-600 uppercase tracking-widest">Interacciones</p>
-                  <p class="text-sm font-black text-white">{{ pub.total_interacciones || 0 }}</p>
-                </div>
-                <div class="flex-1 py-3 text-center">
-                  <p class="text-[8px] font-black text-gray-600 uppercase tracking-widest">Likes</p>
-                  <p class="text-sm font-black text-white">{{ pub.likes || 0 }}</p>
-                </div>
-                <div class="flex-1 py-3 text-center">
-                  <p class="text-[8px] font-black text-gray-600 uppercase tracking-widest">Creada</p>
-                  <p class="text-[10px] font-black text-gray-400">{{ formatDate(pub.fecha) }}</p>
+                <!-- Stats row -->
+                <div class="flex items-center gap-0 border-t border-white/5 divide-x divide-white/5">
+                  <div class="flex-1 py-1.5 sm:py-2 text-center">
+                    <p class="text-[6px] sm:text-[7px] font-black text-gray-600 uppercase tracking-widest">Int.</p>
+                    <p class="text-[10px] sm:text-xs font-black text-white">{{ pub.total_interacciones || 0 }}</p>
+                  </div>
+                  <div class="flex-1 py-1.5 sm:py-2 text-center">
+                    <p class="text-[6px] sm:text-[7px] font-black text-gray-600 uppercase tracking-widest">Fecha</p>
+                    <p class="text-[8px] sm:text-[9px] font-black text-gray-400 truncate px-1">{{ formatDate(pub.fecha) }}</p>
+                  </div>
                 </div>
               </div>
             </div>
@@ -388,6 +473,152 @@
       </div>
     </Transition>
 
+    <!-- ====== MODAL DE ESTADÍSTICAS SEGMENTADAS ====== -->
+    <Transition name="fade">
+      <div v-if="showStatsModal" @click.self="showStatsModal = false"
+        class="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+        <div class="bg-[#0f172a] border border-white/10 rounded-[2.5rem] p-6 w-full max-w-md shadow-2xl animate-modal-in max-h-[90vh] overflow-y-auto custom-scrollbar">
+          
+          <!-- Header -->
+          <div class="flex items-center justify-between mb-6">
+            <div>
+              <h3 class="text-lg font-black text-white uppercase tracking-tight">Estadísticas de Audiencia</h3>
+              <p class="text-[9px] text-gray-500 font-bold uppercase tracking-widest mt-0.5">Segmentación detallada</p>
+            </div>
+            <button @click="showStatsModal = false" class="text-gray-500 hover:text-white transition-colors">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+          </div>
+
+          <div v-if="loadingStats" class="py-12 flex flex-col items-center justify-center gap-4">
+            <svg class="animate-spin h-8 w-8 text-violet-500" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/></svg>
+            <p class="text-[10px] text-gray-500 font-black uppercase tracking-[0.2em]">Cargando métricas...</p>
+          </div>
+
+          <div v-else-if="selectedPubStats" class="space-y-8">
+            
+            <!-- Resumen Rápido -->
+            <div class="grid grid-cols-2 gap-3">
+              <div class="bg-white/5 border border-white/5 p-4 rounded-2xl text-center">
+                <p class="text-[8px] font-black text-gray-500 uppercase tracking-widest mb-1">Vistas Totales</p>
+                <p class="text-2xl font-black text-white">{{ selectedPubStats.totalVistas }}</p>
+              </div>
+              <div class="bg-white/5 border border-white/5 p-4 rounded-2xl text-center">
+                <p class="text-[8px] font-black text-gray-500 uppercase tracking-widest mb-1">Interacciones</p>
+                <p class="text-2xl font-black text-emerald-500">{{ selectedPubStats.totalInteracciones }}</p>
+              </div>
+            </div>
+
+            <!-- Desglose de Interacciones -->
+            <div class="space-y-3">
+              <h4 class="text-[10px] font-black text-emerald-400 uppercase tracking-widest flex items-center gap-2">
+                <span class="w-4 h-px bg-emerald-500/30"></span> Tipos de Interacción
+              </h4>
+              <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                <div v-if="selectedPubStats.desgloseInteracciones.like > 0" class="bg-white/5 border border-white/5 p-3 rounded-xl flex flex-col items-center">
+                  <span class="text-[14px] mb-1">❤️</span>
+                  <p class="text-[7px] font-black text-gray-500 uppercase tracking-tighter">Likes</p>
+                  <p class="text-sm font-black text-white">{{ selectedPubStats.desgloseInteracciones.like }}</p>
+                </div>
+                <div v-if="selectedPubStats.desgloseInteracciones.share > 0" class="bg-white/5 border border-white/5 p-3 rounded-xl flex flex-col items-center">
+                  <span class="text-[14px] mb-1">↗️</span>
+                  <p class="text-[7px] font-black text-gray-500 uppercase tracking-tighter">Compartidos</p>
+                  <p class="text-sm font-black text-white">{{ selectedPubStats.desgloseInteracciones.share }}</p>
+                </div>
+                <div v-if="selectedPubStats.desgloseInteracciones.visita_whatsapp > 0" class="bg-white/5 border border-white/5 p-3 rounded-xl flex flex-col items-center">
+                  <span class="text-[14px] mb-1">📱</span>
+                  <p class="text-[7px] font-black text-gray-500 uppercase tracking-tighter">WhatsApp</p>
+                  <p class="text-sm font-black text-white">{{ selectedPubStats.desgloseInteracciones.visita_whatsapp }}</p>
+                </div>
+                <div v-if="selectedPubStats.desgloseInteracciones.visita_web > 0" class="bg-white/5 border border-white/5 p-3 rounded-xl flex flex-col items-center">
+                  <span class="text-[14px] mb-1">🌐</span>
+                  <p class="text-[7px] font-black text-gray-500 uppercase tracking-tighter">Web</p>
+                  <p class="text-sm font-black text-white">{{ selectedPubStats.desgloseInteracciones.visita_web }}</p>
+                </div>
+                <div v-if="selectedPubStats.desgloseInteracciones.poll > 0" class="bg-white/5 border border-white/5 p-3 rounded-xl flex flex-col items-center">
+                  <span class="text-[14px] mb-1">📊</span>
+                  <p class="text-[7px] font-black text-gray-500 uppercase tracking-tighter">Encuestas</p>
+                  <p class="text-sm font-black text-white">{{ selectedPubStats.desgloseInteracciones.poll }}</p>
+                </div>
+                <div v-if="selectedPubStats.desgloseInteracciones.video_view > 0" class="bg-white/5 border border-white/5 p-3 rounded-xl flex flex-col items-center">
+                  <span class="text-[14px] mb-1">🎥</span>
+                  <p class="text-[7px] font-black text-gray-500 uppercase tracking-tighter">Vistas Video</p>
+                  <p class="text-sm font-black text-white">{{ selectedPubStats.desgloseInteracciones.video_view }}</p>
+                </div>
+                <div v-if="selectedPubStats.desgloseInteracciones.click > 0" class="bg-white/5 border border-white/5 p-3 rounded-xl flex flex-col items-center">
+                  <span class="text-[14px] mb-1">🖱️</span>
+                  <p class="text-[7px] font-black text-gray-500 uppercase tracking-tighter">Clicks</p>
+                  <p class="text-sm font-black text-white">{{ selectedPubStats.desgloseInteracciones.click }}</p>
+                </div>
+                <div v-if="selectedPubStats.desgloseInteracciones.vista > 0" class="bg-white/5 border border-white/5 p-3 rounded-xl flex flex-col items-center">
+                  <span class="text-[14px] mb-1">👁️</span>
+                  <p class="text-[7px] font-black text-gray-500 uppercase tracking-tighter">Vistas</p>
+                  <p class="text-sm font-black text-white">{{ selectedPubStats.desgloseInteracciones.vista }}</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Por Ciudad -->
+            <div class="space-y-3">
+              <h4 class="text-[10px] font-black text-violet-400 uppercase tracking-widest flex items-center gap-2">
+                <span class="w-4 h-px bg-violet-500/30"></span> Alcance por Ciudad
+              </h4>
+              <div class="space-y-3">
+                <div v-for="c in selectedPubStats.vistasPorCiudad" :key="c.nombre" class="space-y-1.5">
+                  <div class="flex justify-between text-[10px] font-bold uppercase tracking-wider">
+                    <span class="text-gray-300">{{ c.nombre }}</span>
+                    <span class="text-white">{{ c.total }}</span>
+                  </div>
+                  <div class="h-1.5 bg-white/5 rounded-full overflow-hidden">
+                    <div class="h-full bg-violet-500 rounded-full transition-all duration-1000" 
+                      :style="{ width: ((selectedPubStats.totalVistas + selectedPubStats.totalInteracciones) > 0 ? (c.total / (selectedPubStats.totalVistas + selectedPubStats.totalInteracciones) * 100) : 0) + '%' }"></div>
+                  </div>
+                </div>
+                <p v-if="selectedPubStats.vistasPorCiudad.length === 0" class="text-center text-[9px] text-gray-600 font-bold uppercase py-4">Sin datos de ubicación</p>
+              </div>
+            </div>
+
+            <!-- Por Género -->
+            <div class="space-y-3">
+              <h4 class="text-[10px] font-black text-emerald-400 uppercase tracking-widest flex items-center gap-2">
+                <span class="w-4 h-px bg-emerald-500/30"></span> Alcance por Género
+              </h4>
+              <div class="flex items-center gap-4">
+                <div v-for="g in selectedPubStats.interaccionesPorGenero" :key="g.genero" 
+                  v-show="g.total > 0"
+                  class="flex-1 text-center space-y-1">
+                  <div class="text-[8px] font-black text-gray-500 uppercase tracking-tighter">{{ g.genero }}</div>
+                  <div class="text-lg font-black text-white">{{ g.total }}</div>
+                  <div class="text-[8px] font-bold text-gray-600">{{ ((selectedPubStats.totalInteracciones + selectedPubStats.totalVistas) > 0 ? Math.round(g.total / (selectedPubStats.totalInteracciones + selectedPubStats.totalVistas) * 100) : 0) }}%</div>
+                </div>
+                <p v-if="selectedPubStats.totalInteracciones === 0 && selectedPubStats.totalVistas === 0" class="w-full text-center text-[9px] text-gray-600 font-bold uppercase py-4">Sin datos de género</p>
+              </div>
+            </div>
+
+            <!-- Por Edad -->
+            <div class="space-y-3">
+              <h4 class="text-[10px] font-black text-blue-400 uppercase tracking-widest flex items-center gap-2">
+                <span class="w-4 h-px bg-blue-500/30"></span> Alcance por Edad
+              </h4>
+              <div class="grid grid-cols-2 gap-4">
+                <div v-for="e in selectedPubStats.vistasPorEdad" :key="e.rango" 
+                  v-show="e.total > 0"
+                  class="flex items-center gap-3">
+                  <span class="text-[9px] font-black text-gray-500 w-10 shrink-0">{{ e.rango }}</span>
+                  <div class="flex-1 h-1.5 bg-white/5 rounded-full overflow-hidden">
+                    <div class="h-full bg-blue-500 rounded-full" :style="{ width: ((selectedPubStats.totalVistas + selectedPubStats.totalInteracciones) > 0 ? (e.total / (selectedPubStats.totalVistas + selectedPubStats.totalInteracciones) * 100) : 0) + '%' }"></div>
+                  </div>
+                  <span class="text-[9px] font-black text-white shrink-0">{{ e.total }}</span>
+                </div>
+              </div>
+              <p v-if="(selectedPubStats.totalVistas + selectedPubStats.totalInteracciones) === 0" class="text-center text-[9px] text-gray-600 font-bold uppercase py-4">Sin datos de edad</p>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </Transition>
+
     <BottomNav />
 
     <!-- ====== MODAL DE ELIMINACIÓN ====== -->
@@ -460,14 +691,33 @@ const showDeleteModal = ref(false)
 const pubToDelete = ref(null)
 const isDeleting = ref(false)
 
+// Stats modal state
+const showStatsModal = ref(false)
+const selectedPubStats = ref(null)
+const loadingStats = ref(false)
+
 const post = ref({
   content: '',
   external_url: '',
   whatsapp_active: false,
   whatsapp_number: '',
   presupuesto: 200,
-  poll: { question: '', options: ['', '', ''], correct_index: 0 }
+  poll: { question: '', options: ['', ''], correct_index: 0 },
+  target_id_ciudad: null,
+  target_genero: 'todos',
+  target_edad_min: 18,
+  target_edad_max: 65
 })
+
+const showTargeting = ref(false)
+const ciudades = ref([])
+const selectedCiudadObj = ref(null)
+
+const generosOptions = [
+  { label: 'Todos', value: 'todos' },
+  { label: 'Masculino', value: 'masculino' },
+  { label: 'Femenino', value: 'femenino' }
+]
 
 const selectedFiles = ref([])
 const toast = ref({ show: false, message: '', type: 'info' })
@@ -561,6 +811,15 @@ const fetchBankAccounts = async () => {
     if (data) bankAccounts.value = data
   } catch (e) {
     console.error('Error loading bank accounts:', e)
+  }
+}
+
+const fetchCiudades = async () => {
+  try {
+    const data = await $api('/ciudad')
+    if (data) ciudades.value = data
+  } catch (e) {
+    console.error('Error loading cities:', e)
   }
 }
 
@@ -677,6 +936,31 @@ const handleFileSelect = (e) => {
 
 const removeFile = (index) => { selectedFiles.value.splice(index, 1) }
 
+// --- POLL HELPERS ---
+const addOption = () => {
+  if (post.value.poll.options.length < 6) {
+    post.value.poll.options.push('')
+  } else {
+    showMsg('Máximo 6 opciones permitidas', 'info')
+  }
+}
+
+const removeOption = (index) => {
+  if (post.value.poll.options.length <= 2) {
+    showMsg('Mínimo 2 opciones requeridas', 'info')
+    return
+  }
+  
+  post.value.poll.options.splice(index, 1)
+  
+  // Ajustar correct_index si es necesario
+  if (post.value.poll.correct_index === index) {
+    post.value.poll.correct_index = 0
+  } else if (post.value.poll.correct_index > index) {
+    post.value.poll.correct_index--
+  }
+}
+
 const compressImage = (file) => new Promise((resolve, reject) => {
   const reader = new FileReader()
   reader.readAsDataURL(file)
@@ -711,6 +995,15 @@ const submitPost = async () => {
     if (post.value.whatsapp_active && post.value.whatsapp_number) {
       fd.append('whatsapp_number', post.value.whatsapp_number)
     }
+    
+    // Segmentación
+    if (showTargeting.value) {
+      if (post.value.target_id_ciudad) fd.append('target_id_ciudad', post.value.target_id_ciudad)
+      fd.append('target_genero', post.value.target_genero)
+      fd.append('target_edad_min', post.value.target_edad_min)
+      fd.append('target_edad_max', post.value.target_edad_max)
+    }
+
     if (showPoll.value) fd.append('poll_data', JSON.stringify(post.value.poll))
     for (const item of selectedFiles.value) {
       let f = item.file
@@ -727,7 +1020,7 @@ const submitPost = async () => {
         whatsapp_active: false, 
         whatsapp_number: auth.user.telefono || '',
         presupuesto: 200, 
-        poll: { question: '', options: ['', '', ''], correct_index: 0 } 
+        poll: { question: '', options: ['', ''], correct_index: 0 } 
       }
       showPoll.value = false
       selectedFiles.value = []
@@ -772,11 +1065,29 @@ const confirmDelete = async () => {
   }
 }
 
+const verEstadisticas = async (pub) => {
+  selectedPub.value = pub
+  showStatsModal.value = true
+  loadingStats.value = true
+  try {
+    const res = await $api(`/publicaciones/${pub.id_publicacion}/stats`)
+    if (res?.success) {
+      selectedPubStats.value = res.data
+    }
+  } catch (e) {
+    console.error(e)
+    showMsg('Error al cargar estadísticas', 'error')
+  } finally {
+    loadingStats.value = false
+  }
+}
+
 onMounted(async () => {
   if (!auth.isAuthenticated) return navigateTo('/')
   await Promise.all([
     fetchMembershipStatus(),
     fetchBankAccounts(),
+    fetchCiudades(),
     (async () => {
       try {
         const c = await $api(`/credito/usuario/${auth.user.id_usuario}`)

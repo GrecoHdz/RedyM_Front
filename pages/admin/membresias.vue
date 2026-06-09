@@ -220,87 +220,162 @@
         </div>
       </template>
 
-      <!-- Section: PUBLICACIONES (Pagos pendientes) -->
+      <!-- Section: PUBLICACIONES (Gestión de Publicaciones) -->
       <template v-if="currentSection === 'publicaciones'">
+        <!-- Info Banner -->
         <div class="mb-6 bg-violet-500/10 border border-violet-500/20 rounded-3xl p-4 flex items-start gap-3">
           <span class="text-2xl">📢</span>
           <div>
-            <p class="text-[11px] font-black text-white uppercase tracking-widest mb-1">Verificación de Pagos</p>
+            <p class="text-[11px] font-black text-white uppercase tracking-widest mb-1">Gestión de Publicaciones</p>
             <p class="text-[10px] text-gray-400 leading-relaxed">Revisa los comprobantes de pago de cada publicación. Al aprobar, la publicación se activará y aparecerá en el feed.</p>
           </div>
         </div>
 
+        <!-- Tabs Filter -->
+        <div class="flex gap-2 mb-6 bg-white/5 p-1 rounded-2xl border border-white/10">
+          <button v-for="tab in publicacionTabs" :key="tab.id"
+            @click="activePublicacionTab = tab.id"
+            :class="`relative flex-1 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activePublicacionTab === tab.id ? 'bg-violet-500 text-white shadow-lg' : 'text-gray-500 hover:text-white'}`">
+            <div v-if="tab.id === 'pendiente' && pendingCounts.publicaciones > 0" 
+              class="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-red-500 text-white text-[9px] flex items-center justify-center border-2 border-[#070b14]">
+              {{ pendingCounts.publicaciones }}
+            </div>
+            {{ tab.label }}
+          </button>
+        </div>
+
         <div class="space-y-4">
-          <div v-if="publicacionesPendientes.length === 0" class="py-20 text-center opacity-40">
+          <div v-if="filteredPublicaciones.length === 0" class="py-20 text-center opacity-40">
             <i class="fas fa-check-circle text-4xl mb-4 text-emerald-500"></i>
-            <p class="text-xs font-bold uppercase tracking-widest">No hay publicaciones pendientes de verificación</p>
+            <p class="text-xs font-bold uppercase tracking-widest">No hay publicaciones en esta categoría</p>
           </div>
 
-          <TransitionGroup name="list" tag="div" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div v-for="pub in publicacionesPendientes" :key="pub.id_publicacion"
-              class="bg-white/5 border border-white/10 rounded-[2rem] p-5 backdrop-blur-sm group hover:border-violet-500/30 transition-all flex flex-col justify-between">
+          <TransitionGroup name="list" tag="div" 
+            class="grid grid-cols-2 gap-2 sm:gap-4">
+            <div v-for="pub in filteredPublicaciones" :key="pub.id_publicacion"
+              @click="openPubDetail(pub)"
+              class="bg-white/5 border border-white/10 rounded-[1.5rem] sm:rounded-[2rem] overflow-hidden backdrop-blur-sm group hover:border-violet-500/30 transition-all flex flex-col cursor-pointer">
               
-              <div>
-                <!-- User info -->
-                <div class="flex items-center justify-between mb-4">
-                  <div class="flex items-center gap-3">
-                    <div class="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 overflow-hidden cursor-zoom-in" @click="viewFullImage(pub.usuario?.imagen_url || `https://ui-avatars.com/api/?name=${pub.usuario?.nombre}&background=random&color=fff`)">
-                      <img :src="pub.usuario?.imagen_url || `https://ui-avatars.com/api/?name=${pub.usuario?.nombre}&background=random&color=fff`" class="w-full h-full object-cover">
-                    </div>
-                    <div>
-                      <h3 class="text-sm font-black text-white uppercase tracking-tight">{{ pub.usuario?.nombre }}</h3>
-                      <div class="flex items-center gap-2 mt-0.5">
-                        <span class="text-[9px] font-bold text-gray-500">{{ pub.usuario?.telefono }}</span>
-                        <div class="w-1 h-1 rounded-full bg-gray-700"></div>
-                        <span class="text-[9px] font-bold text-violet-400">{{ formatDate(pub.fecha) }}</span>
-                      </div>
+              <!-- Header: User info + Status -->
+              <div class="flex items-center justify-between px-3 sm:px-5 pt-3 sm:pt-4 pb-1.5 sm:pb-2">
+                <div class="flex items-center gap-2 sm:gap-3">
+                  <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl bg-white/5 border border-white/10 overflow-hidden cursor-zoom-in flex-shrink-0" @click="viewFullImage(pub.usuario?.imagen_url || `https://ui-avatars.com/api/?name=${pub.usuario?.nombre}&background=random&color=fff`)">
+                    <img :src="pub.usuario?.imagen_url || `https://ui-avatars.com/api/?name=${pub.usuario?.nombre}&background=random&color=fff`" class="w-full h-full object-cover">
+                  </div>
+                  <div class="min-w-0">
+                    <h3 class="text-[10px] sm:text-xs font-black text-white uppercase tracking-tight truncate">{{ pub.usuario?.nombre }}</h3>
+                    <div class="flex items-center gap-1 mt-0.5">
+                      <span class="text-[7px] sm:text-[8px] font-bold text-violet-400">{{ formatDate(pub.fecha) }}</span>
                     </div>
                   </div>
-                  <div class="px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-widest bg-amber-500/10 text-amber-400">En Revisión</div>
                 </div>
+                <span class="hidden sm:inline-block text-[7px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full" :class="getPublicacionStatusClass(pub.estado)">
+                  {{ getPublicacionStatusLabel(pub) }}
+                </span>
+              </div>
 
-                <!-- Content preview -->
-                <div v-if="pub.content" class="mb-4 p-3 bg-white/5 rounded-2xl border border-white/5">
-                  <p class="text-xs text-gray-300 leading-relaxed" style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">{{ pub.content }}</p>
-                </div>
+              <!-- Content preview -->
+              <div v-if="pub.content" class="px-3 sm:px-5 pb-2 sm:pb-3">
+                <p class="text-[9px] sm:text-[11px] text-gray-300 leading-relaxed line-clamp-2" style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">{{ pub.content }}</p>
+              </div>
 
-                <!-- Media preview -->
-                <div v-if="pub.media && pub.media.length > 0" class="flex gap-2 mb-4 overflow-x-auto pb-1">
+              <!-- Media preview -->
+              <div v-if="pub.media && pub.media.length > 0" class="px-3 sm:px-5 pb-2 sm:pb-3">
+                <div class="flex gap-1.5 sm:gap-2 overflow-x-auto pb-1 no-scrollbar">
                   <div v-for="(mediaItem, idx) in pub.media" :key="idx" 
-                       class="shrink-0 w-16 h-16 rounded-xl overflow-hidden bg-black/40 border border-white/10"
+                       class="shrink-0 w-10 h-10 sm:w-12 sm:h-12 rounded-lg overflow-hidden bg-black/40 border border-white/10 cursor-pointer active:scale-95 transition-transform"
                        :class="mediaItem.type === 'image' ? 'cursor-zoom-in' : ''"
                        @click="mediaItem.type === 'image' && viewFullImage(mediaItem.url)">
                     <img v-if="mediaItem.type === 'image'" :src="mediaItem.url" class="w-full h-full object-cover">
-                    <div v-else class="w-full h-full flex items-center justify-center text-xl">🎥</div>
-                  </div>
-                </div>
-
-                <!-- Payment details grid -->
-                <div class="grid grid-cols-2 gap-3 mb-4 pt-4 border-t border-white/5">
-                  <div class="space-y-1">
-                    <span class="text-[8px] font-black text-gray-500 uppercase tracking-widest block">Presupuesto</span>
-                    <p class="text-sm font-black text-white">$ {{ Number(pub.presupuesto || 0).toFixed(2) }}</p>
-                  </div>
-                  <div class="space-y-1">
-                    <span class="text-[8px] font-black text-gray-500 uppercase tracking-widest block">N° Comprobante</span>
-                    <p class="text-xs font-black text-violet-400 select-all">{{ pub.num_comprobante || '—' }}</p>
+                    <div v-else class="w-full h-full flex items-center justify-center text-[10px] sm:text-sm">🎥</div>
                   </div>
                 </div>
               </div>
 
-              <!-- Actions -->
-              <div class="grid grid-cols-2 gap-3 pt-4 border-t border-white/5">
-                <button @click="confirmAction(pub, 'rechazar', 'publicacion')"
-                  class="py-3 px-4 bg-red-500/10 hover:bg-red-500/20 text-red-500 rounded-2xl text-[10px] font-black uppercase tracking-widest border border-red-500/20 transition-all flex items-center justify-center gap-2">
-                  <i class="fas fa-times"></i> Rechazar
-                </button>
-                <button @click="confirmAction(pub, 'aprobar', 'publicacion')"
-                  class="py-3 px-4 bg-emerald-500 text-[#070b14] rounded-2xl text-[10px] font-black uppercase transition-all flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20">
-                  <i class="fas fa-check"></i> Activar
-                </button>
+              <div class="mt-auto">
+                <!-- Budget bar (only for active) -->
+                <div v-if="pub.estado === 'activa'" class="px-3 sm:px-5 pb-3 sm:pb-4">
+                  <div class="flex items-center justify-between mb-1">
+                    <span class="text-[7px] sm:text-[8px] font-black text-gray-500 uppercase tracking-widest">Resto</span>
+                    <span class="text-[8px] sm:text-[9px] font-black" :class="getBudgetColor(pub)">
+                      ${{ Number(pub.presupuesto_restante || 0).toFixed(0) }} / ${{ Number(pub.presupuesto || 0).toFixed(0) }}
+                    </span>
+                  </div>
+                  <div class="w-full h-1 sm:h-1.5 bg-white/10 rounded-full overflow-hidden">
+                    <div class="h-full rounded-full transition-all" :class="getBudgetBarClass(pub)" :style="{ width: getBudgetPercent(pub) + '%' }"></div>
+                  </div>
+                </div>
+
+                <!-- Stats row for active publications -->
+                <div v-if="pub.estado === 'activa'" class="flex items-center gap-0 border-t border-white/5 divide-x divide-white/5">
+                  <div class="flex-1 py-1.5 sm:py-2 text-center">
+                    <p class="text-[6px] sm:text-[7px] font-black text-gray-600 uppercase tracking-widest">Vistas</p>
+                    <p class="text-[10px] sm:text-xs font-black text-white">{{ pub.vistas || 0 }}</p>
+                  </div>
+                  <div class="flex-1 py-1.5 sm:py-2 text-center">
+                    <p class="text-[6px] sm:text-[7px] font-black text-gray-600 uppercase tracking-widest">Int.</p>
+                    <p class="text-[10px] sm:text-xs font-black text-white">{{ pub.total_interacciones || 0 }}</p>
+                  </div>
+                  <div class="flex-1 py-1.5 sm:py-2 text-center">
+                    <p class="text-[6px] sm:text-[7px] font-black text-gray-600 uppercase tracking-widest">Likes</p>
+                    <p class="text-[10px] sm:text-xs font-black text-white">{{ pub.likes || 0 }}</p>
+                  </div>
+                </div>
+
+                <!-- Payment details grid (for pending) -->
+                <div v-if="pub.estado === 'verificando_pago'" class="px-5 pb-4">
+                  <div class="grid grid-cols-2 gap-3 pt-3 border-t border-white/5">
+                    <div class="space-y-0.5">
+                      <span class="text-[7px] font-black text-gray-500 uppercase tracking-widest block">Monto</span>
+                      <p class="text-xs font-black text-white">$ {{ Number(pub.presupuesto || 0).toFixed(2) }}</p>
+                    </div>
+                    <div class="space-y-0.5">
+                      <span class="text-[7px] font-black text-gray-500 uppercase tracking-widest block">Comprobante</span>
+                      <p class="text-[9px] font-black text-violet-400 select-all truncate">{{ pub.num_comprobante || '—' }}</p>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Actions (only for pending) -->
+                <div v-if="pub.estado === 'verificando_pago'" class="px-5 pb-5">
+                  <div class="grid grid-cols-2 gap-2 pt-4 border-t border-white/5">
+                    <button @click="confirmAction(pub, 'rechazar', 'publicacion')"
+                      class="py-2 px-3 bg-red-500/10 hover:bg-red-500/20 text-red-500 rounded-xl text-[9px] font-black uppercase tracking-widest border border-red-500/20 transition-all flex items-center justify-center gap-1.5">
+                      <i class="fas fa-times text-[10px]"></i> Rechazar
+                    </button>
+                    <button @click="confirmAction(pub, 'aprobar', 'publicacion')"
+                      class="py-2 px-3 bg-emerald-500 text-[#070b14] rounded-xl text-[9px] font-black uppercase transition-all flex items-center justify-center gap-1.5 shadow-lg shadow-emerald-500/20">
+                      <i class="fas fa-check text-[10px]"></i> Activar
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
           </TransitionGroup>
+
+          <!-- Pagination Controls for Publications -->
+          <div v-if="pubTotalPages > 1" class="flex items-center justify-between bg-white/5 border border-white/5 rounded-2xl backdrop-blur-sm mt-8 p-1">
+            <button 
+              @click="pubPage > 1 && pubPage--" 
+              :disabled="pubPage === 1"
+              class="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-gray-400 hover:text-white transition-colors disabled:opacity-30 disabled:pointer-events-none active:scale-95"
+            >
+              <i class="fas fa-chevron-left text-xs"></i>
+            </button>
+            
+            <div class="flex flex-col items-center">
+              <span class="text-[8px] font-black text-gray-500 uppercase tracking-widest">Página</span>
+              <span class="text-[11px] font-black text-white mt-0.5">{{ pubPage }} <span class="text-gray-600">/</span> {{ pubTotalPages }}</span>
+            </div>
+
+            <button 
+              @click="pubPage < pubTotalPages && pubPage++" 
+              :disabled="pubPage === pubTotalPages"
+              class="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-gray-400 hover:text-white transition-colors disabled:opacity-30 disabled:pointer-events-none active:scale-95"
+            >
+              <i class="fas fa-chevron-right text-xs"></i>
+            </button>
+          </div>
         </div>
       </template>
 
@@ -402,7 +477,7 @@
                     </div>
                   </div>
                   <div class="text-right">
-                    <p class="text-xs sm:text-lg font-black text-white">${{ Number(retiro.monto).toFixed(2) }}</p>
+                    <span class="text-sm font-black text-white">$ {{ Number(retiro.monto).toFixed(2) }}</span>
                     <p :class="`text-[7px] sm:text-[8px] font-black uppercase tracking-widest ${getStatusClass(retiro.estado)}`">{{ retiro.estado }}</p>
                   </div>
                 </div>
@@ -428,6 +503,152 @@
         </div>
       </template>
     </main>
+
+    <!-- ====== MODAL DE ESTADÍSTICAS SEGMENTADAS ====== -->
+    <Transition name="fade">
+      <div v-if="showStatsModal" @click.self="showStatsModal = false"
+        class="fixed inset-0 z-[160] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+        <div class="bg-[#0f172a] border border-white/10 rounded-[2.5rem] p-6 w-full max-w-md shadow-2xl animate-modal-in max-h-[90vh] overflow-y-auto custom-scrollbar">
+          
+          <!-- Header -->
+          <div class="flex items-center justify-between mb-6">
+            <div>
+              <h3 class="text-lg font-black text-white uppercase tracking-tight">Estadísticas de Audiencia</h3>
+              <p class="text-[9px] text-gray-500 font-bold uppercase tracking-widest mt-0.5">Segmentación detallada</p>
+            </div>
+            <button @click="showStatsModal = false" class="text-gray-500 hover:text-white transition-colors">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+          </div>
+
+          <div v-if="loadingStats" class="py-12 flex flex-col items-center justify-center gap-4">
+            <svg class="animate-spin h-8 w-8 text-violet-500" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/></svg>
+            <p class="text-[10px] text-gray-500 font-black uppercase tracking-[0.2em]">Cargando métricas...</p>
+          </div>
+
+          <div v-else-if="selectedPubStats" class="space-y-8">
+            
+            <!-- Resumen Rápido -->
+            <div class="grid grid-cols-2 gap-3">
+              <div class="bg-white/5 border border-white/5 p-4 rounded-2xl text-center">
+                <p class="text-[8px] font-black text-gray-500 uppercase tracking-widest mb-1">Vistas Totales</p>
+                <p class="text-2xl font-black text-white">{{ selectedPubStats.totalVistas }}</p>
+              </div>
+              <div class="bg-white/5 border border-white/5 p-4 rounded-2xl text-center">
+                <p class="text-[8px] font-black text-gray-500 uppercase tracking-widest mb-1">Interacciones</p>
+                <p class="text-2xl font-black text-emerald-500">{{ selectedPubStats.totalInteracciones }}</p>
+              </div>
+            </div>
+
+            <!-- Desglose de Interacciones -->
+            <div class="space-y-3">
+              <h4 class="text-[10px] font-black text-emerald-400 uppercase tracking-widest flex items-center gap-2">
+                <span class="w-4 h-px bg-emerald-500/30"></span> Tipos de Interacción
+              </h4>
+              <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                <div v-if="selectedPubStats.desgloseInteracciones.like > 0" class="bg-white/5 border border-white/5 p-3 rounded-xl flex flex-col items-center">
+                  <span class="text-[14px] mb-1">❤️</span>
+                  <p class="text-[7px] font-black text-gray-500 uppercase tracking-tighter">Likes</p>
+                  <p class="text-sm font-black text-white">{{ selectedPubStats.desgloseInteracciones.like }}</p>
+                </div>
+                <div v-if="selectedPubStats.desgloseInteracciones.share > 0" class="bg-white/5 border border-white/5 p-3 rounded-xl flex flex-col items-center">
+                  <span class="text-[14px] mb-1">↗️</span>
+                  <p class="text-[7px] font-black text-gray-500 uppercase tracking-tighter">Compartidos</p>
+                  <p class="text-sm font-black text-white">{{ selectedPubStats.desgloseInteracciones.share }}</p>
+                </div>
+                <div v-if="selectedPubStats.desgloseInteracciones.visita_whatsapp > 0" class="bg-white/5 border border-white/5 p-3 rounded-xl flex flex-col items-center">
+                  <span class="text-[14px] mb-1">📱</span>
+                  <p class="text-[7px] font-black text-gray-500 uppercase tracking-tighter">WhatsApp</p>
+                  <p class="text-sm font-black text-white">{{ selectedPubStats.desgloseInteracciones.visita_whatsapp }}</p>
+                </div>
+                <div v-if="selectedPubStats.desgloseInteracciones.visita_web > 0" class="bg-white/5 border border-white/5 p-3 rounded-xl flex flex-col items-center">
+                  <span class="text-[14px] mb-1">🌐</span>
+                  <p class="text-[7px] font-black text-gray-500 uppercase tracking-tighter">Web</p>
+                  <p class="text-sm font-black text-white">{{ selectedPubStats.desgloseInteracciones.visita_web }}</p>
+                </div>
+                <div v-if="selectedPubStats.desgloseInteracciones.poll > 0" class="bg-white/5 border border-white/5 p-3 rounded-xl flex flex-col items-center">
+                  <span class="text-[14px] mb-1">📊</span>
+                  <p class="text-[7px] font-black text-gray-500 uppercase tracking-tighter">Encuestas</p>
+                  <p class="text-sm font-black text-white">{{ selectedPubStats.desgloseInteracciones.poll }}</p>
+                </div>
+                <div v-if="selectedPubStats.desgloseInteracciones.video_view > 0" class="bg-white/5 border border-white/5 p-3 rounded-xl flex flex-col items-center">
+                  <span class="text-[14px] mb-1">🎥</span>
+                  <p class="text-[7px] font-black text-gray-500 uppercase tracking-tighter">Vistas Video</p>
+                  <p class="text-sm font-black text-white">{{ selectedPubStats.desgloseInteracciones.video_view }}</p>
+                </div>
+                <div v-if="selectedPubStats.desgloseInteracciones.click > 0" class="bg-white/5 border border-white/5 p-3 rounded-xl flex flex-col items-center">
+                  <span class="text-[14px] mb-1">🖱️</span>
+                  <p class="text-[7px] font-black text-gray-500 uppercase tracking-tighter">Clicks</p>
+                  <p class="text-sm font-black text-white">{{ selectedPubStats.desgloseInteracciones.click }}</p>
+                </div>
+                <div v-if="selectedPubStats.desgloseInteracciones.vista > 0" class="bg-white/5 border border-white/5 p-3 rounded-xl flex flex-col items-center">
+                  <span class="text-[14px] mb-1">👁️</span>
+                  <p class="text-[7px] font-black text-gray-500 uppercase tracking-tighter">Vistas</p>
+                  <p class="text-sm font-black text-white">{{ selectedPubStats.desgloseInteracciones.vista }}</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Por Ciudad -->
+            <div class="space-y-3">
+              <h4 class="text-[10px] font-black text-violet-400 uppercase tracking-widest flex items-center gap-2">
+                <span class="w-4 h-px bg-violet-500/30"></span> Alcance por Ciudad
+              </h4>
+              <div class="space-y-3">
+                <div v-for="c in selectedPubStats.vistasPorCiudad" :key="c.nombre" class="space-y-1.5">
+                  <div class="flex justify-between text-[10px] font-bold uppercase tracking-wider">
+                    <span class="text-gray-300">{{ c.nombre }}</span>
+                    <span class="text-white">{{ c.total }}</span>
+                  </div>
+                  <div class="h-1.5 bg-white/5 rounded-full overflow-hidden">
+                    <div class="h-full bg-violet-500 rounded-full transition-all duration-1000" 
+                      :style="{ width: ((selectedPubStats.totalVistas + selectedPubStats.totalInteracciones) > 0 ? (c.total / (selectedPubStats.totalVistas + selectedPubStats.totalInteracciones) * 100) : 0) + '%' }"></div>
+                  </div>
+                </div>
+                <p v-if="selectedPubStats.vistasPorCiudad.length === 0" class="text-center text-[9px] text-gray-600 font-bold uppercase py-4">Sin datos de ubicación</p>
+              </div>
+            </div>
+
+            <!-- Por Género -->
+            <div class="space-y-3">
+              <h4 class="text-[10px] font-black text-emerald-400 uppercase tracking-widest flex items-center gap-2">
+                <span class="w-4 h-px bg-emerald-500/30"></span> Alcance por Género
+              </h4>
+              <div class="flex items-center gap-4">
+                <div v-for="g in selectedPubStats.interaccionesPorGenero" :key="g.genero" 
+                  v-show="g.total > 0"
+                  class="flex-1 text-center space-y-1">
+                  <div class="text-[8px] font-black text-gray-500 uppercase tracking-tighter">{{ g.genero }}</div>
+                  <div class="text-lg font-black text-white">{{ g.total }}</div>
+                  <div class="text-[8px] font-bold text-gray-600">{{ ((selectedPubStats.totalInteracciones + selectedPubStats.totalVistas) > 0 ? Math.round(g.total / (selectedPubStats.totalInteracciones + selectedPubStats.totalVistas) * 100) : 0) }}%</div>
+                </div>
+                <p v-if="selectedPubStats.totalInteracciones === 0 && selectedPubStats.totalVistas === 0" class="w-full text-center text-[9px] text-gray-600 font-bold uppercase py-4">Sin datos de género</p>
+              </div>
+            </div>
+
+            <!-- Por Edad -->
+            <div class="space-y-3">
+              <h4 class="text-[10px] font-black text-blue-400 uppercase tracking-widest flex items-center gap-2">
+                <span class="w-4 h-px bg-blue-500/30"></span> Alcance por Edad
+              </h4>
+              <div class="grid grid-cols-2 gap-4">
+                <div v-for="e in selectedPubStats.vistasPorEdad" :key="e.rango" 
+                  v-show="e.total > 0"
+                  class="flex items-center gap-3">
+                  <span class="text-[9px] font-black text-gray-500 w-10 shrink-0">{{ e.rango }}</span>
+                  <div class="flex-1 h-1.5 bg-white/5 rounded-full overflow-hidden">
+                    <div class="h-full bg-blue-500 rounded-full" :style="{ width: ((selectedPubStats.totalVistas + selectedPubStats.totalInteracciones) > 0 ? (e.total / (selectedPubStats.totalVistas + selectedPubStats.totalInteracciones) * 100) : 0) + '%' }"></div>
+                  </div>
+                  <span class="text-[9px] font-black text-white shrink-0">{{ e.total }}</span>
+                </div>
+              </div>
+              <p v-if="(selectedPubStats.totalVistas + selectedPubStats.totalInteracciones) === 0" class="text-center text-[9px] text-gray-600 font-bold uppercase py-4">Sin datos de edad</p>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </Transition>
 
     <!-- Confirmation Modal -->
     <Transition name="fade">
@@ -459,6 +680,111 @@
         <button class="absolute top-6 right-6 w-12 h-12 rounded-full bg-white/10 text-white flex items-center justify-center text-2xl">
           <i class="fas fa-times"></i>
         </button>
+      </div>
+    </Transition>
+
+    <!-- Publicación Detail Modal -->
+    <Transition name="fade">
+      <div v-if="showPubDetailModal" @click.self="showPubDetailModal = false" class="fixed inset-0 z-[150] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+        <div class="bg-[#0f172a] border border-white/10 rounded-[2rem] w-full max-w-lg shadow-2xl animate-modal-in overflow-hidden flex flex-col max-h-[90vh]">
+          
+          <!-- Modal Header -->
+          <div class="px-6 py-4 border-b border-white/5 flex items-center justify-between sticky top-0 bg-[#0f172a] z-10">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-xl bg-white/5 border border-white/10 overflow-hidden">
+                <img :src="selectedPubDetail.usuario?.imagen_url || `https://ui-avatars.com/api/?name=${selectedPubDetail.usuario?.nombre}&background=random&color=fff`" class="w-full h-full object-cover">
+              </div>
+              <div>
+                <h3 class="text-sm font-black text-white uppercase tracking-tight">{{ selectedPubDetail.usuario?.nombre }}</h3>
+                <span class="text-[9px] font-bold text-violet-400 uppercase tracking-widest">{{ formatDate(selectedPubDetail.fecha) }}</span>
+              </div>
+            </div>
+            <button @click="showPubDetailModal = false" class="w-8 h-8 rounded-full bg-white/5 text-gray-400 flex items-center justify-center hover:text-white transition-colors">
+              <i class="fas fa-times"></i>
+            </button>
+          </div>
+
+          <!-- Modal Body -->
+          <div class="p-6 overflow-y-auto custom-scrollbar space-y-6">
+            <!-- Status Badge -->
+            <div class="flex justify-center">
+              <span class="text-[10px] font-black uppercase tracking-widest px-4 py-1.5 rounded-full" :class="getPublicacionStatusClass(selectedPubDetail.estado)">
+                {{ getPublicacionStatusLabel(selectedPubDetail) }}
+              </span>
+            </div>
+
+            <!-- Content -->
+            <div class="bg-white/5 border border-white/5 rounded-2xl p-4">
+              <p class="text-sm text-gray-200 leading-relaxed whitespace-pre-wrap">{{ selectedPubDetail.content }}</p>
+            </div>
+
+            <!-- Media Section -->
+            <div v-if="selectedPubDetail.media && selectedPubDetail.media.length > 0" class="space-y-3">
+              <p class="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">Contenido Multimedia</p>
+              <div class="grid grid-cols-2 gap-3">
+                <div v-for="(mediaItem, idx) in selectedPubDetail.media" :key="idx" 
+                     class="aspect-square rounded-2xl overflow-hidden bg-black/40 border border-white/10 cursor-pointer group"
+                     @click="mediaItem.type === 'image' && viewFullImage(mediaItem.url)">
+                  <img v-if="mediaItem.type === 'image'" :src="mediaItem.url" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
+                  <div v-else class="w-full h-full flex items-center justify-center text-3xl">🎥</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Stats & Budget -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <!-- Budget Info -->
+              <div class="bg-white/5 border border-white/5 rounded-2xl p-4 space-y-3">
+                <p class="text-[10px] font-black text-gray-500 uppercase tracking-widest">Presupuesto</p>
+                <div class="flex items-center justify-between">
+                  <span class="text-xs text-gray-400">Total:</span>
+                  <span class="text-sm font-black text-white">$ {{ Number(selectedPubDetail.presupuesto || 0).toFixed(2) }}</span>
+                </div>
+                <div class="flex items-center justify-between">
+                  <span class="text-xs text-gray-400">Restante:</span>
+                  <span class="text-sm font-black" :class="getBudgetColor(selectedPubDetail)">$ {{ Number(selectedPubDetail.presupuesto_restante || 0).toFixed(2) }}</span>
+                </div>
+                <div class="w-full h-2 bg-white/10 rounded-full overflow-hidden mt-2">
+                  <div class="h-full rounded-full transition-all" :class="getBudgetBarClass(selectedPubDetail)" :style="{ width: getBudgetPercent(selectedPubDetail) + '%' }"></div>
+                </div>
+              </div>
+
+              <!-- Metrics -->
+              <div v-if="selectedPubDetail.estado === 'activa'" class="bg-white/5 border border-white/5 rounded-2xl p-4 grid grid-cols-2 gap-4">
+                <div class="text-center p-2 col-span-2 pt-3">
+                  <p class="text-[8px] font-black text-gray-600 uppercase tracking-widest">Interacciones Totales</p>
+                  <p class="text-lg font-black text-violet-400">{{ selectedPubDetail.total_interacciones || 0 }}</p>
+                </div>
+                <button @click="verEstadisticas(selectedPubDetail)" class="col-span-2 mt-2 py-3 bg-violet-500/10 border border-violet-500/20 text-violet-400 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-violet-500/20 transition-all">
+                  <i class="fas fa-chart-pie mr-2"></i> Ver Segmentación Detallada
+                </button>
+              </div>
+
+              <!-- Payment Info (for pending) -->
+              <div v-if="selectedPubDetail.estado === 'verificando_pago'" class="bg-violet-500/5 border border-violet-500/10 rounded-2xl p-4 col-span-1 sm:col-span-2">
+                <p class="text-[10px] font-black text-violet-400 uppercase tracking-widest mb-3">Información de Pago</p>
+                <div class="flex justify-between items-center py-2 border-b border-white/5">
+                  <span class="text-xs text-gray-400">N° Comprobante:</span>
+                  <span class="text-xs font-black text-white select-all">{{ selectedPubDetail.num_comprobante || '—' }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Modal Footer (Actions) -->
+          <div v-if="selectedPubDetail.estado === 'verificando_pago'" class="p-6 border-t border-white/5 bg-white/5 sticky bottom-0 z-10">
+            <div class="grid grid-cols-2 gap-4">
+              <button @click="showPubDetailModal = false; confirmAction(selectedPubDetail, 'rechazar', 'publicacion')"
+                class="py-4 bg-red-500/10 hover:bg-red-500/20 text-red-500 rounded-2xl text-xs font-black uppercase tracking-widest border border-red-500/20 transition-all">
+                Rechazar
+              </button>
+              <button @click="showPubDetailModal = false; confirmAction(selectedPubDetail, 'aprobar', 'publicacion')"
+                class="py-4 bg-emerald-500 text-[#070b14] rounded-2xl text-xs font-black uppercase tracking-widest transition-all shadow-lg shadow-emerald-500/20">
+                Aprobar / Activar
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
     </Transition>
 
@@ -524,6 +850,51 @@ const withdrawTabs = [
   { id: 'rechazado', label: 'Rechazados' }
 ]
 
+// Publicaciones tabs
+const activePublicacionTab = ref('pendiente')
+const publicacionTabs = [
+  { id: 'pendiente', label: 'Pendientes' },
+  { id: 'historial', label: 'Historial' }
+]
+
+// Pagination for publications
+const pubPage = ref(1)
+const pubLimit = ref(6)
+const pubTotal = ref(0)
+const pubPendingCount = ref(0)
+const pubTotalPages = computed(() => Math.ceil(pubTotal.value / pubLimit.value) || 1)
+
+// Modal de detalle de publicación
+const selectedPubDetail = ref(null)
+const showPubDetailModal = ref(false)
+
+// Stats modal state
+const showStatsModal = ref(false)
+const selectedPubStats = ref(null)
+const loadingStats = ref(false)
+
+const openPubDetail = (pub) => {
+  selectedPubDetail.value = pub
+  showPubDetailModal.value = true
+}
+
+const verEstadisticas = async (pub) => {
+  selectedPubStats.value = null
+  showStatsModal.value = true
+  loadingStats.value = true
+  try {
+    const res = await $api(`/publicaciones/${pub.id_publicacion}/stats`)
+    if (res?.success) {
+      selectedPubStats.value = res.data
+    }
+  } catch (e) {
+    console.error(e)
+    showMsg('Error al cargar estadísticas', 'error')
+  } finally {
+    loadingStats.value = false
+  }
+}
+
 // Modal & Toast
 const toast = ref({ show: false, message: '', type: 'info' })
 const modal = ref({ show: false, title: '', type: '', item: null, category: '' })
@@ -531,19 +902,22 @@ const fullImageUrl = ref(null)
 
 // --- COMPUTED ---
 const sectionTitle = computed(() => {
-  const map = { membresias: 'Gestión de Membresías', solicitudes_nivel: 'Solicitudes de Nivel de Red', publicaciones: 'Pagos de Publicaciones', identidad: 'Revisión de Identidad', retiros: 'Solicitudes de Retiro' }
+  const map = { membresias: 'Gestión de Membresías', solicitudes_nivel: 'Solicitudes de Nivel de Red', publicaciones: 'Gestión de Publicaciones', identidad: 'Revisión de Identidad', retiros: 'Solicitudes de Retiro' }
   return map[currentSection.value]
 })
 
 const modalPrompt = computed(() => {
   if (!modal.value.item) return ''
-  const name = modal.value.category === 'identidad' ? modal.value.item.nombre : modal.value.item.usuario.nombre
+  const name = modal.value.category === 'identidad' ? modal.value.item.nombre : (modal.value.item.usuario?.nombre || 'Usuario')
   return `¿Seguro que deseas marcar esta solicitud de ${name} como ${modal.value.type}?`
 })
 
 const filteredMembresias = computed(() => membresias.value.filter(m => m.estado === activeMembershipTab.value))
 const filteredSolicitudesNivel = computed(() => solicitudesNivel.value.filter(s => s.estado === activeLevelTab.value))
 const filteredRetiros = computed(() => retiros.value.filter(r => r.estado === activeWithdrawTab.value))
+
+const filteredPublicaciones = computed(() => publicacionesPendientes.value)
+
 const filteredIdentidades = computed(() => {
   if (activeIdentityTab.value === 'pendiente') {
     return identidades.value.filter(u => u.identidad_url && !u.verificado)
@@ -554,7 +928,7 @@ const filteredIdentidades = computed(() => {
 const pendingCounts = computed(() => ({
   membresias: membresias.value.filter(m => m.estado === 'pendiente').length,
   solicitudes_nivel: solicitudesNivel.value.filter(s => s.estado === 'pendiente').length,
-  publicaciones: publicacionesPendientes.value.length,
+  publicaciones: pubPendingCount.value,
   identidad: identidades.value.filter(u => u.identidad_url && !u.verificado).length,
   retiros: retiros.value.filter(r => r.estado === 'pendiente').length
 }))
@@ -562,6 +936,15 @@ const pendingCounts = computed(() => ({
 // --- WATCHERS ---
 watch(currentSection, () => {
   fetchData()
+})
+
+watch(activePublicacionTab, () => {
+  pubPage.value = 1
+  fetchPublicacionesPendientes()
+})
+
+watch(pubPage, () => {
+  fetchPublicacionesPendientes()
 })
 
 // --- FUNCIONES ---
@@ -578,15 +961,42 @@ const fetchData = async () => {
     else if (currentSection.value === 'identidad') await fetchIdentidades()
     else if (currentSection.value === 'retiros') await fetchRetiros()
   } catch (e) {
-    console.error(e)
+    console.error('Error fetching data:', e)
   } finally {
     isLoading.value = false
   }
 }
 
+onMounted(async () => {
+  const route = useRoute()
+  if (route.query.section) {
+    currentSection.value = route.query.section
+  }
+  if (route.query.tab && currentSection.value === 'publicaciones') {
+    activePublicacionTab.value = route.query.tab
+  }
+  
+  isLoading.value = true
+  try {
+    // Cargar todo al inicio para mostrar los contadores de pendientes
+    await Promise.all([
+      fetchMembresias(),
+      fetchSolicitudesNivel(),
+      fetchPublicacionesPendientes(),
+      fetchPubPendingCount(),
+      fetchIdentidades(),
+      fetchRetiros()
+    ])
+  } catch (error) {
+    console.error("Error al cargar datos iniciales:", error)
+  } finally {
+    isLoading.value = false
+  }
+})
+
 const fetchMembresias = async () => {
   const res = await $api('/membresia')
-  if (res.success) {
+  if (res && res.success) {
     membresias.value = res.data
     estadisticas.value = res.estadisticas
   }
@@ -600,8 +1010,39 @@ const fetchSolicitudesNivel = async () => {
 }
 
 const fetchPublicacionesPendientes = async () => {
-  const res = await $api('/publicaciones/admin/pendientes')
-  if (res.success) publicacionesPendientes.value = res.data
+  const params = {
+    limit: pubLimit.value,
+    offset: (pubPage.value - 1) * pubLimit.value
+  }
+  
+  if (activePublicacionTab.value === 'pendiente') {
+    params.estado = 'verificando_pago'
+  }
+  
+  const res = await $api('/publicaciones/admin/pendientes', { params })
+  
+  if (res.success) {
+    publicacionesPendientes.value = res.data
+    pubTotal.value = res.total || 0
+    if (activePublicacionTab.value === 'pendiente') {
+      pubPendingCount.value = res.total || 0
+    } else {
+      fetchPubPendingCount()
+    }
+  }
+}
+
+const fetchPubPendingCount = async () => {
+  try {
+    const res = await $api('/publicaciones/admin/pendientes', {
+      params: { estado: 'verificando_pago', limit: 1, offset: 0 }
+    })
+    if (res.success) {
+      pubPendingCount.value = res.total || 0
+    }
+  } catch (e) {
+    console.error("Error fetching pub pending count", e)
+  }
 }
 
 const fetchIdentidades = async () => {
@@ -654,6 +1095,10 @@ const processAction = async () => {
     if (res.success) {
       showMsg('¡Acción completada!', 'success')
       await fetchData()
+      // Refresh publication counts if we processed a publication
+      if (category === 'publicacion') {
+        fetchPubPendingCount()
+      }
     }
   } catch (error) {
     showMsg(error.response?._data?.message || 'Error al procesar', 'error')
@@ -683,23 +1128,52 @@ const getStatusClass = (status) => {
   return map[status] || 'text-gray-500 bg-gray-500/10'
 }
 
-onMounted(async () => {
-  isLoading.value = true
-  try {
-    // Cargar todo al inicio para mostrar los contadores de pendientes
-    await Promise.all([
-      fetchMembresias(),
-      fetchSolicitudesNivel(),
-      fetchPublicacionesPendientes(),
-      fetchIdentidades(),
-      fetchRetiros()
-    ])
-  } catch (error) {
-    console.error("Error al cargar datos iniciales:", error)
-  } finally {
-    isLoading.value = false
+// Funciones helper para publicaciones
+const getPublicacionStatusLabel = (pub) => {
+  const estado = pub.estado
+  const map = {
+    pendiente_pago: '💳 Pendiente de Pago',
+    verificando_pago: '⏳ Verificando Pago',
+    activa: '🟢 Activa',
+    borrada: pub.fecha_finalizacion ? `⚫ Finalizada (${formatDate(pub.fecha_finalizacion)})` : '⚫ Finalizada',
+    rechazada: '🔴 Rechazada',
+    reportada: '🚩 Reportada'
   }
-})
+  return map[estado] || estado
+}
+
+const getPublicacionStatusClass = (estado) => {
+  const map = {
+    pendiente_pago: 'bg-amber-500/20 text-amber-400',
+    verificando_pago: 'bg-blue-500/20 text-blue-400',
+    activa: 'bg-emerald-500/20 text-emerald-400',
+    borrada: 'bg-gray-500/20 text-gray-400',
+    rechazada: 'bg-red-500/20 text-red-400',
+    reportada: 'bg-orange-500/20 text-orange-400'
+  }
+  return map[estado] || 'bg-gray-500/20 text-gray-400'
+}
+
+const getBudgetPercent = (pub) => {
+  const total = parseFloat(pub.presupuesto || 0)
+  const remaining = parseFloat(pub.presupuesto_restante || 0)
+  if (total <= 0) return 0
+  return Math.max(0, Math.min(100, (remaining / total) * 100))
+}
+
+const getBudgetColor = (pub) => {
+  const pct = getBudgetPercent(pub)
+  if (pct > 60) return 'text-emerald-400'
+  if (pct > 25) return 'text-amber-400'
+  return 'text-red-400'
+}
+
+const getBudgetBarClass = (pub) => {
+  const pct = getBudgetPercent(pub)
+  if (pct > 60) return 'bg-gradient-to-r from-emerald-500 to-teal-500'
+  if (pct > 25) return 'bg-gradient-to-r from-amber-400 to-orange-500'
+  return 'bg-gradient-to-r from-red-500 to-red-600'
+}
 </script>
 
 <style scoped>
@@ -713,6 +1187,28 @@ onMounted(async () => {
 .animate-modal-in { animation: modal-in 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
 .fade-enter-active, .fade-leave-active { transition: opacity 0.2s; }
 .fade-enter-from, .fade-leave-to { opacity: 0; }
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
 </style>
 
 

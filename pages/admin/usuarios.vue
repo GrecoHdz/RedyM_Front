@@ -1118,7 +1118,21 @@ const updateStatsFromServer = async () => {
 // Reemplazo de fetchAll original por la carga paginada inicial
 const fetchAll = async () => {
   clearCache()
-  await fetchPaginatedData(true)
+  await Promise.all([
+    fetchPaginatedData(true),
+    fetchProximoVencimiento()
+  ])
+}
+
+const fetchProximoVencimiento = async () => {
+  try {
+    const res = await $api('/red/proximo-vencimiento')
+    if (res.success && res.proximaFechaVencimiento) {
+      proximaFechaVencimiento.value = res.proximaFechaVencimiento
+    }
+  } catch (e) {
+    console.error("Error al cargar próximo vencimiento:", e)
+  }
 }
 
 const updateStats = () => {

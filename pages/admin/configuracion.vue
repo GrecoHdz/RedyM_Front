@@ -336,7 +336,211 @@
           </div>
         </div>
       </section>
+
+      <!-- Section 5: Gestión de Misión Especial -->
+      <section class="border-t border-white/5 pt-8">
+        <div class="mb-8 p-6 bg-gradient-to-br from-violet-500/10 to-purple-500/10 border border-violet-500/20 rounded-[2.5rem] relative overflow-hidden">
+          <div class="absolute -top-12 -right-12 w-32 h-32 bg-violet-500/10 rounded-full blur-3xl"></div>
+          <div class="relative z-10 flex items-center justify-between">
+            <div>
+              <h2 class="text-xl font-black text-white mb-2 uppercase tracking-tight">Misión Especial</h2>
+              <p class="text-xs text-gray-400 font-medium leading-relaxed">
+                Define la misión especial que aparecerá en el dashboard de los clientes hoy.
+              </p>
+            </div>
+            <div class="text-4xl">{{ formMisionEspecial.emoji || '⚡' }}</div>
+          </div>
+        </div>
+
+        <div class="bg-white/5 border border-white/10 rounded-[2.5rem] p-8 space-y-6 backdrop-blur-sm">
+          <!-- Lista de misiones existentes -->
+          <div v-if="misionesEspeciales.length > 0" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+            <div v-for="mision in misionesEspeciales" :key="mision.id_mision" 
+                 class="p-4 bg-[#0d121f] border border-white/5 rounded-2xl relative group overflow-hidden">
+              <div class="flex items-center justify-between mb-3">
+                <span class="text-2xl">{{ mision.emoji }}</span>
+                <div class="flex gap-1.5">
+                  <button v-if="mision.tipo_respuesta === 'seleccion' && mision.activa" 
+                          @click="abrirModalFinalizar(mision)" 
+                          class="w-7 h-7 rounded-lg bg-emerald-500/10 text-emerald-500 flex items-center justify-center hover:bg-emerald-500 transition-all hover:text-white"
+                          title="Elegir Respuesta Correcta">
+                    <i class="fas fa-check-double text-[10px]"></i>
+                  </button>
+                  <button @click="verEstadisticasMision(mision)" 
+                          class="w-7 h-7 rounded-lg bg-amber-500/10 text-amber-500 flex items-center justify-center hover:bg-amber-500 transition-all hover:text-white"
+                          title="Ver Estadísticas">
+                    <i class="fas fa-chart-pie text-[10px]"></i>
+                  </button>
+                  <button @click="prepararEdicionMision(mision)" class="w-7 h-7 rounded-lg bg-blue-500/10 text-blue-500 flex items-center justify-center hover:bg-blue-500 transition-all hover:text-white">
+                    <i class="fas fa-edit text-[10px]"></i>
+                  </button>
+                  <button @click="eliminarMision(mision)" class="w-7 h-7 rounded-lg bg-red-500/10 text-red-500 flex items-center justify-center hover:bg-red-500 transition-all hover:text-white">
+                    <i class="fas fa-trash text-[10px]"></i>
+                  </button>
+                </div>
+              </div>
+              <h3 class="text-xs font-black text-white uppercase tracking-tight truncate mb-1">{{ mision.titulo }}</h3>
+              <p class="text-[9px] text-gray-500 line-clamp-2 mb-3 h-6">{{ mision.descripcion }}</p>
+              <div class="flex items-center justify-between mt-auto pt-2 border-t border-white/5">
+                <span class="text-[9px] font-black text-emerald-400 tracking-widest">+${{ parseFloat(mision.valor).toFixed(2) }}</span>
+                <span :class="mision.activa ? 'bg-emerald-500/20 text-emerald-400' : 'bg-red-500/20 text-red-400'" class="text-[7px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full">
+                  {{ mision.activa ? 'Activa' : 'Inactiva' }}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Botón Nueva Misión -->
+          <button 
+            @click="prepararNuevaMision"
+            class="w-full py-4 border-2 border-dashed border-white/10 rounded-2xl text-gray-500 hover:border-violet-500/50 hover:text-violet-400 transition-all flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest"
+          >
+            <i class="fas fa-plus"></i> Crear Nueva Misión Especial
+          </button>
+        </div>
+      </section>
     </main>
+
+    <!-- Modal: Formulario de Misión (Crear/Editar) -->
+    <Transition name="fade-scale">
+      <div v-if="mostrandoFormMision" class="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-[#070b14]/80 backdrop-blur-sm" @click="mostrandoFormMision = false"></div>
+        <div class="bg-[#0d121f] border border-white/10 rounded-[2.5rem] p-6 w-full max-w-xl relative z-10 max-h-[90vh] overflow-y-auto custom-scrollbar space-y-6 shadow-2xl">
+          <div class="flex items-center justify-between mb-2">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 bg-violet-500/10 rounded-xl flex items-center justify-center">
+                <i class="fas" :class="misionEditandoId ? 'fa-edit' : 'fa-plus'"></i>
+              </div>
+              <h3 class="text-sm font-black text-white uppercase tracking-widest">
+                {{ misionEditandoId ? 'Editar Misión' : 'Nueva Misión Especial' }}
+              </h3>
+            </div>
+            <button @click="mostrandoFormMision = false" class="w-8 h-8 rounded-lg bg-white/5 text-gray-500 hover:text-white transition-colors flex items-center justify-center">
+              <i class="fas fa-times"></i>
+            </button>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <!-- Titulo -->
+            <div class="sm:col-span-2">
+              <label class="text-[9px] font-black text-gray-500 uppercase tracking-widest ml-4 mb-2 block">Título de la Misión</label>
+              <input 
+                v-model="formMisionEspecial.titulo" 
+                type="text"
+                class="w-full bg-[#070b14] border border-white/5 rounded-2xl px-5 py-3 text-xs font-bold text-white focus:outline-none focus:border-violet-500/50 transition-all"
+                placeholder="Ej: Comparte en tu estado de WhatsApp"
+              >
+            </div>
+
+            <!-- Icono y Valor -->
+            <div>
+              <label class="text-[9px] font-black text-gray-500 uppercase tracking-widest ml-4 mb-2 block">Icono / Emoji</label>
+              <input 
+                v-model="formMisionEspecial.emoji" 
+                type="text"
+                class="w-full bg-[#070b14] border border-white/5 rounded-2xl px-5 py-3 text-center text-xl focus:outline-none focus:border-violet-500/50 transition-all"
+                placeholder="⚡"
+              >
+            </div>
+
+            <div>
+              <label class="text-[9px] font-black text-gray-500 uppercase tracking-widest ml-4 mb-2 block">Recompensa ($)</label>
+              <div class="relative">
+                <span class="absolute left-5 top-1/2 -translate-y-1/2 text-violet-400 font-black">$</span>
+                <input 
+                  v-model="formMisionEspecial.valor" 
+                  type="number" step="0.01"
+                  class="w-full bg-[#070b14] border border-white/5 rounded-2xl px-10 py-3 text-xs font-bold text-white focus:outline-none focus:border-violet-500/50 transition-all"
+                  placeholder="10.00"
+                >
+              </div>
+            </div>
+
+            <!-- Tipo de Respuesta y Estado -->
+            <div class="sm:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label class="text-[9px] font-black text-gray-500 uppercase tracking-widest ml-4 mb-2 block">Tipo de Respuesta</label>
+                <select 
+                  v-model="formMisionEspecial.tipo_respuesta"
+                  class="w-full bg-[#070b14] border border-white/5 rounded-2xl px-5 py-3 text-xs font-bold text-white focus:outline-none focus:border-violet-500/50 transition-all appearance-none"
+                >
+                  <option value="escrita">✍️ Respuesta Escrita</option>
+                  <option value="seleccion">🔘 Selección Única (Lista)</option>
+                </select>
+              </div>
+              <div>
+                <label class="text-[9px] font-black text-gray-500 uppercase tracking-widest ml-4 mb-2 block">Estado de la Misión</label>
+                <div 
+                  @click="formMisionEspecial.activa = !formMisionEspecial.activa"
+                  class="w-full bg-[#070b14] border border-white/5 rounded-2xl px-5 py-3 flex items-center justify-between cursor-pointer group transition-all"
+                  :class="formMisionEspecial.activa ? 'border-emerald-500/30' : 'border-red-500/30'"
+                >
+                  <span class="text-xs font-bold uppercase tracking-widest" :class="formMisionEspecial.activa ? 'text-emerald-400' : 'text-red-400'">
+                    {{ formMisionEspecial.activa ? 'Activa' : 'Inactiva' }}
+                  </span>
+                  <div class="w-10 h-5 rounded-full p-1 transition-all duration-300" 
+                       :class="formMisionEspecial.activa ? 'bg-emerald-500' : 'bg-gray-700'">
+                    <div class="w-3 h-3 bg-white rounded-full transition-all duration-300"
+                         :class="{ 'translate-x-5': formMisionEspecial.activa }"></div>
+                  </div>
+                </div>
+              </div>
+            </div> 
+          </div>
+
+          <!-- Opciones si es tipo selección -->
+          <div v-if="formMisionEspecial.tipo_respuesta === 'seleccion'" class="space-y-3 animate-fade-in bg-[#070b14] p-4 rounded-2xl border border-white/5">
+            <label class="text-[9px] font-black text-gray-500 uppercase tracking-widest ml-2 mb-2 block">Opciones de Selección</label>
+            <div v-for="(opc, index) in formMisionEspecial.opciones" :key="index" class="flex gap-2">
+              <input 
+                v-model="formMisionEspecial.opciones[index]" 
+                type="text"
+                class="flex-1 bg-[#0d121f] border border-white/5 rounded-xl px-4 py-2 text-[11px] font-medium text-white focus:outline-none focus:border-violet-500/50 transition-all"
+                :placeholder="`Opción ${index + 1}`"
+              >
+              <button @click="removerOpcion(index)" class="w-8 h-8 rounded-lg bg-red-500/10 text-red-500 flex items-center justify-center hover:bg-red-500 hover:text-white transition-all">
+                <i class="fas fa-trash-alt text-[10px]"></i>
+              </button>
+            </div>
+            <button 
+              @click="agregarOpcion"
+              class="text-[9px] font-black text-violet-400 uppercase tracking-widest hover:text-violet-300 transition-colors ml-2"
+            >
+              + Agregar Opción
+            </button>
+          </div>
+
+          <!-- Descripcion -->
+          <div>
+            <label class="text-[9px] font-black text-gray-500 uppercase tracking-widest ml-4 mb-2 block">Instrucciones Detalladas</label>
+            <textarea 
+              v-model="formMisionEspecial.descripcion" 
+              rows="4"
+              class="w-full bg-[#070b14] border border-white/5 rounded-2xl px-5 py-4 text-xs font-medium text-gray-300 focus:outline-none focus:border-violet-500/50 transition-all resize-none"
+              placeholder="Explica qué debe hacer el usuario y qué debe enviar como prueba..."
+            ></textarea>
+          </div>
+
+          <div class="flex gap-3">
+            <button 
+              @click="mostrandoFormMision = false"
+              class="flex-1 py-3 bg-white/5 border border-white/10 text-gray-400 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all hover:text-white"
+            >
+              Cancelar
+            </button>
+            <button 
+              @click="guardarMisionEspecial"
+              :disabled="isSavingMision"
+              class="flex-[2] py-3 bg-violet-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all active:scale-95 flex items-center justify-center gap-3 shadow-xl shadow-violet-900/20 disabled:opacity-50"
+            >
+              <i v-if="isSavingMision" class="fas fa-circle-notch fa-spin"></i>
+              <i v-else class="fas fa-save"></i>
+              {{ misionEditandoId ? 'Actualizar' : 'Guardar' }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </Transition>
 
     <!-- Modal: Nueva/Editar Ciudad -->
     <Transition name="fade">
@@ -642,6 +846,315 @@
             >
               <i v-if="isSendingNotification" class="fas fa-circle-notch fa-spin text-xs"></i>
               Enviar
+            </button>
+          </div>
+        </div>
+      </div>
+    </Transition>
+
+    <!-- Modal: Finalizar Misión de Selección -->
+    <Transition name="fade">
+      <div v-if="mostrarModalFinalizar" class="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-[#070b14]/80 backdrop-blur-sm" @click="cerrarModalFinalizar"></div>
+        <div v-if="misionAFinalizar" class="bg-[#0d121f] border border-white/10 rounded-[2.5rem] p-6 w-full max-w-sm relative z-10 space-y-4">
+          <div class="text-center">
+            <div class="w-12 h-12 bg-emerald-500/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
+              <span class="text-2xl">{{ misionAFinalizar.emoji }}</span>
+            </div>
+            <h3 class="text-sm font-black text-white uppercase tracking-widest">Finalizar Misión</h3>
+            <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-1">{{ misionAFinalizar.titulo }}</p>
+          </div>
+
+          <div class="space-y-4">
+            <div>
+              <label class="text-[9px] font-black text-gray-500 uppercase tracking-widest block mb-2 ml-2">Selecciona la Respuesta Correcta</label>
+              <div class="space-y-2">
+                <button 
+                  v-for="(opcion, index) in misionAFinalizar.opciones" 
+                  :key="index"
+                  @click="respuestaCorrectaSeleccionada = opcion"
+                  class="w-full p-4 rounded-2xl text-left text-xs font-bold transition-all border flex items-center justify-between group"
+                  :class="respuestaCorrectaSeleccionada === opcion 
+                    ? 'bg-emerald-500/20 border-emerald-500 text-emerald-400' 
+                    : 'bg-[#070b14] border-white/5 text-gray-400 hover:border-white/10'"
+                >
+                  <span>{{ opcion }}</span>
+                  <div class="w-4 h-4 rounded-full border-2 transition-all flex items-center justify-center"
+                       :class="respuestaCorrectaSeleccionada === opcion ? 'border-emerald-500 bg-emerald-500' : 'border-white/10 group-hover:border-white/20'">
+                    <i v-if="respuestaCorrectaSeleccionada === opcion" class="fas fa-check text-[8px] text-[#070b14]"></i>
+                  </div>
+                </button>
+              </div>
+            </div>
+
+            <div class="p-4 bg-amber-500/10 border border-amber-500/20 rounded-2xl">
+              <p class="text-[9px] font-bold text-amber-400 uppercase leading-relaxed text-center">
+                <i class="fas fa-exclamation-triangle mr-1"></i>
+                Al confirmar, se premiará automáticamente a todos los usuarios que acertaron y se cerrará la misión.
+              </p>
+            </div>
+
+            <div class="flex gap-2">
+              <button 
+                @click="cerrarModalFinalizar"
+                class="flex-1 py-3 bg-white/5 border border-white/10 text-gray-400 font-black uppercase tracking-widest text-[10px] rounded-xl hover:text-white transition-all"
+              >
+                Cancelar
+              </button>
+              <button 
+                @click="confirmarFinalizarMision"
+                :disabled="!respuestaCorrectaSeleccionada || isFinalizingMision"
+                class="flex-1 py-3 bg-emerald-500 text-[#070b14] font-black uppercase tracking-widest text-[10px] rounded-xl hover:bg-emerald-400 transition-all flex items-center justify-center gap-2 disabled:opacity-30"
+              >
+                <i v-if="isFinalizingMision" class="fas fa-circle-notch fa-spin text-xs"></i>
+                Confirmar
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </Transition>
+
+    <!-- Modal: Estadísticas de Misión -->
+    <Transition name="fade">
+      <div v-if="mostrarModalStats" class="fixed inset-0 z-50 flex items-center justify-center sm:p-4">
+        <div class="absolute inset-0 bg-[#070b14]/90 backdrop-blur-md" @click="cerrarModalStats"></div>
+        <div v-if="misionStats" class="bg-[#0d121f] border-t sm:border border-white/10 rounded-t-[2.5rem] sm:rounded-[2.5rem] p-4 sm:p-6 w-full max-w-2xl relative z-10 flex flex-col h-[95vh] sm:h-auto sm:max-h-[90vh] mt-auto sm:mt-0">
+          
+          <!-- Header del Modal -->
+          <div class="flex items-center justify-between mb-4 sm:mb-6">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 sm:w-12 sm:h-12 bg-amber-500/10 rounded-xl sm:rounded-2xl flex items-center justify-center">
+                <span class="text-xl sm:text-2xl">{{ misionStats.mision.emoji }}</span>
+              </div>
+              <div>
+                <h3 class="text-xs sm:text-sm font-black text-white uppercase tracking-widest">Estadísticas</h3>
+                <p class="text-[9px] sm:text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-0.5 truncate max-w-[150px] sm:max-w-none">
+                  {{ misionStats.mision.titulo }}
+                </p>
+              </div>
+            </div>
+            <button @click="cerrarModalStats" class="w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl bg-white/5 text-gray-400 flex items-center justify-center hover:text-white transition-all">
+              <i class="fas fa-times text-xs sm:text-base"></i>
+            </button>
+          </div>
+
+          <!-- Contenido Scrolleable -->
+          <div class="flex-1 overflow-y-auto pr-1 custom-scrollbar space-y-6">
+            
+            <!-- Resumen de Estadísticas -->
+            <div class="grid grid-cols-3 gap-2 sm:gap-4">
+              <div class="p-3 sm:p-4 bg-white/5 border border-white/5 rounded-xl sm:rounded-2xl text-center">
+                <p class="text-[7px] sm:text-[9px] font-black text-gray-500 uppercase tracking-widest mb-1">Total</p>
+                <p class="text-base sm:text-xl font-black text-white">{{ misionStats.stats.total }}</p>
+              </div>
+              <div class="p-3 sm:p-4 bg-emerald-500/5 border border-emerald-500/10 rounded-xl sm:rounded-2xl text-center">
+                <p class="text-[7px] sm:text-[9px] font-black text-emerald-500/50 uppercase tracking-widest mb-1">Aciertos</p>
+                <p class="text-base sm:text-xl font-black text-emerald-400">{{ misionStats.stats.correctas }}</p>
+              </div>
+              <div class="p-3 sm:p-4 bg-amber-500/5 border border-amber-500/10 rounded-xl sm:rounded-2xl text-center">
+                <p class="text-[7px] sm:text-[9px] font-black text-amber-500/50 uppercase tracking-widest mb-1">Pend.</p>
+                <p class="text-base sm:text-xl font-black text-amber-400">{{ misionStats.stats.pendientes }}</p>
+              </div>
+            </div>
+
+            <!-- Gráfico de barras (Solo Selección) -->
+            <div v-if="misionStats.mision.tipo_respuesta === 'seleccion' && Object.keys(misionStats.stats.respuestas).length > 0" class="space-y-3">
+              <h4 class="text-[8px] sm:text-[9px] font-black text-gray-500 uppercase tracking-widest ml-2">Distribución</h4>
+              <div class="space-y-3 bg-white/5 p-3 sm:p-4 rounded-2xl border border-white/5">
+                <div v-for="(count, resp) in misionStats.stats.respuestas" :key="resp" class="space-y-1.5">
+                  <div class="flex justify-between text-[9px] sm:text-[10px] font-bold">
+                    <span :class="resp === misionStats.mision.respuesta_correcta ? 'text-emerald-400' : 'text-gray-400'" class="truncate max-w-[70%]">
+                      {{ resp }}
+                      <i v-if="resp === misionStats.mision.respuesta_correcta" class="fas fa-check-circle ml-1"></i>
+                    </span>
+                    <span class="text-white shrink-0">{{ count }} ({{ Math.round((count / misionStats.stats.total) * 100) }}%)</span>
+                  </div>
+                  <div class="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
+                    <div 
+                      class="h-full transition-all duration-500" 
+                      :class="resp === misionStats.mision.respuesta_correcta ? 'bg-emerald-500' : 'bg-violet-500'"
+                      :style="{ width: (count / misionStats.stats.total) * 100 + '%' }"
+                    ></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Acciones Masivas (Solo Escritura o Pendientes) -->
+            <div v-if="reclamosSeleccionados.length > 0" 
+                 class="sticky top-0 z-20 bg-[#0d121f] p-3 border border-violet-500/30 rounded-2xl flex items-center justify-between shadow-xl animate-fade-in">
+              <span class="text-[9px] font-black text-violet-400 uppercase tracking-widest ml-2">
+                {{ reclamosSeleccionados.length }} seleccionados
+              </span>
+              <div class="flex gap-2">
+                <button @click="abrirConfirmacionMasiva('rechazado')" 
+                        :disabled="isProcessingBulk"
+                        class="px-3 py-1.5 bg-red-500/10 text-red-500 rounded-lg text-[8px] font-black uppercase tracking-widest hover:bg-red-500 hover:text-white transition-all">
+                  Rechazar
+                </button>
+                <button @click="abrirConfirmacionMasiva('aprobado')" 
+                        :disabled="isProcessingBulk"
+                        class="px-3 py-1.5 bg-emerald-500 text-[#070b14] rounded-lg text-[8px] font-black uppercase tracking-widest hover:bg-emerald-400 transition-all">
+                  Aprobar
+                </button>
+              </div>
+            </div>
+
+            <!-- Lista de Respuestas Detallada -->
+            <div class="space-y-3">
+              <div class="flex items-center justify-between px-2">
+                <h4 class="text-[8px] sm:text-[9px] font-black text-gray-500 uppercase tracking-widest">Participaciones</h4>
+                
+                <!-- Seleccionar Todos (Solo si hay pendientes) -->
+                <button v-if="misionStats.reclamos.some(r => r.estado === 'pendiente')"
+                        @click="toggleSelectAll" 
+                        class="text-[8px] font-black uppercase tracking-widest transition-all"
+                        :class="allSelected ? 'text-violet-400' : 'text-gray-500 hover:text-white'">
+                  {{ allSelected ? 'Desmarcar todos' : 'Marcar pendientes' }}
+                </button>
+              </div>
+
+              <div class="space-y-2">
+                <div v-for="reclamo in misionStats.reclamos" :key="reclamo.id_reclamo" 
+                     @click="reclamo.estado === 'pendiente' ? toggleSelect(reclamo.id_reclamo) : null"
+                     class="p-3 bg-white/5 border rounded-xl flex items-center justify-between group transition-all"
+                     :class="[
+                       reclamo.estado === 'pendiente' ? 'cursor-pointer hover:border-white/20' : 'opacity-80',
+                       reclamosSeleccionados.includes(reclamo.id_reclamo) ? 'border-violet-500/50 bg-violet-500/5' : 'border-white/5'
+                     ]">
+                  
+                  <div class="flex items-center gap-3 min-w-0">
+                    <!-- Checkbox si es seleccionable -->
+                    <div v-if="reclamo.estado === 'pendiente'" 
+                         class="w-4 h-4 rounded border-2 flex items-center justify-center shrink-0 transition-all"
+                         :class="reclamosSeleccionados.includes(reclamo.id_reclamo) ? 'bg-violet-500 border-violet-500' : 'border-white/10'">
+                      <i v-if="reclamosSeleccionados.includes(reclamo.id_reclamo)" class="fas fa-check text-[8px] text-white"></i>
+                    </div>
+
+                    <div class="w-8 h-8 rounded-lg bg-white/10 overflow-hidden shrink-0">
+                      <img v-if="reclamo.usuario.imagen_url" :src="reclamo.usuario.imagen_url" class="w-full h-full object-cover">
+                      <div v-else class="w-full h-full flex items-center justify-center text-[10px] text-gray-500 font-bold uppercase">
+                        {{ reclamo.usuario.nombre.substring(0, 1) }}
+                      </div>
+                    </div>
+                    <div class="min-w-0">
+                      <p class="text-[10px] sm:text-[11px] font-bold text-white truncate">{{ reclamo.usuario.nombre }}</p>
+                      <p class="text-[8px] sm:text-[9px] text-gray-500 truncate">{{ reclamo.usuario.email }}</p>
+                    </div>
+                  </div>
+
+                  <div class="text-right shrink-0 ml-2">
+                    <div class="flex flex-col items-end gap-1">
+                      <span class="px-2 py-0.5 rounded-md text-[8px] font-black uppercase tracking-wider max-w-[80px] truncate"
+                            :class="{
+                              'bg-emerald-500/10 text-emerald-500': reclamo.estado === 'aprobado',
+                              'bg-red-500/10 text-red-500': reclamo.estado === 'rechazado',
+                              'bg-amber-500/10 text-amber-500': reclamo.estado === 'pendiente'
+                            }">
+                        {{ reclamo.respuesta || 'Sin respuesta' }}
+                      </span>
+                      
+                      <!-- Botones de acción individual (Solo si es tipo escrita y está pendiente) -->
+                      <div v-if="reclamo.estado === 'pendiente' && misionStats.mision.tipo_respuesta === 'escrita'" 
+                           class="flex gap-1 mt-1 opacity-0 group-hover:opacity-100 transition-all">
+                        <button @click.stop="procesarMasivoIndividual(reclamo.id_reclamo, 'rechazado')" 
+                                class="w-5 h-5 rounded bg-red-500/10 text-red-500 flex items-center justify-center hover:bg-red-500 hover:text-white">
+                          <i class="fas fa-times text-[8px]"></i>
+                        </button>
+                        <button @click.stop="procesarMasivoIndividual(reclamo.id_reclamo, 'aprobado')" 
+                                class="w-5 h-5 rounded bg-emerald-500/10 text-emerald-500 flex items-center justify-center hover:bg-emerald-500 hover:text-white">
+                          <i class="fas fa-check text-[8px]"></i>
+                        </button>
+                      </div>
+                      <p v-else class="text-[7px] text-gray-600 mt-1 uppercase font-bold">{{ formatearFecha(reclamo.fecha) }}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Paginación -->
+              <div v-if="totalPaginasStats > 1" class="flex items-center justify-center gap-4 py-4">
+                <button @click="verEstadisticasMision(misionStats.mision, paginaStats - 1)"
+                        :disabled="paginaStats === 1"
+                        class="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-gray-400 disabled:opacity-20">
+                  <i class="fas fa-chevron-left text-[10px]"></i>
+                </button>
+                <span class="text-[10px] font-black text-white uppercase tracking-widest">
+                  {{ paginaStats }} / {{ totalPaginasStats }}
+                </span>
+                <button @click="verEstadisticasMision(misionStats.mision, paginaStats + 1)"
+                        :disabled="paginaStats === totalPaginasStats"
+                        class="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-gray-400 disabled:opacity-20">
+                  <i class="fas fa-chevron-right text-[10px]"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </Transition>
+
+    <!-- Modal: Confirmación de Procesamiento Masivo -->
+    <Transition name="fade-scale">
+      <div v-if="mostrarModalConfirmBulk" class="fixed inset-0 z-[60] flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-[#070b14]/80 backdrop-blur-sm" @click="mostrarModalConfirmBulk = false"></div>
+        <div class="bg-[#0d121f] border border-white/10 rounded-[2.5rem] p-6 w-full max-w-sm relative z-10 space-y-6 shadow-2xl">
+          <div class="text-center">
+            <div class="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4"
+                 :class="bulkActionType === 'aprobado' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-red-500/10 text-red-500'">
+              <i class="fas" :class="bulkActionType === 'aprobado' ? 'fa-check-double text-2xl' : 'fa-times-circle text-2xl'"></i>
+            </div>
+            <h3 class="text-sm font-black text-white uppercase tracking-widest">
+              Confirmar {{ bulkActionType }}
+            </h3>
+            <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-2 leading-relaxed">
+              ¿Estás seguro de que deseas <strong>{{ bulkActionType }}</strong> los <strong>{{ reclamosSeleccionados.length }}</strong> reclamos seleccionados?
+            </p>
+          </div>
+
+          <div class="flex gap-3">
+            <button @click="mostrarModalConfirmBulk = false" 
+                    class="flex-1 py-3 bg-white/5 border border-white/10 text-gray-400 font-black uppercase tracking-widest text-[9px] rounded-xl hover:text-white transition-all">
+              Cancelar
+            </button>
+            <button @click="confirmarAccionBulk" 
+                    :disabled="isProcessingBulk"
+                    class="flex-1 py-3 font-black uppercase tracking-widest text-[9px] rounded-xl transition-all flex items-center justify-center gap-2"
+                    :class="bulkActionType === 'aprobado' ? 'bg-emerald-500 text-[#070b14] hover:bg-emerald-400' : 'bg-red-500 text-white hover:bg-red-400'">
+              <i v-if="isProcessingBulk" class="fas fa-circle-notch fa-spin"></i>
+              {{ bulkActionType === 'aprobado' ? 'Aprobar todo' : 'Rechazar todo' }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </Transition>
+
+    <!-- Modal: Confirmación Eliminar Misión -->
+    <Transition name="fade-scale">
+      <div v-if="mostrarModalConfirmEliminarMision" class="fixed inset-0 z-[60] flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-[#070b14]/80 backdrop-blur-sm" @click="mostrarModalConfirmEliminarMision = false"></div>
+        <div v-if="misionAEliminar" class="bg-[#0d121f] border border-white/10 rounded-[2.5rem] p-6 w-full max-w-sm relative z-10 space-y-6 shadow-2xl">
+          <div class="text-center">
+            <div class="w-16 h-16 bg-red-500/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
+              <i class="fas fa-trash-alt text-red-500 text-2xl"></i>
+            </div>
+            <h3 class="text-sm font-black text-white uppercase tracking-widest">Eliminar Misión</h3>
+            <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-2 leading-relaxed">
+              ¿Estás seguro de que deseas eliminar la misión <br>
+              <strong class="text-white">"{{ misionAEliminar.titulo }}"</strong>?<br>
+              <span class="text-red-500/70 mt-1 block italic text-[8px]">Esta acción no se puede deshacer.</span>
+            </p>
+          </div>
+
+          <div class="flex gap-3">
+            <button @click="mostrarModalConfirmEliminarMision = false" 
+                    class="flex-1 py-3 bg-white/5 border border-white/10 text-gray-400 font-black uppercase tracking-widest text-[9px] rounded-xl hover:text-white transition-all">
+              Cancelar
+            </button>
+            <button @click="confirmarEliminarMision" 
+                    class="flex-1 py-3 bg-red-500 text-white font-black uppercase tracking-widest text-[9px] rounded-xl hover:bg-red-400 transition-all flex items-center justify-center gap-2 shadow-lg shadow-red-900/20">
+              Eliminar
             </button>
           </div>
         </div>
@@ -1216,6 +1729,278 @@ const buscandoUsuarios = ref(false)
 const usuariosEncontrados = ref([])
 const usuarioSeleccionado = ref(null)
 
+// Misión Especial
+const isSavingMision = ref(false)
+const misionesEspeciales = ref([])
+const mostrandoFormMision = ref(false)
+const misionEditandoId = ref(null)
+const mostrarModalConfirmEliminarMision = ref(false)
+const misionAEliminar = ref(null)
+
+// Finalizar Misión de Selección
+const mostrarModalFinalizar = ref(false)
+const misionAFinalizar = ref(null)
+const respuestaCorrectaSeleccionada = ref('')
+const isFinalizingMision = ref(false)
+
+// Estadísticas de Misión
+const mostrarModalStats = ref(false)
+const misionStats = ref(null)
+const isLoadingStats = ref(false)
+const paginaStats = ref(1)
+const limiteStats = 10
+const totalReclamosStats = ref(0)
+const reclamosSeleccionados = ref([])
+const isProcessingBulk = ref(false)
+
+// Modal de Confirmación
+const mostrarModalConfirmBulk = ref(false)
+const bulkActionType = ref('') // 'aprobado' o 'rechazado'
+
+const allSelected = computed(() => {
+  if (!misionStats.value?.reclamos?.length) return false
+  const pendientes = misionStats.value.reclamos.filter(r => r.estado === 'pendiente')
+  if (pendientes.length === 0) return false
+  return pendientes.every(r => reclamosSeleccionados.value.includes(r.id_reclamo))
+})
+
+const toggleSelectAll = () => {
+  if (allSelected.value) {
+    reclamosSeleccionados.value = []
+  } else {
+    const pendientes = misionStats.value.reclamos
+      .filter(r => r.estado === 'pendiente')
+      .map(r => r.id_reclamo)
+    reclamosSeleccionados.value = pendientes
+  }
+}
+
+const toggleSelect = (id) => {
+  const index = reclamosSeleccionados.value.indexOf(id)
+  if (index > -1) {
+    reclamosSeleccionados.value.splice(index, 1)
+  } else {
+    reclamosSeleccionados.value.push(id)
+  }
+}
+
+const abrirConfirmacionMasiva = (estado) => {
+  if (reclamosSeleccionados.value.length === 0) return
+  bulkActionType.value = estado
+  mostrarModalConfirmBulk.value = true
+}
+
+const confirmarAccionBulk = async () => {
+  isProcessingBulk.value = true
+  try {
+    const res = await $api('/misiones/admin/especiales/reclamos/bulk', {
+      method: 'POST',
+      body: {
+        ids: reclamosSeleccionados.value,
+        estado: bulkActionType.value
+      }
+    })
+    
+    if (res.success) {
+      showToast(res.message)
+      reclamosSeleccionados.value = []
+      mostrarModalConfirmBulk.value = false
+      await verEstadisticasMision(misionStats.value.mision, paginaStats.value)
+    }
+  } catch (e) {
+    showToast('Error al procesar reclamos', 'error')
+  } finally {
+    isProcessingBulk.value = false
+  }
+}
+
+const procesarMasivoIndividual = async (id, estado) => {
+  reclamosSeleccionados.value = [id]
+  abrirConfirmacionMasiva(estado)
+}
+
+const formMisionEspecial = ref({
+  titulo: '',
+  descripcion: '',
+  emoji: '⚡',
+  activa: true,
+  valor: 0,
+  tipo_respuesta: 'escrita',
+  opciones: []
+})
+
+const cargarMisionesEspeciales = async () => {
+  try {
+    const res = await $api('/misiones/admin/especiales')
+    if (res.success) {
+      misionesEspeciales.value = res.data
+    }
+  } catch (e) {
+    console.error('Error al cargar misiones especiales:', e)
+  }
+}
+
+const prepararNuevaMision = () => {
+  misionEditandoId.value = null
+  formMisionEspecial.value = {
+    titulo: '',
+    descripcion: '',
+    emoji: '⚡',
+    activa: true,
+    valor: 0,
+    tipo_respuesta: 'escrita',
+    opciones: []
+  }
+  mostrandoFormMision.value = true
+}
+
+const prepararEdicionMision = (mision) => {
+  misionEditandoId.value = mision.id_mision
+  formMisionEspecial.value = {
+    titulo: mision.titulo,
+    descripcion: mision.descripcion,
+    emoji: mision.emoji,
+    activa: mision.activa,
+    valor: mision.valor,
+    tipo_respuesta: mision.tipo_respuesta,
+    opciones: Array.isArray(mision.opciones) ? [...mision.opciones] : []
+  }
+  mostrandoFormMision.value = true
+}
+
+const agregarOpcion = () => {
+  formMisionEspecial.value.opciones.push('')
+}
+
+const removerOpcion = (index) => {
+  formMisionEspecial.value.opciones.splice(index, 1)
+}
+
+const guardarMisionEspecial = async () => {
+  if (!formMisionEspecial.value.titulo || !formMisionEspecial.value.descripcion) {
+    showToast('Título e instrucciones son obligatorios', 'error')
+    return
+  }
+
+  isSavingMision.value = true
+  try {
+    const url = misionEditandoId.value 
+      ? `/misiones/admin/especiales/${misionEditandoId.value}`
+      : '/misiones/admin/especiales'
+    
+    const res = await $api(url, {
+      method: misionEditandoId.value ? 'PUT' : 'POST',
+      body: formMisionEspecial.value
+    })
+
+    if (res.success) {
+      showToast(misionEditandoId.value ? 'Misión actualizada' : 'Misión creada')
+      mostrandoFormMision.value = false
+      cargarMisionesEspeciales()
+    }
+  } catch (e) {
+    showToast('Error al guardar misión', 'error')
+  } finally {
+    isSavingMision.value = false
+  }
+}
+
+const eliminarMision = (mision) => {
+  misionAEliminar.value = mision
+  mostrarModalConfirmEliminarMision.value = true
+}
+
+const confirmarEliminarMision = async () => {
+  if (!misionAEliminar.value) return
+  try {
+    const res = await $api(`/misiones/admin/especiales/${misionAEliminar.value.id_mision}`, { method: 'DELETE' })
+    if (res.success) {
+      showToast('Misión eliminada')
+      mostrarModalConfirmEliminarMision.value = false
+      cargarMisionesEspeciales()
+    }
+  } catch (e) {
+    showToast('Error al eliminar', 'error')
+  } finally {
+    misionAEliminar.value = null
+  }
+}
+
+// Finalizar Misión de Selección
+const abrirModalFinalizar = (mision) => {
+  misionAFinalizar.value = mision
+  respuestaCorrectaSeleccionada.value = ''
+  mostrarModalFinalizar.value = true
+}
+
+const cerrarModalFinalizar = () => {
+  mostrarModalFinalizar.value = false
+  setTimeout(() => {
+    misionAFinalizar.value = null
+    respuestaCorrectaSeleccionada.value = ''
+  }, 300)
+}
+
+const confirmarFinalizarMision = async () => {
+  if (!misionAFinalizar.value || !respuestaCorrectaSeleccionada.value) return
+  
+  isFinalizingMision.value = true
+  try {
+    const res = await $api('/misiones/admin/especiales/finalizar', {
+      method: 'POST',
+      body: {
+        id_mision: misionAFinalizar.value.id_mision,
+        respuesta_correcta: respuestaCorrectaSeleccionada.value
+      }
+    })
+    
+    if (res.success) {
+      showToast(res.message || 'Misión finalizada y usuarios premiados')
+      cerrarModalFinalizar()
+      await cargarMisionesEspeciales()
+    } else {
+      showToast(res.error || 'Error al finalizar misión', 'error')
+    }
+  } catch (e) {
+    console.error('Error finalizando misión:', e)
+    showToast('Error de conexión al finalizar misión', 'error')
+  } finally {
+    isFinalizingMision.value = false
+  }
+}
+
+const verEstadisticasMision = async (mision, pagina = 1) => {
+  paginaStats.value = pagina
+  isLoadingStats.value = true
+  try {
+    const offset = (pagina - 1) * limiteStats
+    const res = await $api(`/misiones/admin/especiales/${mision.id_mision}/stats?limit=${limiteStats}&offset=${offset}`)
+    if (res.success) {
+      misionStats.value = res.data
+      totalReclamosStats.value = res.data.total
+      mostrarModalStats.value = true
+    }
+  } catch (e) {
+    showToast('Error al cargar estadísticas', 'error')
+  } finally {
+    isLoadingStats.value = false
+  }
+}
+
+const cerrarModalStats = () => {
+  mostrarModalStats.value = false
+  setTimeout(() => {
+    misionStats.value = null
+    paginaStats.value = 1
+    totalReclamosStats.value = 0
+    reclamosSeleccionados.value = []
+  }, 300)
+}
+
+const totalPaginasStats = computed(() => {
+  return Math.ceil(totalReclamosStats.value / limiteStats)
+})
+
 // Simple debounce implementation
 function debounce(fn, delay) {
   let timeout
@@ -1310,6 +2095,7 @@ onMounted(() => {
   cargarCiudades()
   cargarCuentas()
   cargarNotificaciones()
+  cargarMisionesEspeciales()
 })
 
 useHead({
@@ -1379,5 +2165,27 @@ input::placeholder {
   background-color: rgba(16, 185, 129, 0.2);
   color: #10b981;
   font-weight: bold;
+}
+
+/* Animaciones */
+.fade-scale-enter-active,
+.fade-scale-leave-active {
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.fade-scale-enter-from,
+.fade-scale-leave-to {
+  opacity: 0;
+  transform: scale(0.9) translateY(10px);
+}
+
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
 }
 </style>

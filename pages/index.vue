@@ -125,10 +125,28 @@
               </div>
             </div>
 
-            <div v-if="!isLogin">
-              <label class="text-[10px] font-bold text-gray-500 uppercase tracking-widest ml-1 mb-1 block">Email</label>
-              <input v-model="form.email" type="email" placeholder="ejemplo@correo.com" 
-                     class="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-2.5 sm:py-3 text-sm focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none transition-all text-white placeholder:text-gray-600" required>
+            <div v-if="!isLogin" class="grid grid-cols-2 gap-3 sm:gap-4">
+              <div class="col-span-1">
+                <label class="text-[10px] font-bold text-gray-500 uppercase tracking-widest ml-1 mb-1 block">Email</label>
+                <input v-model="form.email" type="email" placeholder="ejemplo@correo.com" 
+                       class="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-2.5 sm:py-3 text-sm focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none transition-all text-white placeholder:text-gray-600" required>
+              </div>
+              <div class="col-span-1">
+                 <label class="text-[10px] font-bold text-gray-500 uppercase tracking-widest ml-1 mb-1 block">Género</label>
+                 <multiselect
+                   v-model="form.selectedGenero"
+                   :options="generos"
+                   :searchable="false"
+                   label="label"
+                   track-by="value"
+                   placeholder="Género"
+                   select-label=""
+                   deselect-label=""
+                   selected-label=""
+                   class="multiselect-social texto-sm"
+                   required
+                 ></multiselect>
+               </div>
             </div>
 
             <div v-if="isLogin">
@@ -193,11 +211,18 @@ const toast = ref({ show: false, message: '', type: 'success' })
 const form = ref({
   nombre: '',
   email: '',
+  selectedGenero: null,
   telefono: '',
   identidad: '',
   password: '',
   selectedCiudad: null
 })
+
+// Géneros
+const generos = [
+  { label: 'Masculino', value: 'masculino' },
+  { label: 'Femenino', value: 'femenino' }
+]
 
 // Ciudades
 const ciudades = ref([])
@@ -302,6 +327,10 @@ const handleAuth = async () => {
         throw new Error('Por favor selecciona tu ciudad')
       }
 
+      if (!form.value.selectedGenero) {
+        throw new Error('Por favor selecciona tu género')
+      }
+
       // Validaciones extra
       if (!form.value.telefono.startsWith('+')) {
         throw new Error('El teléfono debe incluir el código de país (ej: +504)')
@@ -324,6 +353,7 @@ const handleAuth = async () => {
           telefono: form.value.telefono,
           password: form.value.password,
           id_ciudad: form.value.selectedCiudad.id_ciudad,
+          genero: form.value.selectedGenero.value,
           es_tecnico: 0,
           id_patrocinador: idPatrocinador.value
         }

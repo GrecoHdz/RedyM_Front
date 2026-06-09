@@ -162,6 +162,25 @@
               placeholder="Número de identidad"
             >
           </div>
+
+          <!-- Género y Fecha de Nacimiento (Derivada de Identidad) -->
+          <div class="grid grid-cols-2 gap-3">
+            <div class="space-y-1">
+              <label class="block text-[9px] font-black text-gray-500 uppercase tracking-widest ml-1">Género</label>
+              <select v-model="user.genero" 
+                class="w-full bg-[#0d121f] border border-white/10 rounded-xl px-4 py-2.5 text-sm font-bold text-white focus:outline-none focus:border-emerald-500/50 transition-all">
+                <option value="" disabled>Seleccionar</option>
+                <option value="masculino">Masculino</option>
+                <option value="femenino">Femenino</option>
+              </select>
+            </div>
+            <div class="space-y-1">
+              <label class="block text-[9px] font-black text-gray-500 uppercase tracking-widest ml-1">Edad Estimada</label>
+              <div class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm font-bold text-gray-400">
+                {{ calcularEdad(user.identidad) || 'N/D' }} años
+              </div>
+            </div>
+          </div>
           
           <div class="space-y-1">
             <label class="block text-[9px] font-black text-gray-500 uppercase tracking-widest ml-1">Teléfono</label>
@@ -597,6 +616,7 @@ const user = ref({
   identidad_url: userCookie.value?.identidad_url || null,
   identidad_public_id: userCookie.value?.identidad_public_id || null,
   verificado: userCookie.value?.verificado || false,
+  genero: userCookie.value?.genero || '',
   monto_credito: userCookie.value?.monto_credito || 0,
   fecha_registro: userCookie.value?.fecha_registro || null
 })
@@ -628,7 +648,8 @@ const hasChanges = computed(() => {
     user.value.nombre !== originalUserData.value.nombre ||
     user.value.email !== originalUserData.value.email ||
     user.value.telefono !== originalUserData.value.telefono ||
-    user.value.identidad !== originalUserData.value.identidad
+    user.value.identidad !== originalUserData.value.identidad ||
+    user.value.genero !== originalUserData.value.genero
   )
 })
 
@@ -643,10 +664,20 @@ const passwordMismatch = computed(() => {
 
 
 // --- FUNCIONES ---
-const showMsg = (message, type = 'info') => {
+const calcularEdad = (identidad) => {
+  if (!identidad) return null
+  const idLimpia = identidad.replace(/-/g, '')
+  if (idLimpia.length < 8) return null
+  const anioStr = idLimpia.substring(4, 8)
+  const anioNacimiento = parseInt(anioStr)
+  if (isNaN(anioNacimiento)) return null
+  return new Date().getFullYear() - anioNacimiento
+}
+
+const showMsg = (msg, type = 'info') => {
   toast.value.show = false
   nextTick(() => {
-    toast.value = { show: true, message, type, duration: 5000 }
+    toast.value = { show: true, message: msg, type, duration: 5000 }
   })
 }
 
@@ -669,6 +700,7 @@ const fetchUserData = async () => {
         identidad_url: u.identidad_url,
         identidad_public_id: u.identidad_public_id,
         verificado: u.verificado || false,
+        genero: u.genero || '',
         fecha_registro: u.fecha_registro
       }
       originalUserData.value = { ...user.value }
@@ -708,7 +740,8 @@ const saveProfile = async () => {
         email: user.value.email,
         telefono: user.value.telefono,
         identidad: user.value.identidad,
-        id_ciudad: user.value.id_ciudad
+        id_ciudad: user.value.id_ciudad,
+        genero: user.value.genero
       }
     })
     originalUserData.value = { ...user.value }

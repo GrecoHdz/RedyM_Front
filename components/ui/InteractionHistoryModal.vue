@@ -16,7 +16,9 @@
           <button @click="$emit('close')" class="p-2 text-gray-400 hover:text-white transition-colors">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
           </button>
-        </div        <!-- Body -->
+        </div>
+
+        <!-- Body -->
         <div class="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar no-scrollbar">
           <div v-if="loading" class="flex flex-col items-center justify-center py-12 space-y-4">
             <div class="w-8 h-8 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
@@ -24,35 +26,90 @@
           </div>
           
           <template v-else-if="history.length > 0">
-            <div v-for="item in history" :key="item.id_unico" class="bg-white/5 border border-white/5 p-3 rounded-2xl flex items-center gap-3 hover:bg-white/10 transition-all group">
-              <!-- Publication Image Thumbnail -->
-              <div 
-                @click="openViewer(item)"
-                class="w-12 h-12 rounded-xl bg-white/5 flex items-center justify-center overflow-hidden cursor-pointer relative group/thumb border border-white/10"
+            <template v-for="item in history" :key="item.id_unico">
+
+              <!-- ===== MISSION ITEM ===== -->
+              <div v-if="item._isMision" class="relative border p-3 rounded-2xl flex items-center gap-3 transition-all"
+                :class="{
+                  'bg-violet-500/10 border-violet-500/20': item.tipo === 'mision_especial',
+                  'bg-amber-500/10 border-amber-500/20': item.tipo === 'mision_auto'
+                }"
               >
-                <img 
-                  v-if="getThumbnail(item)" 
-                  :src="getThumbnail(item).url" 
-                  class="w-full h-full object-cover group-hover/thumb:scale-110 transition-transform duration-500"
+                <!-- Icon badge -->
+                <div class="w-12 h-12 rounded-xl flex items-center justify-center text-2xl flex-shrink-0"
+                  :class="{
+                    'bg-violet-500/20': item.tipo === 'mision_especial',
+                    'bg-amber-500/20': item.tipo === 'mision_auto'
+                  }"
                 >
-                <div v-else class="text-lg">{{ getInteractionIcon(item.tipo) }}</div>
-                
-                <!-- Interaction Small Badge -->
-                <div class="absolute bottom-0 right-0 p-0.5 bg-black/60 backdrop-blur-md rounded-tl-lg scale-75 origin-bottom-right">
-                  {{ getInteractionIcon(item.tipo) }}
+                  {{ item.tipo === 'mision_especial' ? '⚡' : '🎯' }}
+                </div>
+
+                <div class="flex-1 min-w-0">
+                  <h4 class="text-[11px] font-black text-white truncate">{{ item.descripcion }}</h4>
+                  <div class="flex flex-col gap-0.5 mt-0.5">
+                    <p class="text-[8px] font-bold uppercase tracking-tighter text-emerald-400">
+                      {{ estadoLabel(item.estado) }}
+                      <span v-if="item.tipo === 'mision_especial'" class="ml-1">
+                        (Acertaste)
+                      </span>
+                    </p>
+                    <p v-if="item.respuesta" class="text-[8px] text-gray-400 font-medium italic truncate">Tu respuesta: {{ item.respuesta }}</p>
+                    <p class="text-[8px] text-gray-500 font-medium">{{ formatDate(item.fecha) }}</p>
+                  </div>
+                </div>
+
+                <div class="text-right flex-shrink-0">
+                  <template v-if="item.estado === 'aprobado'">
+                    <span class="text-xs font-black text-emerald-400">+${{ item.monto.toFixed(2) }}</span>
+                    <p class="text-[7px] text-gray-500 font-bold uppercase">GANADO</p>
+                  </template>
+                  <template v-else-if="item.estado === 'pendiente'">
+                    <span class="text-xs font-black text-amber-400">${{ item.monto.toFixed(2) }}</span>
+                    <p class="text-[7px] text-amber-500/70 font-bold uppercase">PENDIENTE</p>
+                  </template>
+                  <template v-else>
+                    <span class="text-xs font-black text-red-400">${{ item.monto.toFixed(2) }}</span>
+                    <p class="text-[7px] text-red-500/70 font-bold uppercase">RECHAZADO</p>
+                  </template>
                 </div>
               </div>
 
-              <div class="flex-1 min-w-0">
-                <h4 class="text-[11px] font-black text-white truncate">{{ item.tipo === 'comision_red' ? item.descripcion : getInteractionLabel(item.tipo) }}</h4>
-                <p class="text-[9px] text-gray-400 font-bold uppercase tracking-tighter truncate">{{ item.anunciante || item.publicacion?.usuario?.nombre || 'Anunciante' }}</p>
-                <p class="text-[8px] text-gray-500 font-medium mt-0.5">{{ formatDate(item.fecha) }}</p>
+              <!-- ===== REGULAR INTERACTION ITEM ===== -->
+              <div v-else class="bg-white/5 border border-white/5 p-3 rounded-2xl flex items-center gap-3 hover:bg-white/10 transition-all group">
+                <!-- Publication Image Thumbnail -->
+                <div 
+                  @click="openViewer(item)"
+                  class="w-12 h-12 rounded-xl bg-white/5 flex items-center justify-center overflow-hidden cursor-pointer relative group/thumb border border-white/10"
+                >
+                  <img 
+                    v-if="getThumbnail(item)" 
+                    :src="getThumbnail(item).url" 
+                    class="w-full h-full object-cover group-hover/thumb:scale-110 transition-transform duration-500"
+                  >
+                  <div v-else class="text-lg">{{ getInteractionIcon(item.tipo) }}</div>
+                  
+                  <!-- Interaction Small Badge -->
+                  <div class="absolute bottom-0 right-0 p-0.5 bg-black/60 backdrop-blur-md rounded-tl-lg scale-75 origin-bottom-right">
+                    {{ getInteractionIcon(item.tipo) }}
+                  </div>
+                </div>
+
+                <div class="flex-1 min-w-0">
+                  <h4 class="text-[11px] font-black text-white truncate">{{ item.tipo === 'comision_red' ? item.descripcion : getInteractionLabel(item.tipo) }}</h4>
+                  <p class="text-[9px] text-gray-400 font-bold uppercase tracking-tighter truncate">{{ item.anunciante || item.publicacion?.usuario?.nombre || 'Anunciante' }}</p>
+                  <p v-if="getPollAnswer(item)" class="text-[8px] text-emerald-400/80 font-medium italic truncate mt-0.5">
+                    Tu respuesta: {{ getPollAnswer(item) }} (Acertaste)
+                  </p>
+                  <p class="text-[8px] text-gray-500 font-medium mt-0.5">{{ formatDate(item.fecha) }}</p>
+                </div>
+                <div class="text-right">
+                  <span class="text-xs font-black text-emerald-400">+${{ (item.monto_ganado || 0).toFixed(2) }}</span>
+                  <p class="text-[7px] text-gray-500 font-bold uppercase">GANADO</p>
+                </div>
               </div>
-              <div class="text-right">
-                <span class="text-xs font-black text-emerald-400">+${{ item.monto_ganado }}</span>
-                <p class="text-[7px] text-gray-500 font-bold uppercase">GANADO</p>
-              </div>
-            </div>
+
+            </template>
 
             <div class="flex justify-between items-center pt-2 pb-4 px-2">
               <button 
@@ -93,7 +150,7 @@
         <div class="p-4 bg-white/5 border-t border-white/5 space-y-4">
            <div class="flex items-center justify-between px-2">
               <span class="text-[10px] text-gray-500 font-black uppercase tracking-widest">Saldo Actual</span>
-              <span class="text-lg font-black text-emerald-400">${{ totalBalance.toFixed(2) }}</span>
+              <span class="text-lg font-black text-emerald-400">${{ (totalBalance || 0).toFixed(2) }}</span>
            </div>
 
            <div v-if="showWithdrawButton" class="space-y-3">
@@ -241,6 +298,15 @@ const getThumbnail = (item) => {
   return null
 }
 
+const estadoLabel = (estado) => {
+  const labels = {
+    aprobado: '✅ Recompensa acreditada',
+    pendiente: '⏳ Pendiente de aprobación',
+    rechazado: '❌ No aprobado'
+  }
+  return labels[estado] || estado
+}
+
 const getInteractionIcon = (type) => {
   const icons = {
     like: '❤️',
@@ -253,6 +319,16 @@ const getInteractionIcon = (type) => {
     comision_red: '👥'
   }
   return icons[type] || '✨'
+}
+
+const getPollAnswer = (item) => {
+  if (item.tipo !== 'poll' || !item.detalle) return null
+  try {
+    const detail = typeof item.detalle === 'string' ? JSON.parse(item.detalle) : item.detalle
+    return detail.answer || null
+  } catch (e) {
+    return null
+  }
 }
 </script>
 

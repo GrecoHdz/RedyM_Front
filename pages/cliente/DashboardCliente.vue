@@ -9,57 +9,45 @@
     <!-- Content Container with max-w-2xl to match copy.vue -->
     <div class="max-w-2xl mx-auto bg-gray-50 dark:bg-gray-900 min-h-screen relative">
       <main class="pt-16 pb-24">
-        <!-- Welcome Section (Daily Missions) -->
-        <section class="px-2 pt-1 pb-4">
-          <div class="bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-lg border border-gray-100 dark:border-gray-700 relative overflow-hidden">
-            <!-- Background decoration -->
-            <div class="absolute -top-8 -right-8 w-24 h-24 bg-gradient-to-br from-emerald-400/20 to-teal-400/20 rounded-full blur-xl"></div>
-            <div class="absolute -bottom-6 -left-6 w-20 h-20 bg-gradient-to-br from-blue-400/20 to-indigo-400/20 rounded-full blur-lg"></div>
-            
-            <div class="relative">
-              <div class="flex items-center justify-between mb-4">
-                <div class="flex items-center space-x-3">
-                  <div class="w-10 h-10 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-xl flex items-center justify-center">
-                    <span class="text-white text-lg">👋</span>
-                  </div>
-                  <div>
-                    <h2 class="text-base font-black text-gray-900 dark:text-white leading-tight">
-                      ¡Hola, {{ shortName }}!
-                    </h2>
-                    <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Misiones del día</p>
-                  </div>
-                </div>
-                
-                <button 
-                  @click="handleClaimReward"
-                  :disabled="!isMissionsCompleted || rewardClaimed"
-                  class="px-4 py-2 rounded-xl font-black text-[11px] uppercase tracking-wider transition-all duration-300"
-                  :class="[
-                    isMissionsCompleted && !rewardClaimed
-                      ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/30 animate-pulse'
-                      : rewardClaimed 
-                        ? 'bg-gray-100 dark:bg-gray-700 text-gray-400 dark:text-gray-500 cursor-not-allowed'
-                        : 'bg-gray-100 dark:bg-gray-700 text-gray-400 dark:text-gray-500 cursor-not-allowed'
-                  ]"
-                >
-                  {{ rewardClaimed ? 'Reclamado' : `Reclamar $${rewardsConfig.valor_mision}` }}
-                </button>
+        <!-- Missions Section (Daily + Special) -->
+        <section class="px-2 pt-1 pb-4 grid grid-cols-2 gap-3">
+          <!-- Daily Missions Launcher -->
+          <button @click="showDailyModal = true" class="bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-lg border border-gray-100 dark:border-gray-700 relative overflow-hidden group active:scale-95 transition-all text-left">
+            <div class="absolute -top-4 -right-4 w-16 h-16 bg-emerald-500/10 rounded-full blur-xl group-hover:scale-150 transition-transform"></div>
+            <div class="flex flex-col gap-2 relative">
+              <div class="w-8 h-8 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-lg flex items-center justify-center shadow-sm">
+                <span class="text-white text-sm">🎯</span>
               </div>
-              
-              <div class="space-y-2">
-                <div v-for="mission in dailyMissions" :key="mission.id" 
-                     class="flex items-center justify-between p-2 rounded-xl bg-gray-50 dark:bg-gray-900/50 border border-gray-100 dark:border-gray-700">
-                  <div class="flex items-center gap-2">
-                    <div class="w-2 h-2 rounded-full transition-colors duration-500" :class="mission.completed ? 'bg-emerald-500' : 'bg-gray-300 dark:bg-gray-600'"></div>
-                    <span class="text-[11px] font-bold text-gray-600 dark:text-gray-300">{{ mission.title }}</span>
-                  </div>
-                  <span class="text-[10px] font-black transition-colors duration-500" :class="mission.completed ? 'text-emerald-500' : 'text-gray-400'">
-                    {{ mission.current }}/{{ mission.goal }}
-                  </span>
-                </div>
+              <div>
+                <h3 class="text-xs font-black text-gray-900 dark:text-white leading-tight uppercase">Misión Diaria</h3>
+                <p class="text-[9px] font-bold text-gray-400 uppercase tracking-widest mt-0.5">
+                  {{ isMissionsCompleted ? (rewardClaimed ? 'Reclamada' : '¡Lista!') : 'Ver progreso' }}
+                </p>
               </div>
             </div>
-          </div>
+          </button>
+
+          <!-- Special Missions Launcher -->
+          <button v-if="misionesEspeciales.length > 0" @click="showSpecialModal = true" class="bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-lg border border-indigo-100 dark:border-indigo-900/50 relative overflow-hidden group active:scale-95 transition-all text-left">
+            <div class="absolute -top-4 -right-4 w-16 h-16 bg-indigo-500/10 rounded-full blur-xl group-hover:scale-150 transition-transform"></div>
+            <div class="flex flex-col gap-2 relative">
+              <div class="w-8 h-8 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center shadow-sm">
+                <span class="text-white text-sm">⚡</span>
+              </div>
+              <div>
+                <div class="flex items-center gap-1.5">
+                  <h3 class="text-xs font-black text-gray-900 dark:text-white leading-tight uppercase text-nowrap">Especiales</h3>
+                  <span class="flex h-2 w-2 relative" v-if="misionesEspeciales.some(m => !m.claimStatus)">
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-2 w-2 bg-indigo-500"></span>
+                  </span>
+                </div>
+                <p class="text-[9px] font-bold text-gray-400 uppercase tracking-widest mt-0.5">
+                  {{ misionesEspeciales.length }} disponibles
+                </p>
+              </div>
+            </div>
+          </button>
         </section> 
 
 
@@ -226,6 +214,171 @@
        </div>
     </Transition>
 
+    <!-- ====== MODAL MISIONES DIARIAS ====== -->
+    <Transition name="bottom-sheet">
+       <div v-if="showDailyModal" class="fixed inset-0 z-[120] flex flex-col justify-end isolate">
+         <div class="absolute inset-0 bg-black/60 bs-backdrop" @click="showDailyModal = false"></div>
+         <div class="relative w-full bg-white dark:bg-gray-900 rounded-t-[2.5rem] shadow-[0_-8px_30px_rgba(0,0,0,0.15)] overflow-hidden max-h-[80vh] flex flex-col bs-content">
+           <div class="w-full flex items-center justify-between px-6 py-4 absolute top-0 left-0 z-20 pointer-events-none">
+              <div class="w-10 h-1 bg-gray-200 dark:bg-white/10 rounded-full mx-auto absolute left-1/2 -translate-x-1/2 top-3"></div>
+              <div class="flex-1"></div>
+              <button @click="showDailyModal = false" class="w-9 h-9 rounded-full bg-gray-50 dark:bg-white/5 backdrop-blur-xl text-gray-900 dark:text-white flex items-center justify-center active:scale-90 transition-transform pointer-events-auto border border-gray-100 dark:border-white/10">
+                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12" /></svg>
+              </button>
+           </div>
+
+           <div class="overflow-y-auto overscroll-contain no-scrollbar pt-12 pb-8">
+              <div class="px-6">
+                <div class="flex items-center gap-3 mb-6">
+                  <div class="w-10 h-10 rounded-2xl bg-emerald-500/20 flex items-center justify-center">
+                    <span class="text-xl">🎯</span>
+                  </div>
+                  <div>
+                    <h2 class="text-lg font-black text-gray-900 dark:text-white leading-tight">Misiones Diarias</h2>
+                    <p class="text-[10px] text-gray-500 font-bold uppercase tracking-widest">Completa y gana recompensas</p>
+                  </div>
+                </div>
+
+                <div class="space-y-3 mb-8">
+                  <div v-for="mission in dailyMissions" :key="mission.id" 
+                       class="flex items-center justify-between p-4 rounded-2xl bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/10">
+                    <div class="flex items-center gap-3">
+                      <div class="w-2.5 h-2.5 rounded-full transition-colors duration-500" :class="mission.completed ? 'bg-emerald-500' : 'bg-gray-300 dark:bg-gray-600'"></div>
+                      <span class="text-sm font-bold text-gray-700 dark:text-gray-300">{{ mission.title }}</span>
+                    </div>
+                    <span class="text-xs font-black transition-colors duration-500" :class="mission.completed ? 'text-emerald-500' : 'text-gray-400'">
+                      {{ mission.current }}/{{ mission.goal }}
+                    </span>
+                  </div>
+                </div>
+
+                <button 
+                  @click="handleClaimReward"
+                  :disabled="!isMissionsCompleted || rewardClaimed"
+                  class="w-full py-4 rounded-2xl font-black text-[13px] uppercase tracking-widest transition-all duration-300 shadow-xl"
+                  :class="[
+                    isMissionsCompleted && !rewardClaimed
+                      ? 'bg-emerald-500 text-white shadow-emerald-500/30 hover:scale-[1.02] active:scale-95 animate-pulse'
+                      : rewardClaimed 
+                        ? 'bg-emerald-100 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 cursor-not-allowed border border-emerald-200 dark:border-emerald-900/50 shadow-none'
+                        : 'bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-500 cursor-not-allowed shadow-none'
+                  ]"
+                >
+                  <span v-if="rewardClaimed">Recompensa Reclamada ✅</span>
+                  <span v-else-if="isMissionsCompleted">Reclamar $ {{ rewardsConfig.valor_mision }} 💰</span>
+                  <span v-else>Completa las misiones para reclamar</span>
+                </button>
+              </div>
+            </div>
+         </div>
+       </div>
+    </Transition>
+
+    <!-- ====== MODAL MISIONES ESPECIALES ====== -->
+    <Transition name="bottom-sheet">
+       <div v-if="showSpecialModal" class="fixed inset-0 z-[120] flex flex-col justify-end isolate">
+         <div class="absolute inset-0 bg-black/60 bs-backdrop" @click="showSpecialModal = false"></div>
+         <div class="relative w-full bg-white dark:bg-gray-900 rounded-t-[2.5rem] shadow-[0_-8px_30px_rgba(0,0,0,0.15)] overflow-hidden max-h-[85vh] flex flex-col bs-content">
+           <div class="w-full flex items-center justify-between px-6 py-4 absolute top-0 left-0 z-20 pointer-events-none">
+              <div class="w-10 h-1 bg-gray-200 dark:bg-white/10 rounded-full mx-auto absolute left-1/2 -translate-x-1/2 top-3"></div>
+              <div class="flex-1"></div>
+              <button @click="showSpecialModal = false" class="w-9 h-9 rounded-full bg-gray-50 dark:bg-white/5 backdrop-blur-xl text-gray-900 dark:text-white flex items-center justify-center active:scale-90 transition-transform pointer-events-auto border border-gray-100 dark:border-white/10">
+                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12" /></svg>
+              </button>
+           </div>
+
+           <div class="overflow-y-auto overscroll-contain no-scrollbar pt-12 pb-8">
+              <div class="px-6">
+                <div class="flex items-center gap-3 mb-6">
+                  <div class="w-10 h-10 rounded-2xl bg-indigo-500/20 flex items-center justify-center">
+                    <span class="text-xl">⚡</span>
+                  </div>
+                  <div>
+                    <h2 class="text-lg font-black text-gray-900 dark:text-white leading-tight">Misiones Especiales</h2>
+                    <p class="text-[10px] text-gray-500 font-bold uppercase tracking-widest">Desafíos exclusivos con grandes premios</p>
+                  </div>
+                </div>
+
+                <div class="space-y-4">
+                  <div v-for="mision in misionesEspeciales" :key="mision.id_mision" 
+                       class="bg-gray-50 dark:bg-white/5 rounded-2xl p-4 border border-gray-100 dark:border-white/10 relative overflow-hidden">
+                    
+                    <div class="relative flex flex-col gap-4">
+                      <div class="flex items-start space-x-3">
+                        <div class="w-10 h-10 shrink-0 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center shadow-md shadow-indigo-500/20">
+                          <span class="text-white text-lg">{{ mision.emoji || '⚡' }}</span>
+                        </div>
+                        <div class="flex-1">
+                          <div class="flex items-center gap-2 mb-0.5">
+                            <h3 class="text-sm font-black text-gray-900 dark:text-white leading-tight">
+                              {{ mision.titulo }}
+                            </h3>
+                            <span class="px-1.5 py-0.5 bg-indigo-100 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-400 rounded-md text-[8px] font-black uppercase tracking-wider">
+                              ESPECIAL
+                            </span>
+                          </div>
+                          <p class="text-[11px] text-gray-500 dark:text-gray-400 font-medium">
+                            {{ mision.descripcion }}
+                          </p>
+                        </div>
+                      </div>
+                      
+                      <div class="flex flex-col gap-4 pt-4 border-t border-gray-100 dark:border-white/5">
+                        <!-- Input for response -->
+                        <div v-if="!mision.claimStatus || mision.claimStatus === 'rechazado'" class="w-full">
+                          <!-- Respuesta Escrita -->
+                          <input 
+                            v-if="mision.tipo_respuesta === 'escrita'"
+                            v-model="respuestasMisiones[mision.id_mision]"
+                            type="text"
+                            placeholder="Escribe tu respuesta aquí..."
+                            class="w-full px-4 py-3 rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-xs font-bold text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500/50 transition-all shadow-inner"
+                          >
+                          <!-- Selección Única -->
+                          <select 
+                            v-else-if="mision.tipo_respuesta === 'seleccion'"
+                            v-model="respuestasMisiones[mision.id_mision]"
+                            class="w-full px-4 py-3 rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-xs font-bold text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500/50 transition-all appearance-none shadow-inner"
+                          >
+                            <option value="" disabled selected>Selecciona una opción...</option>
+                            <option v-for="(opc, i) in mision.opciones" :key="i" :value="opc">{{ opc }}</option>
+                          </select>
+                        </div>
+
+                        <div class="flex items-center justify-between gap-4">
+                          <div>
+                            <span class="text-[9px] font-bold text-gray-400 uppercase tracking-widest block">Recompensa</span>
+                            <span class="text-sm font-black text-indigo-600 dark:text-indigo-400">+$ {{ Number(mision.valor).toFixed(2) }}</span>
+                          </div>
+
+                          <button 
+                            @click="handleClaimSpecialMission(mision)"
+                            :disabled="mision.claimStatus === 'pendiente' || mision.claimStatus === 'aprobado'"
+                            class="px-5 py-3 rounded-xl font-black text-[11px] uppercase tracking-wider transition-all duration-300 min-w-[140px]"
+                            :class="[
+                              mision.claimStatus === 'pendiente'
+                                ? 'bg-amber-100 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 cursor-not-allowed border border-amber-200 dark:border-amber-900/50'
+                                : mision.claimStatus === 'aprobado'
+                                  ? 'bg-emerald-100 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 cursor-not-allowed border border-emerald-200 dark:border-emerald-900/50'
+                                  : 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-600/35 hover:scale-105 active:scale-95'
+                            ]"
+                          >
+                            <span v-if="mision.claimStatus === 'pendiente'">En Revisión 🕐</span>
+                            <span v-else-if="mision.claimStatus === 'aprobado'">Completado ✅</span>
+                            <span v-else-if="mision.claimStatus === 'rechazado'">Reintentar ⚡</span>
+                            <span v-else>Reclamar Misión</span>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+         </div>
+       </div>
+    </Transition>
+
     <!-- ====== VISOR DE MEDIOS (Lightbox) ====== -->
     <Transition name="fade">
       <div v-if="showMediaViewer" class="fixed inset-0 z-[200] bg-black/95 backdrop-blur-xl flex flex-col items-center justify-center p-4 cursor-pointer" @click="cerrarVisor">
@@ -259,14 +412,18 @@ import BottomNav from '~/components/footers/BottomNav.vue'
 import MediaCarousel from '~/components/ui/MediaCarousel.vue'
 import Toast from '~/components/ui/Toast.vue'
 import LoadingSpinner from '~/components/ui/LoadingSpinner.vue'
+import { useInteractionHistory } from '~/composables/useInteractionHistory'
 
 const { $api } = useNuxtApp()
 const auth = useAuthStore()
+const { markAsStale } = useInteractionHistory()
 const isLoading = ref(true)
 const shortName = computed(() => auth.user?.nombre?.split(' ')[0] || 'Usuario')
 
 const toast = ref({ show: false, message: '', type: 'success' })
 const pollModal = ref({ show: false, post: null })
+const showDailyModal = ref(false)
+const showSpecialModal = ref(false)
 
 // Media viewer state
 const showMediaViewer = ref(false)
@@ -281,7 +438,10 @@ const registerView = async (postId) => {
   if (viewedPostIds.value.has(postId)) return
   viewedPostIds.value.add(postId)
   try {
-    await $api(`/publicaciones/${postId}/vista`, { method: 'POST' })
+    await $api(`/publicaciones/${postId}/vista`, {
+      method: 'POST',
+      body: { id_usuario: auth.user.id_usuario }
+    })
   } catch (e) {
     console.warn('Error registrando vista:', e)
   }
@@ -298,86 +458,83 @@ const rewardsConfig = ref({
 const hasMembership = ref(false)
 const earningsMultiplier = computed(() => hasMembership.value ? 2 : 1)
 
-// Daily Missions Logic
+// Daily & Special Missions Logic
 const rewardClaimed = ref(false)
 const lastShareAttempt = ref({ id: null, time: null })
 const dailyMissions = ref([
-  { id: 1, title: 'Dar 3 likes', goal: 3, current: 0, completed: false, trackedIds: new Set() },
-  { id: 2, title: 'Ver 1 video completo', goal: 1, current: 0, completed: false, trackedIds: new Set() },
-  { id: 3, title: 'Compartir 1 vez', goal: 1, current: 0, completed: false, trackedIds: new Set() }
+  { id: 1, title: 'Dar 3 likes', goal: 3, current: 0, completed: false },
+  { id: 2, title: 'Ver 1 video completo', goal: 1, current: 0, completed: false },
+  { id: 3, title: 'Compartir 1 vez', goal: 1, current: 0, completed: false }
 ])
+
+const misionesEspeciales = ref([])
+const respuestasMisiones = ref({}) // Objeto para guardar respuestas por id_mision
 
 const isMissionsCompleted = computed(() => {
   return dailyMissions.value.every(m => m.completed)
 })
 
-// --- Persistence Logic ---
-const saveMissions = () => {
+const fetchMissionsProgress = async () => {
   if (!auth.user?.id_usuario) return
-  const data = {
-    rewardClaimed: rewardClaimed.value,
-    missions: dailyMissions.value.map(m => ({
-      id: m.id,
-      current: m.current,
-      completed: m.completed,
-      trackedIds: Array.from(m.trackedIds)
-    })),
-    lastUpdate: new Date().toDateString()
-  }
-  localStorage.setItem(`missions_${auth.user.id_usuario}`, JSON.stringify(data))
-}
-
-const loadMissions = () => {
-  if (!auth.user?.id_usuario) return
-  const saved = localStorage.getItem(`missions_${auth.user.id_usuario}`)
-  if (saved) {
-    try {
-      const data = JSON.parse(saved)
-      if (data.lastUpdate === new Date().toDateString()) {
-        rewardClaimed.value = data.rewardClaimed
-        data.missions.forEach(sm => {
-          const m = dailyMissions.value.find(dm => dm.id === sm.id)
-          if (m) {
-            m.current = sm.current
-            m.completed = sm.completed
-            m.trackedIds = new Set(sm.trackedIds)
-          }
-        })
-      } else {
-        localStorage.removeItem(`missions_${auth.user.id_usuario}`)
+  try {
+    const res = await $api(`/misiones/progreso/${auth.user.id_usuario}`)
+    if (res && res.success) {
+      rewardClaimed.value = res.rewardClaimed
+      
+      const likeM = dailyMissions.value.find(m => m.id === 1)
+      if (likeM) {
+        likeM.current = res.progress.likes
+        likeM.completed = res.progress.likes >= likeM.goal
       }
-    } catch (e) {
-      console.error('Error loading missions:', e)
+      const videoM = dailyMissions.value.find(m => m.id === 2)
+      if (videoM) {
+        videoM.current = res.progress.video
+        videoM.completed = res.progress.video >= videoM.goal
+      }
+      const shareM = dailyMissions.value.find(m => m.id === 3)
+      if (shareM) {
+        shareM.current = res.progress.share
+        shareM.completed = res.progress.share >= shareM.goal
+      }
     }
+  } catch (e) {
+    console.error('Error fetching missions progress:', e)
   }
 }
 
-// Auto-save changes
-watch([dailyMissions, rewardClaimed], () => {
-  saveMissions()
-}, { deep: true })
-// --------------------------
+const fetchMisionesEspeciales = async () => {
+  if (!auth.user?.id_usuario) return
+  try {
+    const res = await $api(`/misiones/especial?id_usuario=${auth.user.id_usuario}`)
+    if (res.success) {
+      misionesEspeciales.value = res.data
+      // Inicializar respuestas si no existen
+      res.data.forEach(m => {
+        if (!respuestasMisiones.value[m.id_mision]) {
+          respuestasMisiones.value[m.id_mision] = ''
+        }
+      })
+    }
+  } catch (e) {
+    console.error('Error fetching special missions:', e)
+  }
+}
 
 const handleClaimReward = async () => {
   if (isMissionsCompleted.value && !rewardClaimed.value) {
-    const rewardValue = rewardsConfig.value.valor_mision
-    
     try {
-      // Registrar el crédito en el backend
-      const res = await $api('/credito', {
+      const res = await $api('/misiones/reclamar/auto', {
         method: 'POST',
-        body: {
-          id_usuario: auth.user.id_usuario,
-          monto_credito: rewardValue
-        }
+        body: { id_usuario: auth.user.id_usuario }
       })
-      
       if (res.success) {
-        totalEarnings.value += rewardValue
+        totalEarnings.value = res.nuevo_saldo
         rewardClaimed.value = true
-        showToast(`¡Recompensa diaria reclamada! +$${rewardValue.toFixed(2)} 🎉`, 'success')
+        markAsStale()
+        showToast(`¡Recompensa diaria reclamada! +$${Number(res.monto_acreditado).toFixed(2)} 🎉`, 'success')
+        await fetchMissionsProgress()
       } else {
-        showToast('Error al reclamar recompensa', 'error')
+        showToast(res.error || 'Error al reclamar recompensa', 'error')
       }
     } catch (e) {
       console.error('Error claiming mission reward:', e)
@@ -386,18 +543,40 @@ const handleClaimReward = async () => {
   }
 }
 
+const handleClaimSpecialMission = async (mision) => {
+  const respuesta = respuestasMisiones.value[mision.id_mision]
+  if (!respuesta || !respuesta.trim()) {
+    showToast('Por favor completa la respuesta antes de reclamar', 'error')
+    return
+  }
+  try {
+    const res = await $api('/misiones/especial/reclamar', {
+      method: 'POST',
+      body: { 
+        id_usuario: auth.user.id_usuario,
+        id_mision: mision.id_mision,
+        respuesta: respuesta
+      }
+    })
+    if (res.success) {
+      showToast('Tu reclamo fue enviado al administrador 🕐', 'success')
+      markAsStale()
+      await fetchMisionesEspeciales() // Recargar para actualizar estado
+    } else {
+      showToast(res.error || 'Error al reclamar misión', 'error')
+    }
+  } catch (e) {
+    console.error('Error claiming special mission:', e)
+    showToast('Error al conectar con el servidor', 'error')
+  }
+}
+
 // Validation logic for "Return to site"
-const validateShareMission = () => {
+const validateShareMission = async () => {
   if (lastShareAttempt.value.time && lastShareAttempt.value.id) {
     const timeElapsed = Date.now() - lastShareAttempt.value.time
     if (timeElapsed >= 5000) { // 5 seconds
-      const shareMission = dailyMissions.value.find(m => m.id === 3)
-      if (shareMission && !shareMission.completed && !shareMission.trackedIds.has(lastShareAttempt.value.id)) {
-        shareMission.trackedIds.add(lastShareAttempt.value.id)
-        shareMission.current = shareMission.trackedIds.size
-        if (shareMission.current >= shareMission.goal) shareMission.completed = true
-        showToast('¡Misión de compartir completada! ✅', 'success')
-      }
+      await fetchMissionsProgress()
     }
     lastShareAttempt.value = { id: null, time: null } // Reset
   }
@@ -549,15 +728,9 @@ const handleVideoComplete = async (post) => {
       post.videoCompleted = true
       const gainValue = rewardsConfig.value.valor_video * earningsMultiplier.value
       totalEarnings.value += gainValue
+      markAsStale()
       showToast(`🎉 ¡Ganaste $${gainValue.toFixed(2)}! Video completado.`, 'success')
-      
-      // Update daily mission (id: 2)
-      const videoMission = dailyMissions.value.find(m => m.id === 2)
-      if (videoMission && !videoMission.completed && !videoMission.trackedIds.has(post.id)) {
-        videoMission.trackedIds.add(post.id)
-        videoMission.current = videoMission.trackedIds.size
-        if (videoMission.current >= videoMission.goal) videoMission.completed = true
-      }
+      await fetchMissionsProgress()
     } else if (res.already_done) {
       post.videoCompleted = true
       showToast('Ya has recibido recompensa por este video anteriormente.', 'info')
@@ -577,26 +750,11 @@ const handleLike = async (post) => {
   if (res.success) {
     if (res.action === 'liked') {
       totalEarnings.value += rewardsConfig.value.valor_like * earningsMultiplier.value
-      // Update daily mission (id: 1)
-      const likeMission = dailyMissions.value.find(m => m.id === 1)
-      if (likeMission && !likeMission.completed && !likeMission.trackedIds.has(post.id)) {
-        likeMission.trackedIds.add(post.id)
-        likeMission.current = likeMission.trackedIds.size
-        if (likeMission.current >= likeMission.goal) likeMission.completed = true
-      }
     } else {
       totalEarnings.value -= rewardsConfig.value.valor_like * earningsMultiplier.value
-      // Update daily mission (id: 1) - Remove point if unliked
-      const likeMission = dailyMissions.value.find(m => m.id === 1)
-      if (likeMission && likeMission.trackedIds.has(post.id)) {
-        likeMission.trackedIds.delete(post.id)
-        likeMission.current = likeMission.trackedIds.size
-        // If they already completed it, we check if they fall below the goal
-        if (likeMission.current < likeMission.goal) {
-          likeMission.completed = false
-        }
-      }
     }
+    markAsStale()
+    await fetchMissionsProgress()
   } else {
     // Revert
     post.liked = originalLiked
@@ -618,6 +776,7 @@ const handleShare = async (post) => {
   if (res && res.success) {
     const gainValue = rewardsConfig.value.valor_compartir * earningsMultiplier.value
     totalEarnings.value += gainValue
+    markAsStale()
     showToast(`🎉 ¡Ganaste $${gainValue.toFixed(2)}! por compartir.`, 'success')
   } else if (res && res.already_done) {
     showToast('Ya has compartido esta publicación anteriormente (Sola una recompensa permitida).', 'info')
@@ -643,6 +802,7 @@ const submitPollAnswer = async (option) => {
     if (res.success) {
       post.poll.answered = true
       pollModal.value.show = false
+      markAsStale()
       
       if (option === post.poll.correctAnswer) {
         const reward = rewardsConfig.value.valor_encuesta * earningsMultiplier.value
@@ -671,6 +831,7 @@ const handleLink = async (post) => {
   if (res && res.success) {
     const gainValue = rewardsConfig.value.valor_visita_web * earningsMultiplier.value
     totalEarnings.value += gainValue
+    markAsStale()
     showToast(`🎉 ¡Ganaste $${gainValue.toFixed(2)}! por visitar el enlace.`, 'success')
   } else if (res && res.already_done) {
     showToast('Ya has visitado este enlace anteriormente.', 'info')
@@ -690,6 +851,7 @@ const handleWhatsApp = async (post) => {
   if (res && res.success) {
     const gainValue = rewardsConfig.value.valor_visita_whatsapp * earningsMultiplier.value
     totalEarnings.value += gainValue
+    markAsStale()
     showToast(`🎉 ¡Ganaste $${gainValue.toFixed(2)}! por contactar vendededor.`, 'success')
   } else if (res && res.already_done) {
     showToast('Ya has contactado a este vendedor anteriormente.', 'info')
@@ -711,8 +873,8 @@ onMounted(async () => {
   document.addEventListener('visibilitychange', handlePageShow)
   window.addEventListener('focus', handlePageShow)
   
-  // Load persisted missions
-  loadMissions()
+  await fetchMissionsProgress()
+  await fetchMisionesEspeciales()
   
   await fetchRewardsConfig()
   await fetchPosts()
