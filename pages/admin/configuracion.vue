@@ -326,7 +326,7 @@
                 <i class="fas fa-paper-plane text-xs"></i>
               </button>
               <button 
-                @click="confirmarEliminarNotificacion(notif.id_notificacion)"
+                @click="confirmarEliminarNotificacion(notif)"
                 class="w-8 h-8 bg-red-500/20 border border-red-500/30 rounded-lg flex items-center justify-center text-red-400 hover:bg-red-500 hover:text-white transition-all"
                 title="Eliminar Plantilla"
               >
@@ -1161,6 +1161,37 @@
       </div>
     </Transition>
 
+    <!-- Modal: Confirmación Eliminar Notificación -->
+    <Transition name="fade-scale">
+      <div v-if="mostrarModalConfirmEliminarNotif" class="fixed inset-0 z-[60] flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-[#070b14]/80 backdrop-blur-sm" @click="mostrarModalConfirmEliminarNotif = false"></div>
+        <div v-if="notifAEliminar" class="bg-[#0d121f] border border-white/10 rounded-[2.5rem] p-6 w-full max-w-sm relative z-10 space-y-6 shadow-2xl">
+          <div class="text-center">
+            <div class="w-16 h-16 bg-red-500/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
+              <i class="fas fa-trash-alt text-red-500 text-2xl"></i>
+            </div>
+            <h3 class="text-sm font-black text-white uppercase tracking-widest">Eliminar Notificación</h3>
+            <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-2 leading-relaxed">
+              ¿Estás seguro de que deseas eliminar la plantilla <br>
+              <strong class="text-white">"{{ notifAEliminar.titulo }}"</strong>?<br>
+              <span class="text-red-500/70 mt-1 block italic text-[8px]">Esta acción no se puede deshacer.</span>
+            </p>
+          </div>
+
+          <div class="flex gap-3">
+            <button @click="mostrarModalConfirmEliminarNotif = false" 
+                    class="flex-1 py-3 bg-white/5 border border-white/10 text-gray-400 font-black uppercase tracking-widest text-[9px] rounded-xl hover:text-white transition-all">
+              Cancelar
+            </button>
+            <button @click="confirmarEliminarNotificacionDefinitivo" 
+                    class="flex-1 py-3 bg-red-500 text-white font-black uppercase tracking-widest text-[9px] rounded-xl hover:bg-red-400 transition-all flex items-center justify-center gap-2 shadow-lg shadow-red-900/20">
+              Eliminar
+            </button>
+          </div>
+        </div>
+      </div>
+    </Transition>
+
     <BottomNav />
   </div>
 </template>
@@ -1635,10 +1666,13 @@ const cargarNotificaciones = async () => {
     const res = await $api('/notificaciones/manuales')
     if (res.success) {
       notificaciones.value = res.data
+    } else {
+      showToast(res.message || 'No se pudieron cargar las plantillas de notificación', 'error')
     }
   } catch (error) {
     console.error('Error al cargar notificaciones:', error)
-    showToast('Error al cargar las notificaciones', 'error')
+    const errorMsg = error.data?.message || 'Error de red al conectar con el servidor de notificaciones'
+    showToast(errorMsg, 'error')
   } finally {
     isLoadingNotifications.value = false
   }
@@ -1673,24 +1707,29 @@ const crearNotificacion = async () => {
   }
 }
 
-const confirmarEliminarNotificacion = (id) => {
-  if (confirm('¿Estás seguro de que deseas eliminar esta plantilla de notificación?')) {
-    eliminarNotificacion(id)
-  }
+const confirmarEliminarNotificacion = (notif) => {
+  notifAEliminar.value = notif
+  mostrarModalConfirmEliminarNotif.value = true
 }
 
-const eliminarNotificacion = async (id) => {
+const confirmarEliminarNotificacionDefinitivo = async () => {
+  if (!notifAEliminar.value) return
+  
   try {
-    const res = await $api(`/notificaciones/${id}`, {
+    const res = await $api(`/notificaciones/${notifAEliminar.value.id_notificacion}`, {
       method: 'DELETE'
     })
     if (res.success) {
       showToast('Notificación eliminada exitosamente')
+      mostrarModalConfirmEliminarNotif.value = false
       await cargarNotificaciones()
     }
   } catch (error) {
     console.error('Error al eliminar notificación:', error)
-    showToast('Error al eliminar la notificación', 'error')
+    const errorMsg = error.data?.message || 'Error al eliminar la notificación'
+    showToast(errorMsg, 'error')
+  } finally {
+    notifAEliminar.value = null
   }
 }
 
@@ -1736,6 +1775,10 @@ const mostrandoFormMision = ref(false)
 const misionEditandoId = ref(null)
 const mostrarModalConfirmEliminarMision = ref(false)
 const misionAEliminar = ref(null)
+
+// Notificaciones
+const mostrarModalConfirmEliminarNotif = ref(false)
+const notifAEliminar = ref(null)
 
 // Finalizar Misión de Selección
 const mostrarModalFinalizar = ref(false)

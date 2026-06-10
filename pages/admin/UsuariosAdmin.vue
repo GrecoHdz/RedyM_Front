@@ -943,8 +943,8 @@
                       :custom-label="getRoleLabel"
                       @search-change="$event && $event.stopPropagation()"
                       @search-focus="(e) => e && e.target && e.target.blur()"
-                      @touchstart.native.stop
-                      @click.native.stop
+                      @touchstart.stop
+                      @click.stop
                       :options-limit="100"
                     >
                       <template #singleLabel="{ option }">
@@ -2557,8 +2557,19 @@ input, textarea, select {
 
 <script setup>
 import { ref, computed, onMounted, nextTick, watch } from 'vue'
-import { debounce } from 'lodash-es'
 import Multiselect from 'vue-multiselect'
+
+const debounce = (func, wait) => {
+  let timeout
+  return function executedFunction(...args) {
+    const later = () => {
+      clearTimeout(timeout)
+      func(...args)
+    }
+    clearTimeout(timeout)
+    timeout = setTimeout(later, wait)
+  }
+}
 import { useHead, useCookie } from '#imports'
 import { useRouter, useRoute } from 'vue-router'
 

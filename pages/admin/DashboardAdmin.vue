@@ -9,38 +9,63 @@
     <!-- Content Container with max-w-2xl to match copy.vue -->
     <div class="max-w-2xl mx-auto bg-gray-50 dark:bg-gray-900 min-h-screen relative">
       <main class="pt-16 pb-2">
-        <!-- Statistics Button Section -->
-        <section class="px-2 pt-1 pb-4">
+        <!-- Statistics & Activity Section -->
+        <section class="px-2 pt-1 pb-4 grid grid-cols-2 gap-3">
+          <!-- Estadísticas -->
           <NuxtLink 
             to="/admin/EstadisticasAdmin"
-            class="w-full bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-lg border border-gray-100 dark:border-gray-700 relative overflow-hidden group active:scale-[0.98] transition-all duration-300 block"
+            class="bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-lg border border-gray-100 dark:border-gray-700 relative overflow-hidden group active:scale-[0.98] transition-all duration-300 block"
           >
             <!-- Background decoration -->
             <div class="absolute -top-8 -right-8 w-24 h-24 bg-gradient-to-br from-emerald-400/20 to-teal-400/20 rounded-full blur-xl group-hover:scale-110 transition-transform duration-500"></div>
-            <div class="absolute -bottom-6 -left-6 w-20 h-20 bg-gradient-to-br from-blue-400/20 to-indigo-400/20 rounded-full blur-lg group-hover:scale-110 transition-transform duration-500"></div>
             
-            <div class="relative flex items-center justify-between">
-              <div class="flex items-center space-x-3">
-                <div class="w-12 h-12 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-xl flex items-center justify-center shadow-lg shadow-emerald-500/20">
-                  <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                  </svg>
-                </div>
-                <div class="text-left">
-                  <h2 class="text-base font-black text-gray-900 dark:text-white leading-tight">
-                    Estadísticas Globales
-                  </h2>
-                  <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Métricas generales y financieras</p>
-                </div>
-              </div>
-              
-              <div class="flex items-center space-x-2">
-                <svg class="w-5 h-5 text-gray-300 dark:text-gray-600 group-hover:text-emerald-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+            <div class="relative flex flex-col items-start space-y-3">
+              <div class="w-10 h-10 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-xl flex items-center justify-center shadow-lg shadow-emerald-500/20">
+                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                 </svg>
+              </div>
+              <div class="text-left">
+                <h2 class="text-xs font-black text-gray-900 dark:text-white leading-tight uppercase tracking-tight">
+                  Estadísticas
+                </h2>
+                <p class="text-[8px] font-bold text-gray-400 uppercase tracking-widest">Métricas Globales</p>
               </div>
             </div>
           </NuxtLink>
+
+          <!-- Actividad Reciente -->
+          <button 
+            @click="abrirModalActividad"
+            class="bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-lg border border-gray-100 dark:border-gray-700 relative overflow-hidden group active:scale-[0.98] transition-all duration-300 block text-left"
+          >
+            <!-- Background decoration -->
+            <div class="absolute -top-8 -right-8 w-24 h-24 bg-gradient-to-br from-blue-400/20 to-indigo-400/20 rounded-full blur-xl group-hover:scale-110 transition-transform duration-500"></div>
+            
+            <!-- Badge de notificaciones no leídas -->
+            <div v-if="unreadCount > 0" class="absolute top-3 right-3 flex items-center justify-center">
+              <div class="relative">
+                <div class="absolute -inset-1 bg-rose-500/20 rounded-full blur-sm animate-pulse"></div>
+                <div class="relative bg-gradient-to-br from-rose-500 to-red-600 text-white text-[10px] font-black rounded-full min-w-[22px] h-[22px] flex items-center justify-center px-1.5 shadow-lg shadow-rose-500/30">
+                  {{ unreadCount > 99 ? '99+' : unreadCount }}
+                </div>
+              </div>
+            </div>
+            
+            <div class="relative flex flex-col items-start space-y-3">
+              <div class="w-10 h-10 bg-gradient-to-br from-blue-400 to-indigo-500 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/20">
+                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <div class="text-left">
+                <h2 class="text-xs font-black text-gray-900 dark:text-white leading-tight uppercase tracking-tight">
+                  Actividad
+                </h2>
+                <p class="text-[8px] font-bold text-gray-400 uppercase tracking-widest">Eventos Recientes</p>
+              </div>
+            </div>
+          </button>
         </section>
 
 
@@ -219,6 +244,106 @@
          </div>
        </div>
     </Transition>
+
+    <!-- Modal: Actividad Reciente -->
+    <Transition name="bottom-sheet">
+      <div v-if="modalActividad.show" class="fixed inset-0 z-[120] flex flex-col justify-end isolate">
+        <!-- Backdrop -->
+        <div class="absolute inset-0 bg-black/60 bs-backdrop" @click="modalActividad.show = false"></div>
+
+        <!-- Modal Content -->
+        <div class="relative w-full bg-white dark:bg-gray-900 rounded-t-[2.5rem] shadow-[0_-8px_30px_rgba(0,0,0,0.15)] overflow-hidden max-h-[85vh] flex flex-col bs-content">
+          <!-- Handle bar -->
+          <div class="w-12 h-1 bg-gray-200 dark:bg-white/10 rounded-full mx-auto mt-3 mb-1"></div>
+          
+          <!-- Header -->
+          <div class="px-6 py-4 flex items-center justify-between border-b border-gray-100 dark:border-white/5">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-2xl bg-blue-500/10 flex items-center justify-center">
+                <span class="text-xl">📋</span>
+              </div>
+              <div>
+                <h2 class="text-lg font-black text-gray-900 dark:text-white leading-tight uppercase tracking-tight">Actividad Reciente</h2>
+                <p class="text-[10px] text-gray-500 font-bold uppercase tracking-widest">Logs del sistema y usuarios</p>
+              </div>
+            </div>
+            <button 
+              @click="modalActividad.show = false"
+              class="w-9 h-9 rounded-xl bg-gray-50 dark:bg-white/5 text-gray-900 dark:text-white flex items-center justify-center border border-gray-100 dark:border-white/10"
+            >
+              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12" /></svg>
+            </button>
+          </div>
+
+          <!-- Content -->
+          <div class="flex-1 overflow-y-auto p-6 no-scrollbar">
+            <div v-if="isActivitiesLoading" class="flex flex-col items-center justify-center py-20">
+              <div class="w-10 h-10 border-4 border-blue-500/20 border-t-blue-500 rounded-full animate-spin"></div>
+              <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-4">Cargando actividades...</p>
+            </div>
+
+            <div v-else-if="recentActivities.length === 0" class="text-center py-20">
+              <div class="w-16 h-16 bg-gray-50 dark:bg-white/5 rounded-3xl mx-auto mb-4 flex items-center justify-center">
+                <span class="text-3xl">📭</span>
+              </div>
+              <p class="text-xs font-bold text-gray-500 uppercase tracking-widest">No hay actividad registrada hoy</p>
+            </div>
+
+            <div v-else class="space-y-4">
+              <div v-for="activity in recentActivities" :key="activity.id"
+                   class="flex items-start gap-4 p-4 bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/5 rounded-3xl group transition-all">
+                <div class="w-11 h-11 rounded-2xl flex items-center justify-center flex-shrink-0 bg-blue-500/10 text-blue-500 group-hover:scale-110 transition-transform">
+                  <span class="text-lg">{{ activity.icon || '📝' }}</span>
+                </div>
+                <div class="flex-1 min-w-0">
+                  <div class="flex items-center justify-between mb-1">
+                    <div class="flex flex-col">
+                      <div class="flex items-center gap-1">
+                        <span class="text-[9px] font-black text-blue-500 uppercase tracking-widest">{{ activity.user || 'Sistema' }}</span>
+                        <span class="text-[9px] font-black text-gray-400 uppercase tracking-widest">{{ activity.role || 'Usuario' }}</span>
+                      </div>
+                    </div>
+                    <span class="text-[9px] font-bold text-gray-400">{{ getRelativeTime(activity.date) }}</span>
+                  </div>
+                  <p class="text-xs font-bold text-gray-900 dark:text-white leading-snug">{{ activity.title }}</p>
+                  <div class="flex items-center gap-2 mt-1.5">
+                    <span class="px-1.5 py-0.5 rounded-md bg-gray-100 dark:bg-white/10 text-[7px] font-black text-gray-500 dark:text-gray-400 uppercase tracking-widest">
+                      {{ activity.type || 'General' }}
+                    </span>
+                    <span v-if="activity.creado_por !== 'Sistema'" class="px-1.5 py-0.5 rounded-md bg-emerald-500/10 text-[7px] font-black text-emerald-500 uppercase tracking-widest border border-emerald-500/20">
+                      Manual
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Pagination Footer -->
+          <div v-if="totalActivityPages > 1" class="p-6 bg-white dark:bg-gray-900 border-t border-gray-100 dark:border-white/5">
+            <div class="flex items-center justify-between">
+              <span class="text-[10px] font-black text-gray-500 uppercase tracking-widest">Pág. {{ currentActivityPage }} de {{ totalActivityPages }}</span>
+              <div class="flex gap-2">
+                <button 
+                  @click="cambiarPaginaActividad(currentActivityPage - 1)"
+                  :disabled="currentActivityPage === 1"
+                  class="w-10 h-10 rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/10 flex items-center justify-center text-gray-400 disabled:opacity-30"
+                >
+                  <i class="fas fa-chevron-left text-xs"></i>
+                </button>
+                <button 
+                  @click="cambiarPaginaActividad(currentActivityPage + 1)"
+                  :disabled="currentActivityPage === totalActivityPages"
+                  class="w-10 h-10 rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/10 flex items-center justify-center text-gray-400 disabled:opacity-30"
+                >
+                  <i class="fas fa-chevron-right text-xs"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </Transition>
   </div>
 </template>
 
@@ -259,6 +384,107 @@ const rewardsConfig = ref({
 
 const hasMembership = ref(false)
 const earningsMultiplier = computed(() => hasMembership.value ? 2 : 1)
+
+// --- Actividad Reciente ---
+const modalActividad = ref({ show: false })
+const recentActivities = ref([])
+const isActivitiesLoading = ref(false)
+const currentActivityPage = ref(1)
+const totalActivityPages = ref(1)
+const unreadCount = ref(0)
+
+const updateUnreadCount = async () => {
+  if (!auth.user?.id_usuario) return
+  try {
+    const res = await $api(`/notificaciones/usuario/${auth.user.id_usuario}?page=1&limit=1`)
+    if (res.success && res.unreadCount !== undefined) {
+      unreadCount.value = res.unreadCount
+    }
+  } catch (error) {
+    console.error('Error al actualizar contador de notificaciones:', error)
+  }
+}
+
+const getNotificationIcon = (titulo) => {
+  const t = titulo.toLowerCase()
+  if (t.includes('cuenta creada') || t.includes('registro')) return '🆕'
+  if (t.includes('acceso') || t.includes('login')) return '🔐'
+  if (t.includes('modificación') || t.includes('actualización')) return '📝'
+  if (t.includes('pago') || t.includes('comisión')) return '💰'
+  if (t.includes('membresía')) return '💳'
+  if (t.includes('misión')) return '⚡'
+  if (t.includes('verificaci')) return '✅'
+  return '🔔'
+}
+
+const getRelativeTime = (fecha) => {
+  const now = new Date()
+  const date = new Date(fecha)
+  const diff = now - date
+  const seconds = Math.floor(diff / 1000)
+  const minutes = Math.floor(seconds / 60)
+  const hours = Math.floor(minutes / 60)
+  const days = Math.floor(hours / 24)
+
+  if (days > 0) return `Hace ${days} d`
+  if (hours > 0) return `Hace ${hours} h`
+  if (minutes > 0) return `Hace ${minutes} m`
+  return 'Ahora mismo'
+}
+
+const loadActivities = async () => {
+  isActivitiesLoading.value = true
+  try {
+    const res = await $api(`/notificaciones?page=${currentActivityPage.value}&limit=5`)
+    if (res.success) {
+      recentActivities.value = res.data.map(notif => ({
+        id: notif.id || Math.random().toString(36).substr(2, 9),
+        title: notif.titulo,
+        date: notif.fecha,
+        user: notif.nombreUsuario,
+        role: notif.rolUsuario,
+        type: notif.tipo,
+        creado_por: notif.creado_por,
+        icon: getNotificationIcon(notif.titulo)
+      }))
+      if (res.pagination) {
+        totalActivityPages.value = res.pagination.pages
+      }
+    }
+  } catch (error) {
+    console.error('Error al cargar actividades:', error)
+    showToast('Error al cargar actividades recientes', 'error')
+  } finally {
+    isActivitiesLoading.value = false
+  }
+}
+
+const abrirModalActividad = async () => {
+  currentActivityPage.value = 1
+  modalActividad.value.show = true
+  
+  // Marcar todas las notificaciones como leídas
+  if (auth.user?.id_usuario) {
+    try {
+      await $api('/notificaciones/marcar/leidas', {
+        method: 'PUT',
+        body: { id_usuario: auth.user.id_usuario }
+      })
+      unreadCount.value = 0
+    } catch (error) {
+      console.error('Error al marcar notificaciones como leídas:', error)
+    }
+  }
+  
+  loadActivities()
+}
+
+const cambiarPaginaActividad = (pagina) => {
+  if (pagina < 1 || pagina > totalActivityPages.value) return
+  currentActivityPage.value = pagina
+  loadActivities()
+}
+// --------------------------
 
 // Daily Missions Logic
 const rewardClaimed = ref(false)
@@ -349,6 +575,7 @@ const validateShareMission = () => {
 const handlePageShow = () => {
   if (document.visibilityState === 'visible') {
     validateShareMission()
+    updateUnreadCount()
   }
 }
 
@@ -578,7 +805,8 @@ onMounted(async () => {
   // 2. Cargar datos necesarios en paralelo
   await Promise.all([
     fetchRewardsConfig(),
-    fetchMembershipStatus()
+    fetchMembershipStatus(),
+    updateUnreadCount()
   ])
   
   // 3. Cargar publicaciones frescas (con debounce y paginación)

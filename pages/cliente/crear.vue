@@ -495,19 +495,7 @@
             <p class="text-[10px] text-gray-500 font-black uppercase tracking-[0.2em]">Cargando métricas...</p>
           </div>
 
-          <div v-else-if="selectedPubStats" class="space-y-8">
-            
-            <!-- Resumen Rápido -->
-            <div class="grid grid-cols-2 gap-3">
-              <div class="bg-white/5 border border-white/5 p-4 rounded-2xl text-center">
-                <p class="text-[8px] font-black text-gray-500 uppercase tracking-widest mb-1">Vistas Totales</p>
-                <p class="text-2xl font-black text-white">{{ selectedPubStats.totalVistas }}</p>
-              </div>
-              <div class="bg-white/5 border border-white/5 p-4 rounded-2xl text-center">
-                <p class="text-[8px] font-black text-gray-500 uppercase tracking-widest mb-1">Interacciones</p>
-                <p class="text-2xl font-black text-emerald-500">{{ selectedPubStats.totalInteracciones }}</p>
-              </div>
-            </div>
+          <div v-else-if="selectedPubStats" class="space-y-8"> 
 
             <!-- Desglose de Interacciones -->
             <div class="space-y-3">
