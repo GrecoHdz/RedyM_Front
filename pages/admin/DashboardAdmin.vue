@@ -8,7 +8,7 @@
 
     <!-- Content Container with max-w-2xl to match copy.vue -->
     <div class="max-w-2xl mx-auto bg-gray-50 dark:bg-gray-900 min-h-screen relative">
-      <main class="pt-16 pb-24">
+      <main class="pt-16 pb-2">
         <!-- Statistics Button Section -->
         <section class="px-2 pt-1 pb-4">
           <NuxtLink 
@@ -120,6 +120,21 @@
             </div>
           </article>
         </div>
+
+        <!-- Infinite Scroll Trigger & Loading States -->
+        <div ref="infiniteScrollTrigger" class="py-10 flex flex-col items-center justify-center space-y-4">
+          <div v-if="isPostsLoading" class="flex flex-col items-center">
+            <div class="w-8 h-8 border-4 border-emerald-500/20 border-t-emerald-500 rounded-full animate-spin"></div>
+            <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-3">Cargando más publicaciones...</p>
+          </div>
+          
+          <div v-else-if="postsError" class="text-center px-6">
+            <p class="text-sm font-bold text-rose-500 mb-3">{{ postsError }}</p>
+            <button @click="fetchPosts(false, rewardsConfig)" class="px-6 py-2 bg-gray-100 dark:bg-gray-800 rounded-xl text-xs font-black uppercase tracking-widest text-gray-600 dark:text-gray-400 active:scale-95 transition-transform">
+              Reintentar carga
+            </button>
+          </div> 
+        </div>
       </main>
     </div>
 
@@ -215,10 +230,21 @@ import MediaCarousel from '~/components/ui/MediaCarousel.vue'
 import Toast from '~/components/ui/Toast.vue'
 import LoadingSpinner from '~/components/ui/LoadingSpinner.vue'
 import { useInteractionHistory } from '~/composables/useInteractionHistory'
+import { usePostsLoader } from '~/composables/usePostsLoader'
 
 const { $api } = useNuxtApp()
 const auth = useAuthStore()
 const { markAsStale } = useInteractionHistory()
+
+const { 
+  posts: feedPosts, 
+  isLoading: isPostsLoading, 
+  hasMore, 
+  error: postsError, 
+  fetchPosts, 
+  loadFromCache 
+} = usePostsLoader({ limit: 10 })
+
 const isLoading = ref(true)
 const shortName = computed(() => auth.user?.nombre?.split(' ')[0] || 'Usuario')
 
@@ -352,64 +378,23 @@ const fetchMembershipStatus = async () => {
   }
 }
 
-const fetchPosts = async () => {
-  try {
-    const res = await $api('/publicaciones', {
-      params: { uid: auth.user.id_usuario }
-    })
-    if (res.success && res.data) {
-      feedPosts.value = res.data.map(p => {
-        // Formatear tiempo relativo básico
-        const postDate = new Date(p.fecha)
-        const diffMs = Date.now() - postDate
-        const diffMin = Math.round(diffMs / 60000)
-        let timeLabel = 'Hace un momento'
-        
-        if (diffMin >= 1440) {
-          const days = Math.floor(diffMin / 1440)
-          timeLabel = `Hace ${days} ${days === 1 ? 'día' : 'días'}`
-        } else if (diffMin >= 60) {
-          const hours = Math.floor(diffMin / 60)
-          timeLabel = `Hace ${hours} ${hours === 1 ? 'hora' : 'horas'}`
-        } else if (diffMin > 0) {
-          timeLabel = `Hace ${diffMin} ${diffMin === 1 ? 'min' : 'mins'}`
-        }
+// Infinite Scroll Observer
+const infiniteScrollTrigger = ref(null)
+let infiniteObserver = null
 
-        const poll = p.poll_data ? {
-            question: p.poll_data.question,
-            options: p.poll_data.options,
-            correctAnswer: p.poll_data.options[p.poll_data.correct_index],
-            answered: p.answered || false
-        } : null
-
-        return {
-          id: p.id_publicacion,
-          author: p.usuario?.nombre || 'Usuario',
-          userAvatar: p.usuario?.imagen_url || 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y',
-          verified: p.usuario?.verificado || false,
-          time: timeLabel,
-          media: p.media || [],
-          content: p.content || '',
-          likes: p.likes || 0,
-          liked: p.liked || false,
-          canEarn: p.media?.some(m => m.type === 'video'),
-          gain: rewardsConfig.value.valor_video.toFixed(2),
-          poll: poll,
-          link: p.external_url,
-          whatsapp_active: p.whatsapp_active,
-          phone: p.usuario?.telefono,
-          hasVideo: p.media?.some(m => m.type === 'video'),
-          videoCompleted: p.videoCompleted || false
-        }
-      })
+const setupInfiniteScroll = () => {
+  if (infiniteObserver) infiniteObserver.disconnect()
+  
+  infiniteObserver = new IntersectionObserver(async (entries) => {
+    if (entries[0].isIntersecting && hasMore.value && !isPostsLoading.value) {
+      await fetchPosts(false, rewardsConfig.value)
     }
-  } catch (error) {
-    console.error('Error fetching posts:', error)
-    showToast('Error al cargar el feed', 'error')
+  }, { threshold: 0.1, rootMargin: '200px' })
+
+  if (infiniteScrollTrigger.value) {
+    infiniteObserver.observe(infiniteScrollTrigger.value)
   }
 }
-
-
 
 const stories = [
   { id: 1, name: 'Nike', image: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=100&h=100&fit=crop', hasReward: true },
@@ -419,8 +404,6 @@ const stories = [
   { id: 5, name: 'Zara', image: 'https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?w=100&h=100&fit=crop', hasReward: true },
   { id: 6, name: 'Apple', image: 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=100&h=100&fit=crop', hasReward: false },
 ]
-
-const feedPosts = ref([])
 
 const showToast = (message, type = 'success') => {
   toast.value = { show: true, message, type }
@@ -589,12 +572,20 @@ onMounted(async () => {
   document.addEventListener('visibilitychange', handlePageShow)
   window.addEventListener('focus', handlePageShow)
   
-  // Load persisted missions
-  loadMissions()
+  // 1. Cargar desde caché para respuesta inmediata
+  loadFromCache()
   
-  await fetchRewardsConfig()
-  await fetchPosts()
-  await fetchMembershipStatus()
+  // 2. Cargar datos necesarios en paralelo
+  await Promise.all([
+    fetchRewardsConfig(),
+    fetchMembershipStatus()
+  ])
+  
+  // 3. Cargar publicaciones frescas (con debounce y paginación)
+  await fetchPosts(true, rewardsConfig.value)
+  
+  // 4. Setup Infinite Scroll
+  setupInfiniteScroll()
   
   // Fetch real earnings for header
   try {
@@ -610,6 +601,7 @@ onMounted(async () => {
 onUnmounted(() => {
   document.removeEventListener('visibilitychange', handlePageShow)
   window.removeEventListener('focus', handlePageShow)
+  if (infiniteObserver) infiniteObserver.disconnect()
 })
 
 useHead({

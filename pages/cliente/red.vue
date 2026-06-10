@@ -136,7 +136,7 @@
             </div>
             <!-- Integrated Benefits (More Explanatory) -->
             <div class="space-y-3 pt-2">
-              <p class="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-500/80 px-1">Tus Beneficios Activos:</p>
+              <p class="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-500/80 px-1">Beneficios de la Membresia:</p>
               
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div class="group/benefit bg-white/5 backdrop-blur-sm border border-white/5 p-4 rounded-[1.5rem] flex items-start gap-4 transition-all hover:bg-white/10 hover:border-emerald-500/30">

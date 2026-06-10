@@ -8,7 +8,7 @@
 
     <!-- Content Container with max-w-2xl to match copy.vue -->
     <div class="max-w-2xl mx-auto bg-gray-50 dark:bg-gray-900 min-h-screen relative">
-      <main class="pt-16 pb-24">
+      <main class="pt-16 pb-4">
         <!-- Missions Section (Daily + Special) -->
         <section class="px-2 pt-1 pb-4 grid grid-cols-2 gap-3">
           <!-- Daily Missions Launcher -->
@@ -128,6 +128,21 @@
               </div>
             </div>
           </article>
+        </div>
+
+        <!-- Infinite Scroll Trigger & Loading States -->
+        <div ref="infiniteScrollTrigger" class="py-4 flex flex-col items-center justify-center space-y-4">
+          <div v-if="isPostsLoading" class="flex flex-col items-center">
+            <div class="w-8 h-8 border-4 border-emerald-500/20 border-t-emerald-500 rounded-full animate-spin"></div>
+            <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-3">Cargando más publicaciones...</p>
+          </div>
+          
+          <div v-else-if="postsError" class="text-center px-6">
+            <p class="text-sm font-bold text-rose-500 mb-3">{{ postsError }}</p>
+            <button @click="fetchPosts(false, rewardsConfig)" class="px-6 py-2 bg-gray-100 dark:bg-gray-800 rounded-xl text-xs font-black uppercase tracking-widest text-gray-600 dark:text-gray-400 active:scale-95 transition-transform">
+              Reintentar carga
+            </button>
+          </div> 
         </div>
       </main>
     </div>
@@ -289,20 +304,36 @@
 
            <div class="overflow-y-auto overscroll-contain no-scrollbar pt-12 pb-8">
               <div class="px-6">
-                <div class="flex items-center gap-3 mb-6">
-                  <div class="w-10 h-10 rounded-2xl bg-indigo-500/20 flex items-center justify-center">
-                    <span class="text-xl">⚡</span>
-                  </div>
-                  <div>
-                    <h2 class="text-lg font-black text-gray-900 dark:text-white leading-tight">Misiones Especiales</h2>
-                    <p class="text-[10px] text-gray-500 font-bold uppercase tracking-widest">Desafíos exclusivos con grandes premios</p>
+                <div class="flex items-center justify-between mb-6">
+                  <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-2xl bg-indigo-500/20 flex items-center justify-center">
+                      <span class="text-xl">⚡</span>
+                    </div>
+                    <div>
+                      <h2 class="text-lg font-black text-gray-900 dark:text-white leading-tight">Misiones Especiales</h2>
+                      <p class="text-[10px] text-gray-500 font-bold uppercase tracking-widest">Acierta y Gana</p>
+                    </div>
                   </div>
                 </div>
 
                 <div class="space-y-4">
                   <div v-for="mision in misionesEspeciales" :key="mision.id_mision" 
-                       class="bg-gray-50 dark:bg-white/5 rounded-2xl p-4 border border-gray-100 dark:border-white/10 relative overflow-hidden">
+                       class="bg-gray-50 dark:bg-white/5 rounded-2xl p-4 border border-gray-100 dark:border-white/10 relative overflow-hidden transition-all duration-500"
+                       :class="{ 'opacity-60 grayscale-[0.5]': !canAccessSpecialMission(mision) }">
                     
+                    <!-- Badge de Estado de Acceso -->
+                    <div v-if="!misionesLimits.isVip && !mision.claimStatus && !canAccessSpecialMission(mision)" 
+                         class="absolute inset-0 z-10 bg-white/40 dark:bg-black/40 backdrop-blur-[2px] flex flex-col items-center justify-center p-6 text-center">
+                      <div class="w-12 h-12 bg-white dark:bg-gray-800 rounded-full flex items-center justify-center shadow-lg mb-3">
+                        <span class="text-xl">🔒</span>
+                      </div>
+                      <h4 class="text-xs font-black text-gray-900 dark:text-white uppercase tracking-wider mb-1">Límite Diario Alcanzado</h4>
+                      <p class="text-[9px] text-gray-500 font-bold mb-3">Disponible en {{ hoursUntilNextMission }} horas.</p>
+                      <NuxtLink to="/cliente/red" class="px-4 py-2 bg-emerald-500 text-white text-[9px] font-black uppercase tracking-widest rounded-lg shadow-lg shadow-emerald-500/20 active:scale-95 transition-transform">
+                        Adquirir Membresia ⚡
+                      </NuxtLink>
+                    </div>
+
                     <div class="relative flex flex-col gap-4">
                       <div class="flex items-start space-x-3">
                         <div class="w-10 h-10 shrink-0 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center shadow-md shadow-indigo-500/20">
@@ -325,7 +356,7 @@
                       
                       <div class="flex flex-col gap-4 pt-4 border-t border-gray-100 dark:border-white/5">
                         <!-- Input for response -->
-                        <div v-if="!mision.claimStatus || mision.claimStatus === 'rechazado'" class="w-full">
+                        <div v-if="(!mision.claimStatus || mision.claimStatus === 'rechazado') && canAccessSpecialMission(mision)" class="w-full">
                           <!-- Respuesta Escrita -->
                           <input 
                             v-if="mision.tipo_respuesta === 'escrita'"
@@ -353,19 +384,22 @@
 
                           <button 
                             @click="handleClaimSpecialMission(mision)"
-                            :disabled="mision.claimStatus === 'pendiente' || mision.claimStatus === 'aprobado'"
+                            :disabled="mision.claimStatus === 'pendiente' || mision.claimStatus === 'aprobado' || !canAccessSpecialMission(mision)"
                             class="px-5 py-3 rounded-xl font-black text-[11px] uppercase tracking-wider transition-all duration-300 min-w-[140px]"
                             :class="[
                               mision.claimStatus === 'pendiente'
                                 ? 'bg-amber-100 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 cursor-not-allowed border border-amber-200 dark:border-amber-900/50'
                                 : mision.claimStatus === 'aprobado'
                                   ? 'bg-emerald-100 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 cursor-not-allowed border border-emerald-200 dark:border-emerald-900/50'
-                                  : 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-600/35 hover:scale-105 active:scale-95'
+                                  : !canAccessSpecialMission(mision)
+                                    ? 'bg-gray-200 dark:bg-gray-800 text-gray-400 cursor-not-allowed border border-gray-300 dark:border-gray-700'
+                                    : 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-600/35 hover:scale-105 active:scale-95'
                             ]"
                           >
                             <span v-if="mision.claimStatus === 'pendiente'">En Revisión 🕐</span>
                             <span v-else-if="mision.claimStatus === 'aprobado'">Completado ✅</span>
                             <span v-else-if="mision.claimStatus === 'rechazado'">Reintentar ⚡</span>
+                            <span v-else-if="!canAccessSpecialMission(mision)">Bloqueado 🔒</span>
                             <span v-else>Reclamar Misión</span>
                           </button>
                         </div>
@@ -413,10 +447,21 @@ import MediaCarousel from '~/components/ui/MediaCarousel.vue'
 import Toast from '~/components/ui/Toast.vue'
 import LoadingSpinner from '~/components/ui/LoadingSpinner.vue'
 import { useInteractionHistory } from '~/composables/useInteractionHistory'
+import { usePostsLoader } from '~/composables/usePostsLoader'
 
 const { $api } = useNuxtApp()
 const auth = useAuthStore()
 const { markAsStale } = useInteractionHistory()
+
+const { 
+  posts: feedPosts, 
+  isLoading: isPostsLoading, 
+  hasMore, 
+  error: postsError, 
+  fetchPosts, 
+  loadFromCache 
+} = usePostsLoader({ limit: 10 })
+
 const isLoading = ref(true)
 const shortName = computed(() => auth.user?.nombre?.split(' ')[0] || 'Usuario')
 
@@ -468,10 +513,37 @@ const dailyMissions = ref([
 ])
 
 const misionesEspeciales = ref([])
+const misionesLimits = ref({
+  canClaimMore: true,
+  lastClaimTimestamp: null,
+  isVip: false
+})
 const respuestasMisiones = ref({}) // Objeto para guardar respuestas por id_mision
 
 const isMissionsCompleted = computed(() => {
   return dailyMissions.value.every(m => m.completed)
+})
+
+// Lógica de Misiones Especiales con límite de 24h
+const canAccessSpecialMission = (mision) => {
+  if (misionesLimits.value.isVip) return true // Miembros tienen acceso total
+  
+  // Si no es miembro:
+  // 1. Si ya la reclamó o está en revisión, puede verla/interactuar
+  if (mision.claimStatus) return true
+  
+  // 2. Si no la ha reclamado, depende de si ya usó su cupo de 24h
+  return misionesLimits.value.canClaimMore
+}
+
+const hoursUntilNextMission = computed(() => {
+  if (misionesLimits.value.canClaimMore || !misionesLimits.value.lastClaimTimestamp) return 0
+  
+  const lastDate = new Date(misionesLimits.value.lastClaimTimestamp)
+  const nextDate = new Date(lastDate.getTime() + 24 * 60 * 60 * 1000)
+  const diff = nextDate.getTime() - Date.now()
+  
+  return Math.max(0, Math.ceil(diff / (1000 * 60 * 60)))
 })
 
 const fetchMissionsProgress = async () => {
@@ -508,6 +580,9 @@ const fetchMisionesEspeciales = async () => {
     const res = await $api(`/misiones/especial?id_usuario=${auth.user.id_usuario}`)
     if (res.success) {
       misionesEspeciales.value = res.data
+      if (res.limits) {
+        misionesLimits.value = res.limits
+      }
       // Inicializar respuestas si no existen
       res.data.forEach(m => {
         if (!respuestasMisiones.value[m.id_mision]) {
@@ -618,64 +693,29 @@ const fetchMembershipStatus = async () => {
   }
 }
 
-const fetchPosts = async () => {
-  try {
-    const res = await $api('/publicaciones', {
-      params: { uid: auth.user.id_usuario }
-    })
-    if (res.success && res.data) {
-      feedPosts.value = res.data.map(p => {
-        // Formatear tiempo relativo básico
-        const postDate = new Date(p.fecha)
-        const diffMs = Date.now() - postDate
-        const diffMin = Math.round(diffMs / 60000)
-        let timeLabel = 'Hace un momento'
-        
-        if (diffMin >= 1440) {
-          const days = Math.floor(diffMin / 1440)
-          timeLabel = `Hace ${days} ${days === 1 ? 'día' : 'días'}`
-        } else if (diffMin >= 60) {
-          const hours = Math.floor(diffMin / 60)
-          timeLabel = `Hace ${hours} ${hours === 1 ? 'hora' : 'horas'}`
-        } else if (diffMin > 0) {
-          timeLabel = `Hace ${diffMin} ${diffMin === 1 ? 'min' : 'mins'}`
-        }
+// Infinite Scroll Observer
+const infiniteScrollTrigger = ref(null)
+let infiniteObserver = null
 
-        const poll = p.poll_data ? {
-            question: p.poll_data.question,
-            options: p.poll_data.options,
-            correctAnswer: p.poll_data.options[p.poll_data.correct_index],
-            answered: p.answered || false
-        } : null
-
-        return {
-          id: p.id_publicacion,
-          author: p.usuario?.nombre || 'Usuario',
-          userAvatar: p.usuario?.imagen_url || 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y',
-          verified: p.usuario?.verificado || false,
-          time: timeLabel,
-          media: p.media || [],
-          content: p.content || '',
-          likes: p.likes || 0,
-          liked: p.liked || false,
-          canEarn: p.media?.some(m => m.type === 'video'),
-          gain: rewardsConfig.value.valor_video.toFixed(2),
-          poll: poll,
-          link: p.external_url,
-          whatsapp_active: p.whatsapp_active,
-          phone: p.usuario?.telefono,
-          hasVideo: p.media?.some(m => m.type === 'video'),
-          videoCompleted: p.videoCompleted || false
-        }
+const setupInfiniteScroll = () => {
+  if (infiniteObserver) infiniteObserver.disconnect()
+  
+  infiniteObserver = new IntersectionObserver(async (entries) => {
+    if (entries[0].isIntersecting && hasMore.value && !isPostsLoading.value) {
+      await fetchPosts(false, rewardsConfig.value)
+      // Re-observar nuevos posts para el contador de vistas
+      nextTick(() => {
+        document.querySelectorAll('.post-observer').forEach(el => {
+          viewObserver.observe(el)
+        })
       })
     }
-  } catch (error) {
-    console.error('Error fetching posts:', error)
-    showToast('Error al cargar el feed', 'error')
+  }, { threshold: 0.1, rootMargin: '200px' })
+
+  if (infiniteScrollTrigger.value) {
+    infiniteObserver.observe(infiniteScrollTrigger.value)
   }
 }
-
-
 
 const abrirVisor = (item) => {
   mediaToView.value = item
@@ -695,8 +735,6 @@ const stories = [
   { id: 5, name: 'Zara', image: 'https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?w=100&h=100&fit=crop', hasReward: true },
   { id: 6, name: 'Apple', image: 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=100&h=100&fit=crop', hasReward: false },
 ]
-
-const feedPosts = ref([])
 
 const showToast = (message, type = 'success') => {
   toast.value = { show: true, message, type }
@@ -873,12 +911,22 @@ onMounted(async () => {
   document.addEventListener('visibilitychange', handlePageShow)
   window.addEventListener('focus', handlePageShow)
   
-  await fetchMissionsProgress()
-  await fetchMisionesEspeciales()
+  // 1. Cargar desde caché para respuesta inmediata
+  loadFromCache()
   
-  await fetchRewardsConfig()
-  await fetchPosts()
-  await fetchMembershipStatus()
+  // 2. Cargar datos necesarios en paralelo
+  await Promise.all([
+    fetchMissionsProgress(),
+    fetchMisionesEspeciales(),
+    fetchRewardsConfig(),
+    fetchMembershipStatus()
+  ])
+  
+  // 3. Cargar publicaciones frescas (con debounce y paginación)
+  await fetchPosts(true, rewardsConfig.value)
+  
+  // 4. Setup Infinite Scroll
+  setupInfiniteScroll()
   
   // Fetch real earnings for header
   try {
@@ -897,7 +945,7 @@ onMounted(async () => {
       const postId = parseInt(entry.target.dataset.postId)
       if (!postId) return
       if (entry.isIntersecting) {
-        // Iniciar timer: si permanece visible 1 segundo, contamos la vista
+        // Iniciar timer: si permanece visible 0.5 segundos, contamos la vista
         if (!viewTimers[postId]) {
           viewTimers[postId] = setTimeout(() => {
             registerView(postId)
@@ -922,6 +970,7 @@ onUnmounted(() => {
   document.removeEventListener('visibilitychange', handlePageShow)
   window.removeEventListener('focus', handlePageShow)
   if (viewObserver) viewObserver.disconnect()
+  if (infiniteObserver) infiniteObserver.disconnect()
   Object.values(viewTimers).forEach(t => clearTimeout(t))
 })
 

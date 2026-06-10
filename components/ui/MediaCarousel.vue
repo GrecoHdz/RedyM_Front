@@ -11,25 +11,36 @@
         :key="index"
         class="flex-shrink-0 w-full h-full snap-start snap-always flex items-center justify-center relative bg-black"
       >
+        <!-- Skeleton/Placeholder -->
+        <div class="absolute inset-0 bg-gray-200 dark:bg-gray-800 animate-pulse flex items-center justify-center z-0">
+          <svg class="w-12 h-12 text-gray-300 dark:text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+          </svg>
+        </div>
+
         <!-- Image Render -->
         <img 
           v-if="item.type === 'image'" 
-          :src="item.url" 
-          class="w-full h-full object-cover select-none cursor-pointer"
+          :src="getWebpUrl(item.url)" 
+          class="w-full h-full object-cover select-none cursor-pointer relative z-10"
+          loading="lazy"
           @click="$emit('media-click', item)"
+          @load="handleMediaLoad"
           alt="media content"
         >
         
         <!-- Video Render -->
-        <div v-else-if="item.type === 'video'" class="w-full h-full relative">
+        <div v-else-if="item.type === 'video'" class="w-full h-full relative z-10">
           <video 
             ref="videoRefs"
             :src="item.url"
             class="w-full h-full object-cover cursor-pointer"
             playsinline
+            preload="metadata"
             @timeupdate="updateProgress($event, index)"
             @ended="onVideoEnded(index)"
             @click="handleVideoClick($event, item)"
+            @loadeddata="handleMediaLoad"
           ></video>
           
           <!-- Play Overlay -->
@@ -199,6 +210,22 @@ const prev = () => {
       behavior: 'smooth'
     })
   }
+}
+
+// Optimización de medios
+const handleMediaLoad = (event) => {
+  const container = event.target.closest('.relative')
+  const skeleton = container?.querySelector('.animate-pulse')
+  if (skeleton) skeleton.style.display = 'none'
+}
+
+const getWebpUrl = (url) => {
+  if (!url) return ''
+  // Si ya es webp o es un video, no hacer nada
+  if (url.endsWith('.webp') || url.match(/\.(mp4|webm|ogg)$/i)) return url
+  // Intentar usar versión webp si el servidor lo soporta (convención común)
+  // O simplemente devolver la URL original si no hay lógica de backend para esto
+  return url
 }
 </script>
 
