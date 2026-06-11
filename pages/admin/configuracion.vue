@@ -946,7 +946,7 @@
           </div>
 
           <!-- Contenido Scrolleable -->
-          <div class="flex-1 overflow-y-auto pr-1 custom-scrollbar space-y-6">
+          <div ref="scrollContainerStats" class="flex-1 overflow-y-auto pr-1 custom-scrollbar space-y-6">
             
             <!-- Resumen de Estadísticas -->
             <div class="grid grid-cols-3 gap-2 sm:gap-4">
@@ -1013,7 +1013,7 @@
                 <h4 class="text-[8px] sm:text-[9px] font-black text-gray-500 uppercase tracking-widest">Participaciones</h4>
                 
                 <!-- Seleccionar Todos (Solo si hay pendientes) -->
-                <button v-if="misionStats.reclamos.some(r => r.estado === 'pendiente')"
+                <button v-if="allReclamosStats.some(r => r.estado === 'pendiente')"
                         @click="toggleSelectAll" 
                         class="text-[8px] font-black uppercase tracking-widest transition-all"
                         :class="allSelected ? 'text-violet-400' : 'text-gray-500 hover:text-white'">
@@ -1022,7 +1022,7 @@
               </div>
 
               <div class="space-y-2">
-                <div v-for="reclamo in misionStats.reclamos" :key="reclamo.id_reclamo" 
+                <div v-for="reclamo in allReclamosStats" :key="reclamo.id_reclamo" 
                      @click="reclamo.estado === 'pendiente' ? toggleSelect(reclamo.id_reclamo) : null"
                      class="p-3 bg-white/5 border rounded-xl flex items-center justify-between group transition-all"
                      :class="[
@@ -1079,20 +1079,16 @@
                 </div>
               </div>
 
-              <!-- Paginación -->
-              <div v-if="totalPaginasStats > 1" class="flex items-center justify-center gap-4 py-4">
-                <button @click="verEstadisticasMision(misionStats.mision, paginaStats - 1)"
-                        :disabled="paginaStats === 1"
-                        class="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-gray-400 disabled:opacity-20">
-                  <i class="fas fa-chevron-left text-[10px]"></i>
-                </button>
-                <span class="text-[10px] font-black text-white uppercase tracking-widest">
-                  {{ paginaStats }} / {{ totalPaginasStats }}
-                </span>
-                <button @click="verEstadisticasMision(misionStats.mision, paginaStats + 1)"
-                        :disabled="paginaStats === totalPaginasStats"
-                        class="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-gray-400 disabled:opacity-20">
-                  <i class="fas fa-chevron-right text-[10px]"></i>
+              <!-- Load More Indicator -->
+              <div v-if="hasMoreStats || isLoadingMoreStats" class="flex items-center justify-center py-4">
+                <div v-if="isLoadingMoreStats" class="flex items-center gap-2">
+                  <div class="w-4 h-4 border border-violet-500 border-t-transparent rounded-full animate-spin"></div>
+                  <span class="text-[9px] font-bold text-gray-500 uppercase tracking-widest">Cargando más...</span>
+                </div>
+                <button v-else-if="hasMoreStats" 
+                        @click="loadMoreReclamos" 
+                        class="px-4 py-2 bg-white/5 border border-white/10 text-gray-400 font-black uppercase tracking-widest text-[9px] rounded-xl hover:text-white transition-all">
+                  Cargar más
                 </button>
               </div>
             </div>
@@ -1331,7 +1327,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted, watch, nextTick } from 'vue'
+import { ref, reactive, computed, onMounted, watch, nextTick, onBeforeUnmount } from 'vue'
 import Toast from '~/components/ui/Toast.vue'
 import LoadingSpinner from '~/components/ui/LoadingSpinner.vue'
 import BottomNav from '~/components/footers/BottomNav.vue'
@@ -1930,6 +1926,12 @@ const totalReclamosStats = ref(0)
 const reclamosSeleccionados = ref([])
 const isProcessingBulk = ref(false)
 
+// Infinite scroll for stats
+const allReclamosStats = ref([])
+const hasMoreStats = ref(true)
+const isLoadingMoreStats = ref(false)
+const scrollContainerStats = ref(null)
+
 // Modal de Confirmación
 const mostrarModalConfirmBulk = ref(false)
 const bulkActionType = ref('') // 'aprobado' o 'rechazado'
@@ -1973,8 +1975,33 @@ const abrirConfirmacionMasiva = (estado) => {
 }
 
 const confirmarAccionBulk = async () => {
+  console.log('=== confirmarAccionBulk STARTED ===')
+  console.log('Variables:', {
+    reclamosSeleccionados: reclamosSeleccionados.value,
+    bulkActionType: bulkActionType.value,
+    misionStats: misionStats.value
+  })
+
+  // Check if misionStats is properly initialized
+  if (!misionStats.value || !misionStats.value.mision) {
+    console.error('Error: misionStats or misionStats.mision is null/undefined', misionStats.value)
+    showToast('Error: No se puede procesar, no hay misión seleccionada', 'error')
+    return
+  }
+
+  const currentMision = misionStats.value.mision
+  console.log('Current mission:', {
+    id_mision: currentMision.id_mision,
+    tipo_respuesta: currentMision.tipo_respuesta
+  })
+
   isProcessingBulk.value = true
   try {
+    console.log('Calling /misiones/admin/especiales/reclamos/bulk with:', {
+      ids: reclamosSeleccionados.value,
+      estado: bulkActionType.value
+    })
+
     const res = await $api('/misiones/admin/especiales/reclamos/bulk', {
       method: 'POST',
       body: {
@@ -1982,21 +2009,29 @@ const confirmarAccionBulk = async () => {
         estado: bulkActionType.value
       }
     })
+
+    console.log('Bulk response:', res)
     
     if (res.success) {
+      console.log('Bulk action SUCCESS')
+
       // If it's a written response mission and we approved claims, finalize the mission
-      if (misionStats && misionStats.mision.tipo_respuesta === 'escrita' && bulkActionType.value === 'aprobado') {
-        const missionId = misionStats.mision.id_mision
+      if (currentMision.tipo_respuesta === 'escrita' && bulkActionType.value === 'aprobado') {
+        const missionId = currentMision.id_mision
+        console.log('Now finalizing mission:', missionId)
         // Close bulk confirm modal
         mostrarModalConfirmBulk.value = false
         
         // Now finalize the mission
         isFinalizingMision.value = true
         try {
+          console.log('Calling finalizar-escrita endpoint...')
           const finalizeRes = await $api('/misiones/admin/especiales/finalizar-escrita', {
             method: 'POST',
             body: { id_mision: missionId }
           })
+
+          console.log('Finalize mission response:', finalizeRes)
           
           if (finalizeRes.success) {
             showToast(finalizeRes.message || 'Misión finalizada y premios distribuidos')
@@ -2011,26 +2046,33 @@ const confirmarAccionBulk = async () => {
               }, 500)
             }
           } else {
+            console.error('Finalize mission failed:', finalizeRes.error)
             showToast(finalizeRes.error || 'Error al finalizar misión', 'error')
           }
         } catch (e) {
-          console.error('Error finalizando misión:', e)
+          console.error('Error finalizando misión (catch):', e)
           showToast('Error de conexión al finalizar misión', 'error')
         } finally {
           isFinalizingMision.value = false
         }
       } else {
+        console.log('Regular flow (not written response or reject)')
         // Regular flow for selection missions or reject actions
         showToast(res.message)
         reclamosSeleccionados.value = []
         mostrarModalConfirmBulk.value = false
-        await verEstadisticasMision(misionStats.value.mision, paginaStats.value)
+        await verEstadisticasMision(currentMision, paginaStats.value)
       }
+    } else {
+      console.error('Bulk response success=false:', res.error)
+      showToast(res.error || 'Error al procesar reclamos', 'error')
     }
   } catch (e) {
-    showToast('Error al procesar reclamos', 'error')
+    console.error('confirmarAccionBulk CATCH ERROR:', e)
+    showToast(e.message || 'Error al procesar reclamos', 'error')
   } finally {
     isProcessingBulk.value = false
+    console.log('=== confirmarAccionBulk COMPLETED ===')
   }
 }
 
@@ -2201,20 +2243,63 @@ const confirmarFinalizarMision = async () => {
 }
 
 const verEstadisticasMision = async (mision, pagina = 1) => {
-  paginaStats.value = pagina
-  isLoadingStats.value = true
+  console.log('=== verEstadisticasMision STARTED ===')
+  console.log('Input mission:', mision, 'Pagina:', pagina)
+  
+  // If it's the first page, reset everything
+  if (pagina === 1) {
+    allReclamosStats.value = []
+    hasMoreStats.value = true
+    paginaStats.value = 1
+  }
+
+  // Prevent duplicate requests
+  if (pagina > 1 && (isLoadingStats.value || isLoadingMoreStats.value)) {
+    return
+  }
+
+  if (pagina === 1) {
+    isLoadingStats.value = true
+  } else {
+    isLoadingMoreStats.value = true
+  }
+
   try {
     const offset = (pagina - 1) * limiteStats
     const res = await $api(`/misiones/admin/especiales/${mision.id_mision}/stats?limit=${limiteStats}&offset=${offset}`)
+    console.log('verEstadisticasMision response:', res)
     if (res.success) {
-      misionStats.value = res.data
-      totalReclamosStats.value = res.data.total
+      // Only update misionStats once on the first page
+      if (pagina === 1) {
+        misionStats.value = res.data
+        totalReclamosStats.value = res.data.total
+      }
+
+      // Append new reclamos to the allReclamosStats
+      allReclamosStats.value = [...allReclamosStats.value, ...res.data.reclamos]
+
+      // Check if there are more to load
+      hasMoreStats.value = allReclamosStats.value < totalReclamosStats.value
+
+      paginaStats.value = pagina
+      console.log('allReclamosStats.value:', allReclamosStats.value.length, 'total:', totalReclamosStats.value, 'hasMore:', hasMoreStats.value)
       mostrarModalStats.value = true
     }
   } catch (e) {
+    console.error('verEstadisticasMision error:', e)
     showToast('Error al cargar estadísticas', 'error')
   } finally {
     isLoadingStats.value = false
+    isLoadingMoreStats.value = false
+  }
+}
+
+const loadMoreReclamos = () => {
+  if (!hasMoreStats.value || isLoadingMoreStats.value || isLoadingStats.value) {
+    return
+  }
+  if (misionStats.value && misionStats.value.mision) {
+    verEstadisticasMision(misionStats.value.mision, paginaStats.value + 1)
   }
 }
 
@@ -2225,6 +2310,9 @@ const cerrarModalStats = () => {
     paginaStats.value = 1
     totalReclamosStats.value = 0
     reclamosSeleccionados.value = []
+    allReclamosStats.value = []
+    hasMoreStats.value = true
+    isLoadingMoreStats.value = false
   }, 300)
 }
 
@@ -2291,6 +2379,40 @@ const buscarUsuarios = debounce(async () => {
 
 watch(terminoBusquedaUsuario, () => {
   buscarUsuarios()
+})
+
+const handleStatsScroll = () => {
+  if (!scrollContainerStats.value) return
+  
+  const { scrollTop, scrollHeight, clientHeight } = scrollContainerStats.value
+  const isNearBottom = scrollTop + clientHeight >= scrollHeight - 100 // 100px threshold
+  
+  if (isNearBottom) {
+    loadMoreReclamos()
+  }
+}
+
+watch(mostrarModalStats, (newVal) => {
+  if (newVal) {
+    // When modal opens, add the scroll listener
+    nextTick(() => {
+      if (scrollContainerStats.value) {
+        scrollContainerStats.value.addEventListener('scroll', handleStatsScroll)
+      }
+    })
+  } else {
+    // When modal closes, remove the scroll listener
+    if (scrollContainerStats.value) {
+      scrollContainerStats.value.removeEventListener('scroll', handleStatsScroll)
+    }
+  }
+})
+
+onBeforeUnmount(() => {
+  // Clean up scroll listener when component unmounts
+  if (scrollContainerStats.value) {
+    scrollContainerStats.value.removeEventListener('scroll', handleStatsScroll)
+  }
 })
 
 const seleccionarUsuario = (user) => {
