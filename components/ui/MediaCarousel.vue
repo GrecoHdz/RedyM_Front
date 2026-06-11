@@ -19,44 +19,56 @@
         </div>
 
         <!-- Image Render -->
-        <img 
-          v-if="item.type === 'image'" 
-          :src="getWebpUrl(item.url)" 
-          class="w-full h-full object-cover select-none cursor-pointer relative z-10"
-          loading="lazy"
-          @click="$emit('media-click', item)"
-          @load="handleMediaLoad"
-          alt="media content"
-        >
-        
-        <!-- Video Render -->
-        <div v-else-if="item.type === 'video'" class="w-full h-full relative z-10">
-          <video 
-            ref="videoRefs"
-            :src="item.url"
-            class="w-full h-full object-cover cursor-pointer"
-            playsinline
-            preload="metadata"
-            @timeupdate="updateProgress($event, index)"
-            @ended="onVideoEnded(index)"
-            @click="handleVideoClick($event, item)"
-            @loadeddata="handleMediaLoad"
-          ></video>
+        <div class="w-full h-full relative">
+          <img 
+            v-if="item.type === 'image'" 
+            :src="getWebpUrl(item.url)" 
+            class="w-full h-full object-cover select-none relative z-10"
+            loading="lazy"
+            @load="handleMediaLoad"
+            alt="media content"
+          >
           
-          <!-- Play Overlay -->
-          <div v-if="videoStates[index]?.paused" class="absolute inset-0 flex items-center justify-center bg-black/20 pointer-events-none">
-            <div class="w-16 h-16 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/30">
-              <svg class="w-8 h-8 text-white fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+          <!-- Video Render -->
+          <div v-else-if="item.type === 'video'" class="w-full h-full relative z-10">
+            <video 
+              ref="videoRefs"
+              :src="item.url"
+              class="w-full h-full object-cover cursor-pointer"
+              playsinline
+              preload="metadata"
+              @timeupdate="updateProgress($event, index)"
+              @ended="onVideoEnded(index)"
+              @click="handleVideoClick($event, item)"
+              @loadeddata="handleMediaLoad"
+            ></video>
+            
+            <!-- Play Overlay -->
+            <div v-if="videoStates[index]?.paused" class="absolute inset-0 flex items-center justify-center bg-black/20 pointer-events-none">
+              <div class="w-16 h-16 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/30">
+                <svg class="w-8 h-8 text-white fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+              </div>
+            </div>
+            
+            <!-- Individual Video Progress Bar (TikTok style) -->
+            <div class="absolute bottom-0 left-0 right-0 h-1 bg-white/20">
+              <div 
+                class="h-full bg-emerald-500 transition-all duration-100"
+                :style="{ width: (videoStates[index]?.progress || 0) + '%' }"
+              ></div>
             </div>
           </div>
-
-          <!-- Individual Video Progress Bar (TikTok style) -->
-          <div class="absolute bottom-0 left-0 right-0 h-1 bg-white/20">
-            <div 
-              class="h-full bg-emerald-500 transition-all duration-100"
-              :style="{ width: (videoStates[index]?.progress || 0) + '%' }"
-            ></div>
-          </div>
+          
+          <!-- Fullscreen Button -->
+          <button 
+            class="absolute top-4 right-4 z-30 w-10 h-10 rounded-full bg-black/50 backdrop-blur-md border border-white/20 flex items-center justify-center text-white active:scale-90 transition-all"
+            @click.stop="handleFullscreenClick($event, item)"
+            title="Ver en pantalla completa"
+          >
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4z"/>
+            </svg>
+          </button>
         </div>
       </div>
     </div>
@@ -184,13 +196,36 @@ const togglePlay = (e) => {
   else video.pause()
 }
 
+const pauseAllVideos = () => {
+  videoRefs.value.forEach(v => {
+    if (v) v.pause()
+  })
+}
+
+const pauseVideoByIndex = (index) => {
+  if (videoRefs.value[index]) {
+    videoRefs.value[index].pause()
+  }
+}
+
 const handleVideoClick = (e, item) => {
   // En móvil, un toque reproduce/pausa. 
-  // Podríamos usar un doble toque para el visor, o un botón dedicado.
-  // Por ahora, emitimos el click para que el padre decida.
+  // NO emitimos media-click aquí para evitar dual playback.
+  // El media-click se maneja desde el botón o área dedicada.
   togglePlay(e)
+}
+
+const handleFullscreenClick = (e, item) => {
+  // Pause all videos before emitting the media-click event
+  pauseAllVideos()
   emit('media-click', item)
 }
+
+// Expose methods for parent component
+defineExpose({
+  pauseAllVideos,
+  pauseVideoByIndex
+})
 
 const next = () => {
   if (scrollContainer.value) {
