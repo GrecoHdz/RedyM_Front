@@ -63,7 +63,7 @@ export default defineNuxtConfig({
     head: {
         title: 'PubliGana - Monetiza tu Tiempo y Gana por interactuar',
       meta: [
-       //s { name: 'google-site-verification', content: 'GEPuBsyW3v_JTl_akiNBfF4DILNI3EVLggqEsYawrNM' },
+        { name: 'google-site-verification', content: 'jawMv21uEyAiqAfxTatonHuFH3oJsiNdhQiko8kJvwo' },
         { charset: 'utf-8' },
         { name: 'viewport', content: 'width=device-width, initial-scale=1' },
         { name: 'description', content: 'Monetiza tu Tiempo y Gana por interactuar.' },
@@ -98,7 +98,7 @@ export default defineNuxtConfig({
   runtimeConfig: {
     public: {
       appName: 'PubliGana',
-      appVersion: '1.0.2',
+      appVersion: '1.0.3',
       apiBase: process.env.NUXT_PUBLIC_API_URL
     }
   }
