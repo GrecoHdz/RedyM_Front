@@ -196,7 +196,11 @@
           
           <!-- Avatar + Name -->
           <div class="flex items-center gap-4 mb-6">
-            <div class="w-16 h-16 rounded-2xl overflow-hidden border-2 border-white/10 flex-shrink-0 shadow-xl">
+            <div 
+              @click="selectedUser.imagen_url && (showAvatarLarge = true)"
+              class="w-16 h-16 rounded-2xl overflow-hidden border-2 border-white/10 flex-shrink-0 shadow-xl cursor-pointer hover:scale-105 transition-transform"
+              :class="{ 'cursor-pointer': selectedUser.imagen_url }"
+            >
               <img v-if="selectedUser.imagen_url" :src="selectedUser.imagen_url" class="w-full h-full object-cover">
               <div v-else class="w-full h-full bg-blue-600 flex items-center justify-center text-2xl font-black text-white">
                 {{ selectedUser.nombre?.[0] }}
@@ -763,6 +767,90 @@
       </div>
     </Transition>
 
+    <!-- Large Avatar Viewer Overlay -->
+    <Transition name="fade">
+      <div v-if="showAvatarLarge" class="fixed inset-0 z-[300] bg-black/95 flex items-center justify-center p-4" @click="showAvatarLarge = false">
+        <img :src="selectedUser?.imagen_url" class="max-w-full max-h-[90vh] object-contain rounded-2xl shadow-2xl">
+        <button class="absolute top-8 right-8 text-white text-2xl">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+    </Transition>
+
+    <!-- Edit User Modal -->
+    <Transition name="fade">
+      <div v-if="editUserModal.show" class="fixed inset-0 z-[200] flex items-end justify-center">
+        <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" @click="editUserModal.show = false"></div>
+        <div class="relative w-full max-w-lg bg-[#0d121f] rounded-t-[2.5rem] p-6 border-t border-white/10">
+          <div class="flex items-center justify-between mb-6">
+            <div class="flex items-center gap-3">
+              <div class="w-8 h-8 rounded-xl bg-emerald-500/20 flex items-center justify-center">
+                <i class="fas fa-edit text-emerald-400 text-xs"></i>
+              </div>
+              <h3 class="text-sm font-black text-white uppercase tracking-widest">Editar Usuario</h3>
+            </div>
+            <button @click="editUserModal.show = false" class="w-8 h-8 bg-white/5 rounded-xl flex items-center justify-center text-gray-400 hover:text-white">
+              <i class="fas fa-times text-xs"></i>
+            </button>
+          </div>
+
+          <div class="space-y-4">
+            <!-- Select Estado -->
+            <div>
+              <label class="text-[9px] font-black text-gray-500 uppercase tracking-widest mb-1.5 block px-1">Estado</label>
+              <div class="relative">
+                <select 
+                  v-model="editUserModal.estado"
+                  class="w-full bg-white/5 border border-white/10 rounded-2xl py-3.5 px-4 text-sm font-medium text-white focus:outline-none focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/50 transition-all appearance-none"
+                >
+                  <option value="activo">Activo</option>
+                  <option value="deshabilitado">Deshabilitado</option>
+                </select>
+                <div class="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
+                  <i class="fas fa-chevron-down text-gray-500 text-xs"></i>
+                </div>
+              </div>
+            </div>
+
+            <!-- Select Rol -->
+            <div>
+              <label class="text-[9px] font-black text-gray-500 uppercase tracking-widest mb-1.5 block px-1">Rol</label>
+              <div class="relative">
+                <select 
+                  v-model="editUserModal.id_rol"
+                  class="w-full bg-white/5 border border-white/10 rounded-2xl py-3.5 px-4 text-sm font-medium text-white focus:outline-none focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/50 transition-all appearance-none"
+                >
+                  <option :value="1">Usuario</option>
+                  <option :value="2">Admin</option>
+                </select>
+                <div class="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
+                  <i class="fas fa-chevron-down text-gray-500 text-xs"></i>
+                </div>
+              </div>
+            </div>
+
+            <!-- Buttons -->
+            <div class="grid grid-cols-2 gap-2 pt-2">
+              <button 
+                @click="editUserModal.show = false"
+                class="py-3.5 rounded-2xl font-black uppercase tracking-wider text-[10px] bg-white/5 text-gray-400 border border-white/10 hover:bg-white/10 transition-all active:scale-95"
+              >
+                Cancelar
+              </button>
+              <button 
+                @click="saveEditUser"
+                :disabled="editUserModal.isLoading"
+                class="py-3.5 rounded-2xl font-black uppercase tracking-wider text-[10px] bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2 transition-all active:scale-95 disabled:opacity-40 disabled:pointer-events-none"
+              >
+                <i :class="editUserModal.isLoading ? 'fas fa-spinner fa-spin' : 'fas fa-save'"></i>
+                {{ editUserModal.isLoading ? 'Guardando...' : 'Guardar Cambios' }}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </Transition>
+
     <!-- Network Modal (Recursive Browsing) -->
     <Transition name="fade">
       <div v-if="networkModal.show" class="fixed inset-0 z-[300] flex items-center justify-center p-4">
@@ -850,8 +938,17 @@ const stats = ref({ usuarios: 0, admins: 0 })
 const toast = ref({ show: false, message: '', type: 'success' })
 const selectedUser = ref(null)
 const showIdentityLarge = ref(false)
+const showAvatarLarge = ref(false)
 const activeDetailModal = ref(null)
 const isUpdatingRed = ref(false)
+
+// State for edit user modal
+const editUserModal = ref({
+  show: false,
+  isLoading: false,
+  estado: '',
+  id_rol: null
+})
 
 // Password change state
 const passwordForm = ref({
@@ -947,8 +1044,8 @@ const networkModal = ref({
 })
 
 // Scroll lock
-watch([selectedUser, activeDetailModal, () => networkModal.value.show, showIdentityLarge], ([u, m, n, i]) => {
-  if (u || m || n || i) {
+watch([selectedUser, activeDetailModal, () => networkModal.value.show, showIdentityLarge, showAvatarLarge, () => editUserModal.value.show], ([u, m, n, i, a, e]) => {
+  if (u || m || n || i || a || e) {
     document.body.style.overflow = 'hidden'
   } else {
     document.body.style.overflow = ''
@@ -1179,19 +1276,55 @@ const toggleVerification = async (user) => {
   }
 }
 
-const toggleStatus = async (user) => {
-  const newStatus = user.estado === 'activo' ? 'deshabilitado' : 'activo'
+const toggleStatus = (user) => {
+  editUserModal.value = {
+    show: true,
+    isLoading: false,
+    estado: user.estado,
+    id_rol: user.rol?.id_rol
+  }
+}
+
+const saveEditUser = async () => {
+  editUserModal.value.isLoading = true
   try {
-    const res = await $api(`/usuarios/${user.id_usuario}`, {
+    const res = await $api(`/usuarios/${selectedUser.value.id_usuario}`, {
       method: 'PUT',
-      body: { estado: newStatus }
+      body: { 
+        estado: editUserModal.value.estado,
+        id_rol: editUserModal.value.id_rol
+      }
     })
     if (res.success) {
-      user.estado = newStatus
-      showMsg(`Usuario ${newStatus === 'activo' ? 'activado' : 'suspendido'}`)
+      // Update local state
+      selectedUser.value.estado = editUserModal.value.estado
+      if (editUserModal.value.id_rol !== null) {
+        selectedUser.value.rol = {
+          id_rol: editUserModal.value.id_rol,
+          nombre_rol: editUserModal.value.id_rol === 1 ? 'Usuario' : 'Admin'
+        }
+      }
+      
+      // Also update in the cache
+      for (let key in cache.value) {
+        cache.value[key] = cache.value[key].map(u => 
+          u.id_usuario === selectedUser.value.id_usuario
+            ? { ...u, estado: editUserModal.value.estado, rol: selectedUser.value.rol }
+            : u
+        )
+      }
+      
+      showMsg('Usuario actualizado correctamente ✅')
+      editUserModal.value.show = false
+      clearCache()
+      await fetchPaginatedData(true)
+    } else {
+      showMsg(res.error || 'Error al actualizar usuario', 'error')
     }
   } catch (e) {
-    showMsg('Error al actualizar estado', 'error')
+    showMsg('Error de conexión', 'error')
+  } finally {
+    editUserModal.value.isLoading = false
   }
 }
 
