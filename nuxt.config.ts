@@ -9,8 +9,8 @@ export default defineNuxtConfig({
 
   pwa: {
     manifest: {
-      name: 'RedYMercadeo',
-      short_name: 'RedYM',
+      name: 'PubliGana',
+      short_name: 'PubliGana',
       description: 'Gana por interactuar',
       theme_color: '#10b981',
 
@@ -37,7 +37,7 @@ export default defineNuxtConfig({
 
   app: {
     head: {
-      title: 'RedYMercadeo - Gana por interactuar',
+      title: 'PubliGana - Gana por interactuar',
       meta: [
         { charset: 'utf-8' },
         { name: 'viewport', content: 'width=device-width, initial-scale=1' },
@@ -61,9 +61,9 @@ export default defineNuxtConfig({
 
   runtimeConfig: {
     public: {
-      appName: 'RedYMercadeo',
+      appName: 'PubliGana',
       appVersion: '1.0.0',
-      apiBase: process.env.NUXT_PUBLIC_API_URL || 'http://localhost:4000'
+      apiBase: process.env.NUXT_PUBLIC_API_URL
     }
   }
 })

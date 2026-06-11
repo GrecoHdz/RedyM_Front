@@ -10,7 +10,7 @@
     <div class="max-w-2xl mx-auto bg-gray-50 dark:bg-gray-900 min-h-screen relative">
       <main class="pt-16 pb-4">
         <!-- Missions Section (Daily + Special) -->
-        <section class="px-2 pt-1 pb-4 grid grid-cols-2 gap-3">
+        <section :class="['px-2 pt-1 pb-4 grid gap-3', misionesEspeciales.length > 0 ? 'grid-cols-2' : 'grid-cols-1']">
           <!-- Daily Missions Launcher -->
           <button @click="showDailyModal = true" class="bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-lg border border-gray-100 dark:border-gray-700 relative overflow-hidden group active:scale-95 transition-all text-left">
             <div class="absolute -top-4 -right-4 w-16 h-16 bg-emerald-500/10 rounded-full blur-xl group-hover:scale-150 transition-transform"></div>

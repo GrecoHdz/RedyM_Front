@@ -144,7 +144,7 @@
                     <svg class="w-5 h-5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122" /></svg>
                   </div>
                   <div>
-                    <h4 class="text-xs font-black text-white uppercase tracking-tight mb-1">Ganancias Duplicadas (x2)</h4>
+                    <h4 class="text-xs font-black text-white uppercase tracking-tight mb-1">Interacciones x2</h4>
                     <p class="text-[10px] text-gray-400 font-medium leading-relaxed">
                       Multiplica x2 el valor de cada interacción publicitaria que realices.
                     </p>
@@ -152,12 +152,34 @@
                 </div>
                 <div class="group/benefit bg-white/5 backdrop-blur-sm border border-white/5 p-4 rounded-[1.5rem] flex items-start gap-4 transition-all hover:bg-white/10 hover:border-indigo-500/30">
                   <div class="w-10 h-10 rounded-2xl bg-indigo-500/10 flex items-center justify-center shrink-0 group-hover/benefit:scale-110 transition-transform">
-                     <svg class="w-5 h-5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
+                    <svg class="w-5 h-5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>
                   </div>
                   <div>
-                    <h4 class="text-xs font-black text-white uppercase tracking-tight mb-1">Red de Ganancias Multinivel</h4>
+                    <h4 class="text-xs font-black text-white uppercase tracking-tight mb-1">Acceso a todas las misiones especiales</h4>
                     <p class="text-[10px] text-gray-400 font-medium leading-relaxed">
-                      Gana el 100% de la membresía de cada persona que invites, al instante y de forma individual.
+                      Participa en todas las misiones especiales disponibles sin restricciones.
+                    </p>
+                  </div>
+                </div>
+                <div class="group/benefit bg-white/5 backdrop-blur-sm border border-white/5 p-4 rounded-[1.5rem] flex items-start gap-4 transition-all hover:bg-white/10 hover:border-purple-500/30">
+                  <div class="w-10 h-10 rounded-2xl bg-purple-500/10 flex items-center justify-center shrink-0 group-hover/benefit:scale-110 transition-transform">
+                    <svg class="w-5 h-5 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
+                  </div>
+                  <div>
+                    <h4 class="text-xs font-black text-white uppercase tracking-tight mb-1">Ganancia por Referido Directo</h4>
+                    <p class="text-[10px] text-gray-400 font-medium leading-relaxed">
+                      Gana el 100% de la membresía de cada persona que invites con tu link.
+                    </p>
+                  </div>
+                </div>
+                <div class="group/benefit bg-white/5 backdrop-blur-sm border border-white/5 p-4 rounded-[1.5rem] flex items-start gap-4 transition-all hover:bg-white/10 hover:border-teal-500/30">
+                  <div class="w-10 h-10 rounded-2xl bg-teal-500/10 flex items-center justify-center shrink-0 group-hover/benefit:scale-110 transition-transform">
+                    <svg class="w-5 h-5 text-teal-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
+                  </div>
+                  <div>
+                    <h4 class="text-xs font-black text-white uppercase tracking-tight mb-1">Ganancia por Derrame</h4>
+                    <p class="text-[10px] text-gray-400 font-medium leading-relaxed">
+                      Gana por derrame incluso si no invitas a nadie, recibiendo comisiones de niveles inferiores.
                     </p>
                   </div>
                 </div>
