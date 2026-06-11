@@ -833,9 +833,10 @@ onUnmounted(() => {
 })
 
 useHead({
-  title: 'Dashboard | RedPlus',
+  title: 'PubliGana - Dashboard',
   meta: [
-    { name: 'description', content: 'Dashboard de usuario de RedPlus.' }
+    { name: 'description', content: 'Dashboard del admin de PubliGana.' },
+    { name: 'viewport', content: 'width=device-width, initial-scale=0.9, user-scalable=no' }
   ]
 })
 </script>

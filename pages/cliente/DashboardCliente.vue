@@ -533,6 +533,9 @@
         </div>
       </div>
     </Transition>
+
+    <!-- Modal de Invitación a Notificaciones Push -->
+    <PushNotificationInvite />
   </div>
 </template>
 
@@ -545,6 +548,7 @@ import Toast from '~/components/ui/Toast.vue'
 import LoadingSpinner from '~/components/ui/LoadingSpinner.vue'
 import { useInteractionHistory } from '~/composables/useInteractionHistory'
 import { usePostsLoader } from '~/composables/usePostsLoader'
+import PushNotificationInvite from '~/components/ui/PushNotificationInvite.vue'
 
 const { $api } = useNuxtApp()
 const auth = useAuthStore()
@@ -1107,10 +1111,12 @@ onUnmounted(() => {
   Object.values(viewTimers).forEach(t => clearTimeout(t))
 })
 
+// SEO and Meta
 useHead({
-  title: 'Dashboard | RedPlus',
+  title: 'PubliGana - Dashboard',
   meta: [
-    { name: 'description', content: 'Dashboard de usuario de RedPlus.' }
+    { name: 'description', content: 'Dashboard de usuario de PubliGana.' },
+    { name: 'viewport', content: 'width=device-width, initial-scale=0.9, user-scalable=no' }
   ]
 })
 </script>

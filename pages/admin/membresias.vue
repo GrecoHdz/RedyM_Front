@@ -800,6 +800,15 @@ import BottomNav from '~/components/footers/BottomNav.vue'
 
 const { $api } = useNuxtApp()
 
+// SEO and Meta
+useHead({
+  title: 'PubliGana - Gestión de Membresías',
+  meta: [
+    { name: 'description', content: 'Gestión de membresías de PubliGana.' },
+    { name: 'viewport', content: 'width=device-width, initial-scale=0.9, user-scalable=no' }
+  ]
+})
+
 // --- ESTADOS ---
 const isLoading = ref(true)
 const isProcessing = ref(false)

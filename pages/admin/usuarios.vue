@@ -1308,7 +1308,7 @@ onMounted(() => {
 })
 
 useHead({
-  title: 'Usuarios | RedPlus Admin',
+  title: 'Usuarios | PubliGana Admin',
   meta: [{ name: 'description', content: 'Gestión de miembros y administradores.' }]
 })
 </script>

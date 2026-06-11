@@ -296,7 +296,7 @@
               🏢
             </div>
             <div>
-              <span class="block text-xs font-bold text-gray-200">Sobre RedPlus</span>
+              <span class="block text-xs font-bold text-gray-200">Sobre PubliGana</span>
               <span class="block text-[8px] text-gray-500 font-medium capitalize">Info de la empresa</span>
             </div>
           </div>
@@ -320,7 +320,7 @@
       </section>
 
       <footer class="mt-8 text-center px-6">
-        <p class="text-[10px] font-bold text-gray-600 uppercase tracking-[0.3em]">RedPlus v1.0.5</p>
+        <p class="text-[10px] font-bold text-gray-600 uppercase tracking-[0.3em]">PubliGana v1.0.5</p>
       </footer>
     </main>
 
@@ -460,7 +460,7 @@
           <div class="overflow-y-auto flex-1 pr-4 custom-scrollbar space-y-6 text-gray-400 text-sm">
             <section>
               <h4 class="text-white font-black uppercase text-xs mb-2 tracking-widest">1. Uso de la Plataforma</h4>
-              <p>RedPlus es un ecosistema diseñado para maximizar tus ingresos mediante una red de servicios y referidos. Al usarla, aceptas ser un crack.</p>
+              <p>PubliGana es un ecosistema diseñado para maximizar tus ingresos mediante una red de servicios y referidos. Al usarla, aceptas ser un crack.</p>
             </section>
             <section>
               <h4 class="text-white font-black uppercase text-xs mb-2 tracking-widest">2. Membresías</h4>
@@ -468,7 +468,7 @@
             </section>
             <section>
               <h4 class="text-white font-black uppercase text-xs mb-2 tracking-widest">3. Garantías</h4>
-              <p>Todos los servicios gestionados tienen el respaldo de RedPlus por 1 mes completo.</p>
+              <p>Todos los servicios gestionados tienen el respaldo de PubliGana por 1 mes completo.</p>
             </section>
           </div>
           <button @click="isTerminosModalOpen = false" class="w-full mt-8 py-4 bg-white text-[#070b14] font-black uppercase tracking-widest rounded-2xl active:scale-95 transition-all">He leído todo</button>
@@ -481,13 +481,13 @@
       <div v-if="isAcercaModalOpen" @click.self="isAcercaModalOpen = false" class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
         <div class="bg-[#0f172a] border border-white/10 rounded-[2.5rem] p-8 w-full max-w-sm shadow-2xl animate-modal-in text-center">
           <div class="w-20 h-20 bg-gradient-to-tr from-emerald-500 to-teal-400 rounded-3xl flex items-center justify-center mx-auto mb-6 text-3xl shadow-xl shadow-emerald-900/40">🚀</div>
-          <h3 class="text-2xl font-black text-white mb-2 tracking-tight uppercase">RedPlus</h3>
+          <h3 class="text-2xl font-black text-white mb-2 tracking-tight uppercase">PubliGana</h3>
           <p class="text-[10px] text-emerald-500 font-black uppercase tracking-[0.3em] mb-6">Innova • Conecta • Gana</p>
           <p class="text-sm text-gray-400 mb-8 leading-relaxed">Somos la red de servicios y mercadeo más grande de la región, enfocada en la libertad financiera y soluciones digitales.</p>
           <div class="space-y-3 mb-8">
             <div class="flex items-center justify-center gap-3 text-xs text-gray-300 font-bold">
               <span>📧</span>
-              <span class="lowercase">{{ contactInfo.find(c => c.type === 'email')?.value || 'info@RedPlus.com' }}</span>
+              <span class="lowercase">{{ contactInfo.find(c => c.type === 'email')?.value || 'info@PubliGana.com' }}</span>
             </div>
             <div class="flex items-center justify-center gap-3 text-xs text-gray-300 font-bold">
               <span>📱</span>
@@ -928,10 +928,12 @@ onMounted(async () => {
   isLoading.value = false
 })
 
+// SEO and Meta
 useHead({
-  title: 'Mi Perfil | RedPlus',
+  title: 'PubliGana - Perfil',
   meta: [
-    { name: 'description', content: 'Gestiona tu perfil y ganancias en RedPlus.' }
+    { name: 'description', content: 'Perfil de usuario de PubliGana.' },
+    { name: 'viewport', content: 'width=device-width, initial-scale=0.9, user-scalable=no' }
   ]
 })
 </script>

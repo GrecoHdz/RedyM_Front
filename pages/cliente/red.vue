@@ -1544,8 +1544,13 @@ const closeNetworkModal = () => {
   networkModal.value.currentChildren = []
   networkModal.value.history = []
 }
+// SEO and Meta
 useHead({
-  title: 'Mi Red | RedPlus'
+  title: 'PubliGana - Mi Red',
+  meta: [
+    { name: 'description', content: 'Gestiona tu red y comisiones en la comunidad PubliGana.' },
+    { name: 'viewport', content: 'width=device-width, initial-scale=0.9, user-scalable=no' }
+  ]
 })
 </script>
 <style scoped>

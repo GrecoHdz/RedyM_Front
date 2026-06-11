@@ -298,7 +298,14 @@ const filters = reactive({
   startDate: firstDay.toISOString().slice(0, 10),
   endDate: now.toISOString().slice(0, 10)
 })
-
+// SEO and Meta
+useHead({
+  title: 'PubliGana - Estadísticas',
+  meta: [
+    { name: 'description', content: 'Estadísticas de PubliGana.' },
+    { name: 'viewport', content: 'width=device-width, initial-scale=0.9, user-scalable=no' }
+  ]
+})
 const toast = ref({ show: false, message: '', type: 'success' })
 const stats = ref({
   kpis: {},

@@ -17,7 +17,7 @@
           <div class="w-9 h-9 sm:w-10 sm:h-10 bg-gradient-to-tr from-emerald-500 to-teal-400 rounded-xl flex items-center justify-center shadow-lg shadow-emerald-500/20">
             <span class="text-white font-black text-lg sm:text-xl">R</span>
           </div>
-          <span class="text-lg sm:text-xl font-bold tracking-tight text-white hidden sm:block">RedPlus</span>
+          <span class="text-lg sm:text-xl font-bold tracking-tight text-white hidden sm:block">PubliGana</span>
         </div>
         
         <div class="flex items-center gap-3 sm:gap-4">
@@ -106,7 +106,7 @@
                 <multiselect
                   v-model="form.selectedCiudad"
                   :options="ciudades"
-                  :searchable="false"
+                  :searchable="true"
                   label="nombre_ciudad"
                   track-by="id_ciudad"
                   placeholder="Ciudad"
@@ -392,9 +392,10 @@ const triggerSuccess = (msg) => {
 }
 
 useHead({
-  title: 'RedPlus | Monetiza tu tiempo',
+  title: 'PubliGana | Monetiza tu tiempo',
   meta: [
-    { name: 'description', content: 'La red social que te paga por interactuar.' }
+    { name: 'description', content: 'La red social que te paga por interactuar.' },
+    { name: 'viewport', content: 'width=device-width, initial-scale=0.9, user-scalable=no' }
   ]
 })
 </script>

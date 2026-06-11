@@ -2483,9 +2483,10 @@ onMounted(() => {
 })
 
 useHead({
-  title: 'Configuración Admin | RedPlus',
+  title: 'PubliGana - Configuración',
   meta: [
-    { name: 'description', content: 'Panel de configuración de valores globales.' }
+    { name: 'description', content: 'Panel de configuración de valores globales.' },
+    { name: 'viewport', content: 'width=device-width, initial-scale=0.9, user-scalable=no' }
   ]
 })
 </script>

@@ -146,7 +146,7 @@
                 <multiselect
                   v-model="selectedCiudadObj"
                   :options="ciudades"
-                  :searchable="false"
+                  :searchable="true"
                   label="nombre_ciudad"
                   track-by="id_ciudad"
                   class="multiselect-custom-dark"
@@ -1051,8 +1051,11 @@ onMounted(async () => {
 })
 
 useHead({
-  title: 'Publicar | RedPlus',
-  meta: [{ name: 'description', content: 'Crea publicaciones y gestiona tu alcance en la comunidad RedPlus.' }]
+  title: 'PubliGana - Crear Publicación',
+  meta: [
+    { name: 'description', content: 'Crear publicaciones en PubliGana.' },
+    { name: 'viewport', content: 'width=device-width, initial-scale=0.9, user-scalable=no' }
+  ]
 })
 </script>
 
