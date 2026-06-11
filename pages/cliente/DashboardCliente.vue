@@ -552,11 +552,13 @@ import Toast from '~/components/ui/Toast.vue'
 import LoadingSpinner from '~/components/ui/LoadingSpinner.vue'
 import { useInteractionHistory } from '~/composables/useInteractionHistory'
 import { usePostsLoader } from '~/composables/usePostsLoader'
+import { useExternalNavigation } from '~/composables/useExternalNavigation'
 import PushNotificationInvite from '~/components/ui/PushNotificationInvite.vue'
 
 const { $api } = useNuxtApp()
 const auth = useAuthStore()
 const { markAsStale } = useInteractionHistory()
+const { openExternal, initExternalNavigation } = useExternalNavigation()
 
 const { 
   posts: feedPosts, 
@@ -973,8 +975,10 @@ const handleShare = async (post) => {
   // Record time to validate mission on return
   lastShareAttempt.value = { id: post.id, time: Date.now() }
   
-  // Abrir WhatsApp primero
-  window.open(whatsappUrl, '_blank')
+  // Abrir WhatsApp primero de forma segura
+  openExternal(whatsappUrl, {
+    onOpen: () => console.log('🔗 [Dashboard] WhatsApp opened successfully')
+  })
   
   // Luego registrar interaccion share
   const res = await registerInteraction(post.id, 'share')
@@ -1028,8 +1032,10 @@ const handleLink = async (post) => {
     finalUrl = 'https://' + url
   }
 
-  // Abrir enlace primero
-  window.open(finalUrl, '_blank')
+  // Abrir enlace primero de forma segura
+  openExternal(finalUrl, {
+    onOpen: () => console.log('🔗 [Dashboard] External link opened successfully:', finalUrl)
+  })
 
   // Luego registrar interaccion visita_web
   const res = await registerInteraction(post.id, 'visita_web')
@@ -1054,8 +1060,10 @@ const handleWhatsApp = async (post) => {
   const encodedMessage = encodeURIComponent(message)
   const whatsappUrl = `https://wa.me/${cleanPhone}?text=${encodedMessage}`
   
-  // Abrir WhatsApp primero
-  window.open(whatsappUrl, '_blank')
+  // Abrir WhatsApp primero de forma segura
+  openExternal(whatsappUrl, {
+    onOpen: () => console.log('🔗 [Dashboard] WhatsApp contact opened successfully')
+  })
 
   // Luego registrar interaccion visita_whatsapp
   const res = await registerInteraction(post.id, 'visita_whatsapp')
@@ -1075,6 +1083,12 @@ const toggleFollow = (post) => {
 }
 
 onMounted(async () => {
+  console.log('🔗 [Dashboard] Initializing dashboard...')
+  
+  // Initialize external navigation handler FIRST
+  initExternalNavigation()
+  
+  // Original event listeners
   document.addEventListener('visibilitychange', handlePageShow)
   window.addEventListener('focus', handlePageShow)
   

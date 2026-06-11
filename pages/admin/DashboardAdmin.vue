@@ -353,10 +353,12 @@ import Toast from '~/components/ui/Toast.vue'
 import LoadingSpinner from '~/components/ui/LoadingSpinner.vue'
 import { useInteractionHistory } from '~/composables/useInteractionHistory'
 import { usePostsLoader } from '~/composables/usePostsLoader'
+import { useExternalNavigation } from '~/composables/useExternalNavigation'
 
 const { $api } = useNuxtApp()
 const auth = useAuthStore()
 const { markAsStale } = useInteractionHistory()
+const { openExternal, initExternalNavigation } = useExternalNavigation()
 
 const { 
   posts: feedPosts, 
@@ -720,14 +722,16 @@ const handleShare = async (post) => {
   // Record time to validate mission on return
   lastShareAttempt.value = { id: post.id, time: Date.now() }
   
+  // Abrir WhatsApp de forma segura primero
+  openExternal(whatsappUrl, {
+    onOpen: () => console.log('🔗 [AdminDashboard] WhatsApp opened successfully')
+  })
+  
   // Registrar interaccion share
   const res = await registerInteraction(post.id, 'share')
   if (res && res.success) {
     markAsStale()
   }
-  
-  // Abrir WhatsApp
-  window.open(whatsappUrl, '_blank')
   
   // Feedback visual
   showToast('Abriendo WhatsApp... Completa el envío y regresa para ganar. 📱', 'success')
@@ -771,7 +775,9 @@ const handleLink = (url) => {
   if (!/^https?:\/\//i.test(url)) {
     finalUrl = 'https://' + url
   }
-  window.open(finalUrl, '_blank')
+  openExternal(finalUrl, {
+    onOpen: () => console.log('🔗 [AdminDashboard] External link opened successfully:', finalUrl)
+  })
 }
 
 const handleWhatsApp = (post) => {
@@ -784,7 +790,9 @@ const handleWhatsApp = (post) => {
   const message = `Hola, vi tu publicación en RedYMercadeo y me gustaría más información.`
   const encodedMessage = encodeURIComponent(message)
   const whatsappUrl = `https://wa.me/${cleanPhone}?text=${encodedMessage}`
-  window.open(whatsappUrl, '_blank')
+  openExternal(whatsappUrl, {
+    onOpen: () => console.log('🔗 [AdminDashboard] WhatsApp contact opened successfully')
+  })
 }
 
 const toggleFollow = (post) => {
@@ -793,6 +801,11 @@ const toggleFollow = (post) => {
 }
 
 onMounted(async () => {
+  console.log('🔗 [AdminDashboard] Initializing admin dashboard...')
+  
+  // Initialize external navigation handler FIRST
+  initExternalNavigation()
+  
   document.addEventListener('visibilitychange', handlePageShow)
   window.addEventListener('focus', handlePageShow)
   
