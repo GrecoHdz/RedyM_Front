@@ -542,7 +542,7 @@ import MobileHeader from '~/components/headers/MobileHeader.vue'
 import BottomNav from '~/components/footers/BottomNav.vue'
 import LoadingSpinner from '~/components/ui/LoadingSpinner.vue'
 import Toast from '~/components/ui/Toast.vue'
-import Multiselect from 'vue-multiselect'
+
 import { usePushNotifications } from '~/composables/usePushNotifications'
 import InteractionHistoryModal from '~/components/ui/InteractionHistoryModal.vue'
 import { useInteractionHistory } from '~/composables/useInteractionHistory'
