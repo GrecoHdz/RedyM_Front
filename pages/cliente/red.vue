@@ -138,7 +138,7 @@
             <div class="space-y-3 pt-2">
               <p class="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-500/80 px-1">Beneficios de la Membresia:</p>
               
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div class="grid grid-cols-2 gap-2">
                 <div class="group/benefit bg-white/5 backdrop-blur-sm border border-white/5 p-4 rounded-[1.5rem] flex items-start gap-4 transition-all hover:bg-white/10 hover:border-emerald-500/30">
                   <div class="w-10 h-10 rounded-2xl bg-emerald-500/10 flex items-center justify-center shrink-0 group-hover/benefit:scale-110 transition-transform">
                     <svg class="w-5 h-5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122" /></svg>
@@ -217,7 +217,7 @@
         <!-- Blurred Content Area -->
         <div :class="{ 'grayscale opacity-50 transition-all duration-700': !isMembershipActive }">
       <!-- Summary of Earnings Section -->
-      <section class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <section class="grid grid-cols-2 gap-2">
         <!-- Direct Referral Earnings Card -->
         <div class="bg-gradient-to-br from-indigo-500/10 to-blue-500/5 backdrop-blur-md rounded-3xl p-5 border border-indigo-500/15 relative overflow-hidden group hover:border-indigo-500/30 transition-all duration-300">
           <div class="absolute -right-6 -bottom-6 w-24 h-24 bg-indigo-500/10 rounded-full blur-2xl group-hover:bg-indigo-500/15 transition-all"></div>

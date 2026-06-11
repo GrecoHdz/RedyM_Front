@@ -4,7 +4,8 @@ export default defineNuxtConfig({
   modules: [
     '@nuxtjs/tailwindcss',
     '@pinia/nuxt',
-    '@vite-pwa/nuxt'
+    '@vite-pwa/nuxt',
+    '@nuxtjs/sitemap'
   ],
 
   pwa: {
@@ -33,7 +34,14 @@ export default defineNuxtConfig({
     }
 
   },
-
+  site: {
+    url: 'https://publigana.vercel.app'
+  },
+  sitemap: {
+    urls: [
+      '/',
+    ]
+  },
 
   app: {
     head: {
