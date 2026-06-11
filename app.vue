@@ -28,7 +28,14 @@ import { useAuthStore } from '~/middleware/auth.store';
 const auth = useAuthStore();
 const { isIAB, isIOS, getExternalBrowserLink } = useIABDetector();
 const route = useRoute();
-
+// SEO and Meta
+useHead({
+  title: 'PubliGana',
+  meta: [
+    { name: 'description', content: 'PubliGana es la plataforma donde compartes y ganas.' },
+    { name: 'viewport', content: 'width=device-width, initial-scale=0.9, user-scalable=no' }
+  ]
+})
 </script>
 
 <style>
