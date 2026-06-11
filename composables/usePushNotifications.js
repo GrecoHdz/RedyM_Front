@@ -10,16 +10,44 @@ export const usePushNotifications = () => {
     const config = useRuntimeConfig();
     const auth = useAuthStore();
 
-    if (process.client) {
-        isSupported.value = 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
-        permission.value = isSupported.value ? Notification.permission : 'default';
+    // Inicializar con seguridad
+    const initialize = () => {
+        if (!process.client) return;
+        
+        try {
+            // Verificar soporte de forma más flexible para móviles
+            const hasServiceWorker = 'serviceWorker' in navigator;
+            const hasPushManager = 'PushManager' in window;
+            const hasNotification = 'Notification' in window;
+            
+            // En móviles, podemos ser más flexibles (especialmente para iOS)
+            isSupported.value = hasNotification;
+            
+            if (hasNotification) {
+                permission.value = Notification.permission;
+            }
 
-        // Optimistic check from localStorage to avoid flashes
-        const savedStatus = localStorage.getItem('push_subscribed_status');
-        if (savedStatus !== null) {
-            isSubscribed.value = savedStatus === 'true';
+            console.log('📱 [Push] Initializing:', {
+                hasServiceWorker,
+                hasPushManager,
+                hasNotification,
+                isSupported: isSupported.value,
+                permission: permission.value
+            });
+
+            // Optimistic check from localStorage to avoid flashes
+            const savedStatus = localStorage.getItem('push_subscribed_status');
+            if (savedStatus !== null) {
+                isSubscribed.value = savedStatus === 'true';
+            }
+        } catch (error) {
+            console.error('📱 [Push] Error initializing:', error);
+            isSupported.value = false;
         }
-    }
+    };
+
+    // Inicializar inmediatamente
+    initialize();
 
     const urlBase64ToUint8Array = (base64String) => {
         if (!base64String || typeof base64String !== 'string') {
@@ -46,41 +74,65 @@ export const usePushNotifications = () => {
     };
 
     const checkSubscription = async () => {
-        if (!process.client || !isSupported.value) {
+        if (!process.client) {
             isChecking.value = false;
             return;
         }
 
         try {
             isChecking.value = true;
-            const registration = await navigator.serviceWorker.ready;
-            const subscription = await registration.pushManager.getSubscription();
-            const status = !!subscription;
-            isSubscribed.value = status;
-            localStorage.setItem('push_subscribed_status', status.toString());
+            
+            // Verificar si serviceWorker está disponible
+            if ('serviceWorker' in navigator && 'PushManager' in window) {
+                const registration = await navigator.serviceWorker.ready;
+                const subscription = await registration.pushManager.getSubscription();
+                const status = !!subscription;
+                isSubscribed.value = status;
+                localStorage.setItem('push_subscribed_status', status.toString());
+                console.log('📱 [Push] Subscription check:', status);
+            }
         } catch (error) {
-            console.error('Error verificando suscripción push:', error);
+            console.error('📱 [Push] Error verificando suscripción:', error);
         } finally {
             isChecking.value = false;
         }
     };
 
     const subscribe = async () => {
-        if (!isSupported.value || !('Notification' in window)) return { success: false, error: 'supported' };
+        if (!('Notification' in window)) {
+            console.log('📱 [Push] Notifications not supported');
+            return { success: false, error: 'supported' };
+        }
 
         try {
+            console.log('📱 [Push] Requesting permission...');
             const result = await Notification.requestPermission();
             permission.value = result;
-            if (result !== 'granted') return { success: false, error: 'denied' };
+            
+            if (result !== 'granted') {
+                console.log('📱 [Push] Permission denied');
+                return { success: false, error: 'denied' };
+            }
 
+            // Si no hay serviceWorker ni PushManager, solo actualizamos el estado
+            if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+                console.log('📱 [Push] ServiceWorker/PushManager not available, but permission granted');
+                isSubscribed.value = true;
+                localStorage.setItem('push_subscribed_status', 'true');
+                return { success: true };
+            }
+
+            console.log('📱 [Push] Getting VAPID key...');
             const response = await $api('/notificaciones/vapid-key');
             const vapidPublicKey = response.key;
             if (!vapidPublicKey) throw new Error('No VAPID key');
 
+            console.log('📱 [Push] Getting service worker registration...');
             const registration = await navigator.serviceWorker.ready;
             let subscription = await registration.pushManager.getSubscription();
 
             if (!subscription) {
+                console.log('📱 [Push] Subscribing...');
                 subscription = await registration.pushManager.subscribe({
                     userVisibleOnly: true,
                     applicationServerKey: urlBase64ToUint8Array(vapidPublicKey)
@@ -88,6 +140,7 @@ export const usePushNotifications = () => {
             }
 
             if (auth.user && auth.user.id_usuario) {
+                console.log('📱 [Push] Sending subscription to server...');
                 await $api('/notificaciones/suscripcion', {
                     method: 'POST',
                     body: {
@@ -100,21 +153,24 @@ export const usePushNotifications = () => {
 
                 isSubscribed.value = true;
                 localStorage.setItem('push_subscribed_status', 'true');
+                console.log('📱 [Push] Successfully subscribed!');
                 return { success: true };
             } else {
                 throw new Error('No user authenticated');
             }
         } catch (error) {
-            console.error('Error al suscribirse a push:', error);
+            console.error('📱 [Push] Error al suscribirse a push:', error);
             return { success: false, error: error.message };
         }
     };
 
     const unsubscribe = async () => {
         try {
-            const registration = await navigator.serviceWorker.ready;
-            const subscription = await registration.pushManager.getSubscription();
-            if (subscription) await subscription.unsubscribe();
+            if ('serviceWorker' in navigator && 'PushManager' in window) {
+                const registration = await navigator.serviceWorker.ready;
+                const subscription = await registration.pushManager.getSubscription();
+                if (subscription) await subscription.unsubscribe();
+            }
 
             if (auth.user) {
                 await $api(`/notificaciones/suscripcion?id_usuario=${auth.user.id_usuario}`, {

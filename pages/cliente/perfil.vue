@@ -460,18 +460,94 @@
           <div class="overflow-y-auto flex-1 pr-4 custom-scrollbar space-y-6 text-gray-400 text-sm">
             <section>
               <h4 class="text-white font-black uppercase text-xs mb-2 tracking-widest">1. Uso de la Plataforma</h4>
-              <p>PubliGana es un ecosistema diseñado para maximizar tus ingresos mediante una red de servicios y referidos. Al usarla, aceptas ser un crack.</p>
+              <p>PubliGana es un ecosistema digital diseñado para facilitar la conexión entre usuarios, proveedores de servicios y oportunidades de ingresos a través de referidos y participación activa. Al registrarte y usar nuestra plataforma, aceptas cumplir con estos términos y todas las políticas aplicables.</p>
             </section>
             <section>
-              <h4 class="text-white font-black uppercase text-xs mb-2 tracking-widest">2. Membresías</h4>
-              <p>Los periodos duran 30 días. Si no renuevas, pierdes los beneficios de la membresía, pero sigues siendo parte de la comunidad.</p>
+              <h4 class="text-white font-black uppercase text-xs mb-2 tracking-widest">2. Elegibilidad</h4>
+              <p>Debes ser mayor de edad (18 años o más) para usar PubliGana. Al registrarte, declaras que cumples con este requisito y que la información proporcionada es veraz y actualizada.</p>
             </section>
             <section>
-              <h4 class="text-white font-black uppercase text-xs mb-2 tracking-widest">3. Garantías</h4>
-              <p>Todos los servicios gestionados tienen el respaldo de PubliGana por 1 mes completo.</p>
+              <h4 class="text-white font-black uppercase text-xs mb-2 tracking-widest">3. Cuenta de Usuario</h4>
+              <p>Eres responsable de mantener la confidencialidad de tu cuenta y contraseña. Notifícanos inmediatamente sobre cualquier uso no autorizado de tu cuenta. PubliGana no se hace responsable por pérdidas derivadas del uso no autorizado.</p>
+            </section>
+            <section>
+              <h4 class="text-white font-black uppercase text-xs mb-2 tracking-widest">4. Membresías y Pagos</h4>
+              <p>Las membresías tienen una duración de 30 días. Los pagos son no reembolsables. Si no renuevas tu membresía, perderás acceso a los beneficios premium, pero podrás seguir usando las funciones básicas de la plataforma.</p>
+            </section>
+            <section>
+              <h4 class="text-white font-black uppercase text-xs mb-2 tracking-widest">5. Ganancias y Retiros</h4>
+              <p>Las ganancias se acumulan en tu saldo virtual de PubliGana. Podrás solicitar retiros cuando cumplas con el monto mínimo establecido. Los pagos se procesan según los métodos disponibles en tu región. Nos reservamos el derecho de verificar cualquier actividad antes de procesar un retiro.</p>
+            </section>
+            <section>
+              <h4 class="text-white font-black uppercase text-xs mb-2 tracking-widest">6. Conducta del Usuario</h4>
+              <p>Te comprometes a usar PubliGana de manera legal y ética. No está permitido: actividades fraudulentas, spam, uso de bots, suplantación de identidad, o cualquier acción que perjudique a otros usuarios o la plataforma.</p>
+            </section>
+            <section>
+              <h4 class="text-white font-black uppercase text-xs mb-2 tracking-widest">7. Propiedad Intelectual</h4>
+              <p>Todo el contenido de PubliGana (logos, textos, software, diseños) está protegido por derechos de autor y otras leyes de propiedad intelectual. No puedes reproducir, distribuir o modificar nuestro contenido sin autorización.</p>
+            </section>
+            <section>
+              <h4 class="text-white font-black uppercase text-xs mb-2 tracking-widest">8. Limitación de Responsabilidad</h4>
+              <p>PubliGana se proporciona "tal cual". No garantizamos que la plataforma esté siempre disponible o libre de errores. No somos responsables de pérdidas indirectas, incidentales o consecuenciales derivadas del uso de la plataforma.</p>
+            </section>
+            <section>
+              <h4 class="text-white font-black uppercase text-xs mb-2 tracking-widest">9. Modificaciones</h4>
+              <p>Nos reservamos el derecho de modificar estos términos en cualquier momento. Las modificaciones entrarán en vigor inmediatamente después de su publicación en la plataforma. Tu uso continuado constituye aceptación de los nuevos términos.</p>
+            </section>
+            <section>
+              <h4 class="text-white font-black uppercase text-xs mb-2 tracking-widest">10. Terminación</h4>
+              <p>Podemos suspender o terminar tu cuenta en cualquier momento por violación de estos términos, actividades fraudulentas o por cualquier razón que consideremos necesaria para proteger la comunidad de PubliGana.</p>
             </section>
           </div>
           <button @click="isTerminosModalOpen = false" class="w-full mt-8 py-4 bg-white text-[#070b14] font-black uppercase tracking-widest rounded-2xl active:scale-95 transition-all">He leído todo</button>
+        </div>
+      </div>
+    </Transition>
+
+    <!-- Modal Política de Privacidad -->
+    <Transition name="fade">
+      <div v-if="isPrivacidadModalOpen" @click.self="isPrivacidadModalOpen = false" class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+        <div class="bg-[#0f172a] border border-white/10 rounded-[2.5rem] p-8 w-full max-w-2xl shadow-2xl animate-modal-in flex flex-col max-h-[85vh]">
+          <h3 class="text-2xl font-black text-white mb-6 uppercase tracking-tight">Política de Privacidad</h3>
+          <div class="overflow-y-auto flex-1 pr-4 custom-scrollbar space-y-6 text-gray-400 text-sm">
+            <section>
+              <h4 class="text-white font-black uppercase text-xs mb-2 tracking-widest">1. Información que Recolectamos</h4>
+              <p>En PubliGana recolectamos información personal que nos proporcionas voluntariamente al registrarte, como: nombre, correo electrónico, número de teléfono, documento de identidad, fotografía de perfil y datos de pago. También recolectamos información automáticamente sobre tu uso de la plataforma.</p>
+            </section>
+            <section>
+              <h4 class="text-white font-black uppercase text-xs mb-2 tracking-widest">2. Uso de la Información</h4>
+              <p>Usamos tu información personal para: crear y mantener tu cuenta, procesar transacciones y pagos, enviar notificaciones importantes, mejorar nuestros servicios, cumplir con obligaciones legales y proteger la seguridad de la plataforma y sus usuarios.</p>
+            </section>
+            <section>
+              <h4 class="text-white font-black uppercase text-xs mb-2 tracking-widest">3. Compartir Información</h4>
+              <p>No vendemos ni alquilamos tu información personal a terceros. Podemos compartirla con: proveedores de servicios que nos ayudan a operar la plataforma (procesadores de pago, servicios de hosting), autoridades legales cuando así lo requiera la ley, y con otros usuarios solo en la medida necesaria para el funcionamiento de los servicios (por ejemplo, para completar transacciones).</p>
+            </section>
+            <section>
+              <h4 class="text-white font-black uppercase text-xs mb-2 tracking-widest">4. Seguridad de los Datos</h4>
+              <p>Implementamos medidas de seguridad técnicas y organizativas para proteger tu información personal contra acceso no autorizado, uso indebido o divulgación. Sin embargo, ningún método de transmisión por Internet es 100% seguro, por lo que no podemos garantizar seguridad absoluta.</p>
+            </section>
+            <section>
+              <h4 class="text-white font-black uppercase text-xs mb-2 tracking-widest">5. Cookies y Tecnologías Similares</h4>
+              <p>Usamos cookies y tecnologías similares para mejorar tu experiencia en PubliGana, recordar tus preferencias, analizar el tráfico y personalizar el contenido. Puedes configurar tu navegador para rechazar cookies, pero esto puede afectar el funcionamiento de la plataforma.</p>
+            </section>
+            <section>
+              <h4 class="text-white font-black uppercase text-xs mb-2 tracking-widest">6. Tus Derechos</h4>
+              <p>Tienes derecho a: acceder a tu información personal, corregir datos incorrectos, solicitar la eliminación de tu cuenta, objetar el procesamiento de tus datos y solicitar la portabilidad de los mismos. Para ejercer estos derechos, contáctanos a través de los canales oficiales.</p>
+            </section>
+            <section>
+              <h4 class="text-white font-black uppercase text-xs mb-2 tracking-widest">7. Menores de Edad</h4>
+              <p>PubliGana no está dirigido a menores de 18 años. No recolectamos intencionalmente información personal de menores. Si descubrimos que hemos recolectado información de un menor sin consentimiento parental, la eliminaremos inmediatamente.</p>
+            </section>
+            <section>
+              <h4 class="text-white font-black uppercase text-xs mb-2 tracking-widest">8. Cambios en esta Política</h4>
+              <p>Podemos actualizar esta Política de Privacidad periódicamente. Te notificaremos sobre cambios importantes a través de la plataforma o por correo electrónico. Tu uso continuado de PubliGana después de la publicación de los cambios constituye aceptación de la política actualizada.</p>
+            </section>
+            <section>
+              <h4 class="text-white font-black uppercase text-xs mb-2 tracking-widest">9. Contacto</h4>
+              <p>Si tienes preguntas sobre esta Política de Privacidad o sobre el tratamiento de tus datos, puedes contactarnos a través del correo electrónico proporcionado en la sección "Acerca de" o mediante el soporte oficial de PubliGana.</p>
+            </section>
+          </div>
+          <button @click="isPrivacidadModalOpen = false" class="w-full mt-8 py-4 bg-white text-[#070b14] font-black uppercase tracking-widest rounded-2xl active:scale-95 transition-all">He leído todo</button>
         </div>
       </div>
     </Transition>

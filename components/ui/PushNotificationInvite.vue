@@ -41,16 +41,18 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue';
+import { ref, onMounted, computed, watch } from 'vue';
 import { usePushNotifications } from '~/composables/usePushNotifications';
 import { useAuthStore } from '~/middleware/auth.store';
 
 const { isSupported, isSubscribed, permission, isChecking, subscribe, checkSubscription } = usePushNotifications();
 const auth = useAuthStore();
 const isDismissed = ref(false);
+const isReady = ref(false);
 
 const isVisible = computed(() => {
   const visible = auth.user && 
+         isReady.value &&
          !isChecking.value &&
          isSupported.value && 
          !isSubscribed.value && 
@@ -58,8 +60,9 @@ const isVisible = computed(() => {
          !isDismissed.value;
   
   if (process.client) {
-    console.log('PushInvite Status:', {
+    console.log('📱 [PushInvite] Status:', {
       auth: !!auth.user,
+      isReady: isReady.value,
       isChecking: isChecking.value,
       isSupported: isSupported.value,
       isSubscribed: isSubscribed.value,
@@ -88,9 +91,7 @@ const dismiss = () => {
   }
 };
 
-onMounted(async () => {
-  await checkSubscription();
-  
+const initialize = async () => {
   if (process.client) {
     const lastDismissed = localStorage.getItem('push_invite_dismissed');
     if (lastDismissed) {
@@ -99,6 +100,27 @@ onMounted(async () => {
         isDismissed.value = true;
       }
     }
+  }
+  
+  await checkSubscription();
+  
+  // Dar un pequeño tiempo para que todo se estabilice
+  setTimeout(() => {
+    isReady.value = true;
+  }, 1000);
+};
+
+// Esperar a que auth esté listo
+watch(() => auth.isInitialized, async (initialized) => {
+  if (initialized && auth.user) {
+    await initialize();
+  }
+}, { immediate: true });
+
+// Si auth ya está inicializado al montar
+onMounted(async () => {
+  if (auth.isInitialized && auth.user) {
+    await initialize();
   }
 });
 </script>

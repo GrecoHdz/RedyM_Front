@@ -1549,7 +1549,7 @@ useHead({
   title: 'PubliGana - Mi Red',
   meta: [
     { name: 'description', content: 'Gestiona tu red y comisiones en la comunidad PubliGana.' },
-    { name: 'viewport', content: 'width=device-width, initial-scale=1, user-scalable=no' }
+    { name: 'viewport', content: 'width=device-width, initial-scale=0.9, user-scalable=no' }
   ]
 })
 </script>

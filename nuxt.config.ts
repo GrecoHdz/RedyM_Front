@@ -14,12 +14,27 @@ export default defineNuxtConfig({
       short_name: 'PubliGana',
       description: 'Gana por interactuar',
       theme_color: '#10b981',
+      background_color: '#070b14',
+      display: 'standalone',
+      start_url: '/',
+      scope: '/',
+      orientation: 'portrait',
 
       icons: [
         {
           src: '/favicon.ico',
           sizes: '64x64 32x32 24x24 16x16',
           type: 'image/x-icon'
+        },
+        {
+          src: '/pwa-192x192.png',
+          sizes: '192x192',
+          type: 'image/png'
+        },
+        {
+          src: '/pwa-512x512.png',
+          sizes: '512x512',
+          type: 'image/png'
         }
       ]
     },

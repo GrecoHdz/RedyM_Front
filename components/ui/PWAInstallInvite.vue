@@ -149,12 +149,13 @@ import { useRoute } from 'vue-router';
 import { useAppPWA } from '~/composables/useAppPWA';
 import { useAuthStore } from '~/middleware/auth.store';
 
-const { isInstalled, isIOS, canInstall, installApp } = useAppPWA();
+const { isInstalled, isIOS, canInstall, installApp, initPWA, checkInstallState } = useAppPWA();
 const authStore = useAuthStore();
 const route = useRoute();
 const showDelayed = ref(false);
 const dismissed = ref(false);
 const showingPreInvite = ref(true);
+const isMobile = ref(false);
 
 const canClose = computed(() => {
   const role = authStore.user?.role;
@@ -188,7 +189,8 @@ const isVisible = computed(() => {
   // Lógica normal con cooldown de 1 día
   const cooldownReady = checkInviteCooldown();
   const timeReady = showDelayed.value;
-  const platformReady = isIOS.value || canInstall.value;
+  // Mostrar para cualquier móvil (iOS o Android), no solo cuando canInstall es true
+  const platformReady = isMobile.value;
   
   return cooldownReady && timeReady && platformReady;
 });
@@ -198,6 +200,14 @@ const handleInstall = async () => {
 };
 
 onMounted(() => {
+  initPWA();
+  checkInstallState();
+  
+  // Detectar si es un dispositivo móvil
+  if (process.client) {
+    isMobile.value = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+  }
+  
   setTimeout(() => {
     showDelayed.value = true;
   }, 2000);
