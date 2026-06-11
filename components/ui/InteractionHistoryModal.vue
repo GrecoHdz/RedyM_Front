@@ -87,11 +87,19 @@
                   @click="openViewer(item)"
                   class="w-12 h-12 rounded-xl bg-white/5 flex items-center justify-center overflow-hidden cursor-pointer relative group/thumb border border-white/10"
                 >
+                  <!-- For images -->
                   <img 
-                    v-if="getThumbnail(item)" 
+                    v-if="getThumbnail(item) && getThumbnail(item).type === 'image'" 
                     :src="getThumbnail(item).url" 
                     class="w-full h-full object-cover group-hover/thumb:scale-110 transition-transform duration-500"
                   >
+                  <!-- For videos - show a thumbnail placeholder with video icon -->
+                  <div 
+                    v-else-if="getThumbnail(item) && getThumbnail(item).type === 'video'"
+                    class="w-full h-full bg-gradient-to-br from-gray-700 to-gray-900 flex items-center justify-center"
+                  >
+                    <span class="text-xl">🎬</span>
+                  </div>
                   <div v-else class="text-lg">{{ getInteractionIcon(item.tipo) }}</div>
                   
                   <!-- Interaction Small Badge -->
