@@ -106,25 +106,18 @@ export default defineNuxtRouteMiddleware(async (to) => {
   }
 
 
-  // 3. Verificar si hay token
-  if (!auth.token) {
-    try {
-      const refreshed = await auth.refreshToken();
+  // 3. VERIFICAR SESIÓN ACTIVA Y REFRESCAR SI ES NECESARIO
+  console.log('🔄 [Middleware] Verificando estado de sesión...');
+  const isAuthenticated = await auth.checkAuth();
 
-      if (!refreshed) {
-        if (currentPath !== '/') {
-          return navigateTo('/', { replace: true });
-        }
-        return;
-      }
-    } catch (error) {
-      console.error('❌ [auth.global] Error al renovar token:', error);
-      return navigateTo('/', { replace: true });
-    }
+  if (!isAuthenticated) {
+    console.warn('❌ [Middleware] Sesión no válida. Redirigiendo a login.');
+    return navigateTo('/', { replace: true });
   }
 
   // 4. Si no hay usuario o los datos son de cookie (no fetched), intentar cargarlos
-  if (auth.token && (!auth.user || !auth.isFetched)) {
+  if (!auth.user || !auth.isFetched) {
+    console.log('📡 [Middleware] Cargando datos del usuario...');
     await auth.fetchUser(); // tolerante: solo limpia sesión en 401/403, no en errores de red
   }
 
