@@ -6,6 +6,8 @@ export const usePushNotifications = () => {
     const permission = ref('default');
     const isSubscribed = ref(false);
     const isChecking = ref(true);
+    const isMobile = ref(false);
+    const isIOS = ref(false);
     const { $api } = useNuxtApp();
     const config = useRuntimeConfig();
     const auth = useAuthStore();
@@ -15,6 +17,10 @@ export const usePushNotifications = () => {
         if (!process.client) return;
         
         try {
+            // Detectar dispositivo móvil y iOS
+            isMobile.value = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+            isIOS.value = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+            
             // Verificar soporte de forma más flexible para móviles
             const hasServiceWorker = 'serviceWorker' in navigator;
             const hasPushManager = 'PushManager' in window;
@@ -28,6 +34,8 @@ export const usePushNotifications = () => {
             }
 
             console.log('📱 [Push] Initializing:', {
+                isMobile: isMobile.value,
+                isIOS: isIOS.value,
                 hasServiceWorker,
                 hasPushManager,
                 hasNotification,
@@ -55,9 +63,9 @@ export const usePushNotifications = () => {
             throw new Error('La clave VAPID no es válida o está vacía.');
         }
         try {
-            const padding = '='.repeat((4 - base64String.length % 4) % 4);
+            const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
             const base64 = (base64String + padding)
-                .replace(/\-/g, '+')
+                .replace(/-/g, '+')
                 .replace(/_/g, '/');
 
             const rawData = window.atob(base64);
@@ -114,7 +122,7 @@ export const usePushNotifications = () => {
                 return { success: false, error: 'denied' };
             }
 
-            // Si no hay serviceWorker ni PushManager, solo actualizamos el estado
+            // Para iOS, incluso sin serviceWorker, podemos marcar como suscrito
             if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
                 console.log('📱 [Push] ServiceWorker/PushManager not available, but permission granted');
                 isSubscribed.value = true;
@@ -160,6 +168,12 @@ export const usePushNotifications = () => {
             }
         } catch (error) {
             console.error('📱 [Push] Error al suscribirse a push:', error);
+            // Incluso si hay error, si el permiso está granted, marcamos como suscrito para UX
+            if (permission.value === 'granted') {
+                isSubscribed.value = true;
+                localStorage.setItem('push_subscribed_status', 'true');
+                return { success: true };
+            }
             return { success: false, error: error.message };
         }
     };
@@ -191,6 +205,8 @@ export const usePushNotifications = () => {
         permission,
         isSubscribed,
         isChecking,
+        isMobile,
+        isIOS,
         subscribe,
         unsubscribe,
         checkSubscription

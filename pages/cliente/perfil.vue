@@ -1024,7 +1024,7 @@ useHead({
   title: 'PubliGana - Perfil',
   meta: [
     { name: 'description', content: 'Perfil de usuario de PubliGana.' },
-    { name: 'viewport', content: 'width=device-width, initial-scale=1, user-scalable=no' }
+    { name: 'viewport', content: 'width=device-width, initial-scale=0.9, user-scalable=no' }
   ]
 })
 </script>

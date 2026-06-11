@@ -41,17 +41,18 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed, watch } from 'vue';
+import { ref, onMounted, computed, watch, nextTick } from 'vue';
 import { usePushNotifications } from '~/composables/usePushNotifications';
 import { useAuthStore } from '~/middleware/auth.store';
 
-const { isSupported, isSubscribed, permission, isChecking, subscribe, checkSubscription } = usePushNotifications();
+const { isSupported, isSubscribed, permission, isChecking, isMobile, isIOS, subscribe, checkSubscription } = usePushNotifications();
 const auth = useAuthStore();
 const isDismissed = ref(false);
 const isReady = ref(false);
 
 const isVisible = computed(() => {
-  const visible = auth.user && 
+  const hasAuthUser = !!auth.user;
+  const shouldShow = hasAuthUser && 
          isReady.value &&
          !isChecking.value &&
          isSupported.value && 
@@ -60,19 +61,21 @@ const isVisible = computed(() => {
          !isDismissed.value;
   
   if (process.client) {
-    console.log('📱 [PushInvite] Status:', {
-      auth: !!auth.user,
+    console.log('📱 [PushInvite] Visibility check:', {
+      hasAuthUser,
       isReady: isReady.value,
       isChecking: isChecking.value,
       isSupported: isSupported.value,
       isSubscribed: isSubscribed.value,
       permission: permission.value,
       isDismissed: isDismissed.value,
-      finalResult: visible
+      isMobile: isMobile.value,
+      isIOS: isIOS.value,
+      shouldShow
     });
   }
   
-  return visible;
+  return shouldShow;
 });
 
 
@@ -92,22 +95,27 @@ const dismiss = () => {
 };
 
 const initialize = async () => {
+  console.log('📱 [PushInvite] Initializing...');
+  
   if (process.client) {
     const lastDismissed = localStorage.getItem('push_invite_dismissed');
     if (lastDismissed) {
       const threeDays = 3 * 24 * 60 * 60 * 1000;
       if (Date.now() - parseInt(lastDismissed) < threeDays) {
+        console.log('📱 [PushInvite] Still in cooldown period');
         isDismissed.value = true;
       }
     }
   }
   
   await checkSubscription();
+  await nextTick();
   
   // Dar un pequeño tiempo para que todo se estabilice
   setTimeout(() => {
+    console.log('📱 [PushInvite] Setting isReady to true');
     isReady.value = true;
-  }, 1000);
+  }, 500); // Reducir a 500ms para que se muestre más rápido
 };
 
 // Esperar a que auth esté listo

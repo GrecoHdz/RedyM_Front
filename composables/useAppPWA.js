@@ -6,16 +6,28 @@ export const useAppPWA = () => {
   const isInstalled = ref(false)
   const isIOS = ref(false)
   const canInstall = ref(false)
+  const isMobile = ref(false)
   const initialized = ref(false)
 
   const checkInstallState = () => {
     if (!process.client) return
+    
+    // Detectar si es un dispositivo móvil
+    isMobile.value = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+    
     // Detectar si ya está instalada (standalone mode)
     isInstalled.value = window.matchMedia('(display-mode: standalone)').matches || 
                       window.navigator.standalone === true
     
     // Detectar iOS
     isIOS.value = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream
+    
+    console.log('📱 [PWA] Check install state:', {
+      isMobile: isMobile.value,
+      isInstalled: isInstalled.value,
+      isIOS: isIOS.value,
+      userAgent: navigator.userAgent
+    })
   }
 
   const initPWA = () => {
@@ -64,6 +76,7 @@ export const useAppPWA = () => {
     isInstalled,
     isIOS,
     canInstall,
+    isMobile,
     installApp,
     initPWA,
     checkInstallState

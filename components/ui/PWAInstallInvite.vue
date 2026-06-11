@@ -144,18 +144,17 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed, watch } from 'vue';
+import { ref, onMounted, computed, watch, nextTick } from 'vue';
 import { useRoute } from 'vue-router';
 import { useAppPWA } from '~/composables/useAppPWA';
 import { useAuthStore } from '~/middleware/auth.store';
 
-const { isInstalled, isIOS, canInstall, installApp, initPWA, checkInstallState } = useAppPWA();
+const { isInstalled, isIOS, canInstall, isMobile, installApp, initPWA, checkInstallState } = useAppPWA();
 const authStore = useAuthStore();
 const route = useRoute();
 const showDelayed = ref(false);
 const dismissed = ref(false);
 const showingPreInvite = ref(true);
-const isMobile = ref(false);
 
 const canClose = computed(() => {
   const role = authStore.user?.role;
@@ -166,6 +165,7 @@ const checkInviteCooldown = () => {
   if (process.client) {
     const nextInvite = localStorage.getItem('pwa_next_invite');
     if (nextInvite && Date.now() < parseInt(nextInvite)) {
+      console.log('📱 [PWAInvite] Still in cooldown');
       return false; // Aún estamos en cooldown
     }
   }
@@ -182,7 +182,21 @@ const handleDecline = () => {
 };
 
 const isVisible = computed(() => {
-  if (dismissed.value || isInstalled.value || route.path === '/') {
+  const shouldHide = dismissed.value || isInstalled.value || route.path === '/';
+  
+  console.log('📱 [PWAInvite] isVisible check:', {
+    shouldHide,
+    dismissed: dismissed.value,
+    isInstalled: isInstalled.value,
+    routePath: route.path,
+    cooldownReady: checkInviteCooldown(),
+    timeReady: showDelayed.value,
+    platformReady: isMobile.value,
+    isMobile: isMobile.value,
+    isIOS: isIOS.value
+  });
+  
+  if (shouldHide) {
     return false;
   }
   
@@ -199,18 +213,31 @@ const handleInstall = async () => {
   await installApp();
 };
 
-onMounted(() => {
+const initialize = async () => {
+  console.log('📱 [PWAInvite] Initializing...');
+  
   initPWA();
+  await nextTick();
   checkInstallState();
   
-  // Detectar si es un dispositivo móvil
-  if (process.client) {
-    isMobile.value = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-  }
-  
+  // Reducir el tiempo de espera para que se muestre más rápido
   setTimeout(() => {
+    console.log('📱 [PWAInvite] Setting showDelayed to true');
     showDelayed.value = true;
-  }, 2000);
+  }, 1000); // 1 segundo en lugar de 2
+};
+
+// Esperar a que auth esté listo
+watch(() => authStore.isInitialized, async (initialized) => {
+  if (initialized) {
+    await initialize();
+  }
+}, { immediate: true });
+
+onMounted(async () => {
+  if (authStore.isInitialized) {
+    await initialize();
+  }
 });
 
 const emit = defineEmits(['installed']);

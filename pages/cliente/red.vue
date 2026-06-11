@@ -484,7 +484,7 @@
         </div>
       </section>
       <!-- Direct Referrals (Everyone you invited) -->
-      <section class="bg-gray-50 dark:bg-gray-900/50 border border-gray-100 dark:border-gray-800 rounded-3xl p-5 mt-6">
+      <section class="bg-gray-50 dark:bg-gray-900/50 border border-gray-100 dark:border-gray-800 rounded-3xl p-5 mt-6 mb-12">
         <h3 class="font-black text-xs uppercase tracking-[0.2em] text-gray-400 mb-6 flex items-center gap-2">
           <div class="w-1.5 h-4 bg-indigo-500 rounded-full"></div>
           Invitados con tu Link ({{ realReferidos.length }})
