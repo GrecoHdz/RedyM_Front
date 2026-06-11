@@ -58,11 +58,23 @@
         </div>
       </section>
 
-      <!-- Stats -->
-      <section class="max-w-7xl mx-auto px-6 mt-20 sm:mt-32 grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
-        <div v-for="stat in stats" :key="stat.label" class="p-4 sm:p-6 bg-white/5 border border-white/10 rounded-2xl sm:rounded-3xl backdrop-blur-sm">
-          <div class="text-2xl sm:text-3xl font-black text-white mb-1">{{ stat.value }}</div>
-          <div class="text-[10px] sm:text-xs font-bold text-gray-500 uppercase tracking-widest">{{ stat.label }}</div>
+      <!-- Recompensas -->
+      <section class="max-w-7xl mx-auto px-6 mt-20 sm:mt-32">
+        <div class="text-center mb-8 sm:mb-12">
+          <h2 class="text-2xl sm:text-3xl md:text-4xl font-black text-white mb-2">Gana por cada interacción</h2>
+          <p class="text-gray-400 text-sm sm:text-base">Descubre cuánto ganas por cada acción que realizas en la plataforma</p>
+        </div>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
+          <div v-for="item in recompensas" :key="item.label" class="p-4 sm:p-6 bg-white/5 border border-white/10 rounded-2xl sm:rounded-3xl backdrop-blur-sm text-center hover:bg-white/10 transition-all hover:-translate-y-1">
+            <div class="w-12 h-12 sm:w-14 sm:h-14 mx-auto mb-3 sm:mb-4 bg-gradient-to-tr from-emerald-500/20 to-teal-500/20 rounded-2xl flex items-center justify-center">
+              <svg v-if="item.icon === 'heart'" class="w-6 h-6 sm:w-7 sm:h-7 text-emerald-400" fill="currentColor" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+              <svg v-else-if="item.icon === 'video'" class="w-6 h-6 sm:w-7 sm:h-7 text-emerald-400" fill="currentColor" viewBox="0 0 24 24"><path d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z"/></svg>
+              <svg v-else-if="item.icon === 'survey'" class="w-6 h-6 sm:w-7 sm:h-7 text-emerald-400" fill="currentColor" viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg>
+              <svg v-else-if="item.icon === 'share'" class="w-6 h-6 sm:w-7 sm:h-7 text-emerald-400" fill="currentColor" viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92 1.61 0 2.92-1.31 2.92-2.92s-1.31-2.92-2.92-2.92z"/></svg>
+            </div>
+            <div class="text-2xl sm:text-3xl font-black text-white mb-1">{{ item.value }}</div>
+            <div class="text-[10px] sm:text-xs font-bold text-gray-500 uppercase tracking-widest">{{ item.label }}</div>
+          </div>
         </div>
       </section>
     </main>
@@ -264,11 +276,11 @@ onUnmounted(() => {
   }
 })
 
-const stats = [
-  { label: 'Usuarios Activos', value: '14.2K+' },
-  { label: 'Pagado hoy', value: 'L. 8.4K' },
-  { label: 'Interacciones', value: '1.2M' },
-  { label: 'Países', value: 'Global' }
+const recompensas = [
+  { label: 'Like', value: 'L. 0.05', icon: 'heart' },
+  { label: 'Ver Video', value: 'L. 0.15', icon: 'video' },
+  { label: 'Encuesta', value: 'L. 0.20', icon: 'survey' },
+  { label: 'Compartir', value: 'L. 0.25', icon: 'share' }
 ]
 
 const fetchCiudades = async () => {
