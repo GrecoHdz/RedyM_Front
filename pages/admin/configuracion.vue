@@ -366,12 +366,6 @@
                           title="Elegir Respuesta Correcta">
                     <i class="fas fa-check-double text-[10px]"></i>
                   </button>
-                  <button v-if="mision.tipo_respuesta === 'escrita' && mision.activa" 
-                          @click="abrirModalFinalizarEscrita(mision)" 
-                          class="w-7 h-7 rounded-lg bg-emerald-500/10 text-emerald-500 flex items-center justify-center hover:bg-emerald-500 transition-all hover:text-white"
-                          title="Finalizar Misión">
-                    <i class="fas fa-flag-checkered text-[10px]"></i>
-                  </button>
                   <button v-if="!mision.activa" 
                           @click="verGanadoresMision(mision)" 
                           class="w-7 h-7 rounded-lg bg-violet-500/10 text-violet-500 flex items-center justify-center hover:bg-violet-500 transition-all hover:text-white"
@@ -1122,6 +1116,10 @@
             </h3>
             <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-2 leading-relaxed">
               ¿Estás seguro de que deseas <strong>{{ bulkActionType }}</strong> los <strong>{{ reclamosSeleccionados.length }}</strong> reclamos seleccionados?
+              <span v-if="misionStats && misionStats.mision.tipo_respuesta === 'escrita' && bulkActionType === 'aprobado'" class="block mt-2 text-emerald-400">
+                <i class="fas fa-info-circle mr-1"></i>
+                Al confirmar, se cerrará la misión y se distribuirá el premio equitativamente entre los ganadores.
+              </span>
             </p>
           </div>
 
@@ -1986,10 +1984,48 @@ const confirmarAccionBulk = async () => {
     })
     
     if (res.success) {
-      showToast(res.message)
-      reclamosSeleccionados.value = []
-      mostrarModalConfirmBulk.value = false
-      await verEstadisticasMision(misionStats.value.mision, paginaStats.value)
+      // If it's a written response mission and we approved claims, finalize the mission
+      if (misionStats && misionStats.mision.tipo_respuesta === 'escrita' && bulkActionType.value === 'aprobado') {
+        const missionId = misionStats.mision.id_mision
+        // Close bulk confirm modal
+        mostrarModalConfirmBulk.value = false
+        
+        // Now finalize the mission
+        isFinalizingMision.value = true
+        try {
+          const finalizeRes = await $api('/misiones/admin/especiales/finalizar-escrita', {
+            method: 'POST',
+            body: { id_mision: missionId }
+          })
+          
+          if (finalizeRes.success) {
+            showToast(finalizeRes.message || 'Misión finalizada y premios distribuidos')
+            reclamosSeleccionados.value = []
+            cerrarModalStats() // Close the stats modal
+            await cargarMisionesEspeciales()
+            
+            // Show the winners modal automatically
+            if (finalizeRes.data && finalizeRes.data.totalGanadores >= 0) {
+              setTimeout(async () => {
+                await verGanadoresMision({ id_mision: missionId })
+              }, 500)
+            }
+          } else {
+            showToast(finalizeRes.error || 'Error al finalizar misión', 'error')
+          }
+        } catch (e) {
+          console.error('Error finalizando misión:', e)
+          showToast('Error de conexión al finalizar misión', 'error')
+        } finally {
+          isFinalizingMision.value = false
+        }
+      } else {
+        // Regular flow for selection missions or reject actions
+        showToast(res.message)
+        reclamosSeleccionados.value = []
+        mostrarModalConfirmBulk.value = false
+        await verEstadisticasMision(misionStats.value.mision, paginaStats.value)
+      }
     }
   } catch (e) {
     showToast('Error al procesar reclamos', 'error')
