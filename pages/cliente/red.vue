@@ -138,7 +138,7 @@
             <div class="space-y-3 pt-2">
               <p class="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-500/80 px-1">Beneficios de la Membresia:</p>
               
-              <div class="grid grid-cols-2 gap-2">
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div class="group/benefit bg-white/5 backdrop-blur-sm border border-white/5 p-4 rounded-[1.5rem] flex items-start gap-4 transition-all hover:bg-white/10 hover:border-emerald-500/30">
                   <div class="w-10 h-10 rounded-2xl bg-emerald-500/10 flex items-center justify-center shrink-0 group-hover/benefit:scale-110 transition-transform">
                     <svg class="w-5 h-5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122" /></svg>
@@ -1549,7 +1549,7 @@ useHead({
   title: 'PubliGana - Mi Red',
   meta: [
     { name: 'description', content: 'Gestiona tu red y comisiones en la comunidad PubliGana.' },
-    { name: 'viewport', content: 'width=device-width, initial-scale=0.9, user-scalable=no' }
+    { name: 'viewport', content: 'width=device-width, initial-scale=1, user-scalable=no' }
   ]
 })
 </script>

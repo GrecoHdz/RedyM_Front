@@ -21,9 +21,15 @@
         </div>
       </div>
       
-      <button @click="$router.push('/admin/DashboardAdmin')" class="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-gray-400 hover:text-white transition-colors">
-        <i class="fas fa-chevron-left"></i>
-      </button>
+      <div class="flex items-center gap-2">
+        <span class="hidden sm:flex items-center gap-1.5 px-2.5 py-1 bg-white/5 border border-white/10 rounded-lg">
+          <i class="fas fa-code-branch text-emerald-500/70 text-[9px]"></i>
+          <span class="text-[9px] font-black text-gray-500 uppercase tracking-widest">v{{ appVersion }}</span>
+        </span>
+        <button @click="handleLogout" class="w-10 h-10 rounded-xl bg-red-500/10 border border-red-500/20 flex items-center justify-center text-red-400 hover:bg-red-500/20 transition-colors" title="Cerrar sesión">
+          <i class="fas fa-sign-out-alt text-sm"></i>
+        </button>
+      </div>
     </header>
 
     <main class="pt-24 px-4 max-w-2xl mx-auto space-y-12">
@@ -1322,6 +1328,14 @@
       </div>
     </Transition>
 
+
+    <footer class="text-center py-6 pb-2">
+      <div class="inline-flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 rounded-full">
+        <i class="fas fa-code-branch text-emerald-500/60 text-[9px]"></i>
+        <span class="text-[9px] font-black text-gray-600 uppercase tracking-[0.2em]">PubliGana Admin v{{ appVersion }}</span>
+      </div>
+    </footer>
+
     <BottomNav />
   </div>
 </template>
@@ -1336,6 +1350,13 @@ import { useAuthStore } from '~/middleware/auth.store'
 
 const { $api } = useNuxtApp()
 const auth = useAuthStore()
+const config = useRuntimeConfig()
+const appVersion = config.public.appVersion || '1.0.0'
+
+const handleLogout = async () => {
+  await auth.logout()
+  navigateTo('/')
+}
 
 const configs = ref([])
 const isLoading = ref(true)
@@ -2486,7 +2507,7 @@ useHead({
   title: 'PubliGana - Configuración',
   meta: [
     { name: 'description', content: 'Panel de configuración de valores globales.' },
-    { name: 'viewport', content: 'width=device-width, initial-scale=0.9, user-scalable=no' }
+    { name: 'viewport', content: 'width=device-width, initial-scale=1, user-scalable=no' }
   ]
 })
 </script>
