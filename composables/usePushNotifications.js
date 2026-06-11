@@ -11,8 +11,8 @@ export const usePushNotifications = () => {
     const auth = useAuthStore();
 
     if (process.client) {
-        isSupported.value = 'serviceWorker' in navigator && 'PushManager' in window;
-        permission.value = Notification.permission;
+        isSupported.value = 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
+        permission.value = isSupported.value ? Notification.permission : 'default';
 
         // Optimistic check from localStorage to avoid flashes
         const savedStatus = localStorage.getItem('push_subscribed_status');
@@ -66,7 +66,7 @@ export const usePushNotifications = () => {
     };
 
     const subscribe = async () => {
-        if (!isSupported.value) return { success: false, error: 'supported' };
+        if (!isSupported.value || !('Notification' in window)) return { success: false, error: 'supported' };
 
         try {
             const result = await Notification.requestPermission();

@@ -603,22 +603,33 @@ const handleWithdraw = () => {
 
 // Form Data
 const userCookie = useCookie('user')
+const parseUserCookie = () => {
+  if (!userCookie.value) return null
+  try {
+    return typeof userCookie.value === 'string' 
+      ? JSON.parse(userCookie.value) 
+      : userCookie.value
+  } catch {
+    return null
+  }
+}
+const parsedCookie = parseUserCookie()
 const user = ref({
-  id_usuario: userCookie.value?.id_usuario || null,
-  nombre: userCookie.value?.nombre || '',
-  email: userCookie.value?.email || '',
-  telefono: userCookie.value?.telefono || '',
-  id_ciudad: userCookie.value?.id_ciudad || null,
-  ciudad: userCookie.value?.ciudad || '',
-  role: userCookie.value?.role || 'usuario',
-  imagen_url: userCookie.value?.imagen_url || null,
-  identidad: userCookie.value?.identidad || '',
-  identidad_url: userCookie.value?.identidad_url || null,
-  identidad_public_id: userCookie.value?.identidad_public_id || null,
-  verificado: userCookie.value?.verificado || false,
-  genero: userCookie.value?.genero || '',
-  monto_credito: userCookie.value?.monto_credito || 0,
-  fecha_registro: userCookie.value?.fecha_registro || null
+  id_usuario: parsedCookie?.id_usuario || null,
+  nombre: parsedCookie?.nombre || '',
+  email: parsedCookie?.email || '',
+  telefono: parsedCookie?.telefono || '',
+  id_ciudad: parsedCookie?.id_ciudad || null,
+  ciudad: parsedCookie?.ciudad || '',
+  role: parsedCookie?.role || 'usuario',
+  imagen_url: parsedCookie?.imagen_url || null,
+  identidad: parsedCookie?.identidad || '',
+  identidad_url: parsedCookie?.identidad_url || null,
+  identidad_public_id: parsedCookie?.identidad_public_id || null,
+  verificado: parsedCookie?.verificado || false,
+  genero: parsedCookie?.genero || '',
+  monto_credito: parsedCookie?.monto_credito || 0,
+  fecha_registro: parsedCookie?.fecha_registro || null
 })
 const originalUserData = ref({...user.value})
 
@@ -683,6 +694,7 @@ const showMsg = (msg, type = 'info') => {
 
 const fetchUserData = async () => {
   try {
+    if (!auth.user?.id_usuario) return
     const response = await $api(`/usuarios/${auth.user.id_usuario}`)
     if (response && response.success && response.data) {
       const u = response.data
@@ -706,7 +718,9 @@ const fetchUserData = async () => {
       originalUserData.value = { ...user.value }
       // Update cookie to keep it synced
       const userCookie = useCookie('user')
-      userCookie.value = { ...userCookie.value, ...user.value }
+      // Make sure to stringify if needed (matches auth store)
+      const currentCookie = parseUserCookie()
+      userCookie.value = JSON.stringify({ ...currentCookie, ...user.value })
     }
   } catch (error) {
     console.error('Error fetching user:', error)
@@ -715,6 +729,7 @@ const fetchUserData = async () => {
 
 const fetchCreditBalance = async () => {
   try {
+    if (!auth.user?.id_usuario) return
     const res = await $api(`/credito/usuario/${auth.user.id_usuario}`)
     if (res && res.success && res.data) {
       user.value.monto_credito = res.data.monto_credito || 0
