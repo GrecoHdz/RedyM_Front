@@ -44,7 +44,7 @@
         </h1>
         
         <p class="text-gray-400 text-base sm:text-lg md:text-xl max-w-2xl mx-auto mb-8 sm:mb-12 px-4">
-          La primera red social en Honduras que te recompensa por interactuar, compartir y crear contenido. Gana dinero mientras te conectas con el mundo.
+          PubliGana es una red social que te recompensa por interactuar, compartir y dar like. Gana dinero mientras te conectas con el mundo.
         </p>
 
         <div class="flex flex-col sm:flex-row items-center justify-center gap-4 px-4 sm:px-0">
