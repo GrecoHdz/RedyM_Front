@@ -630,16 +630,26 @@ const isMissionsCompleted = computed(() => {
   return dailyMissions.value.every(m => m.completed)
 })
 
+// La misión de menor recompensa (primera del array ya ordenado asc por valor)
+const misionMenorRecompensa = computed(() => {
+  if (misionesEspeciales.value.length === 0) return null
+  return misionesEspeciales.value[0]
+})
+
 // Lógica de Misiones Especiales con límite de 24h
 const canAccessSpecialMission = (mision) => {
   if (misionesLimits.value.isVip) return true // Miembros tienen acceso total
-  
+
   // Si no es miembro:
   // 1. Si ya la reclamó o está en revisión, puede verla/interactuar
   if (mision.claimStatus) return true
-  
-  // 2. Si no la ha reclamado, depende de si ya usó su cupo de 24h
-  return misionesLimits.value.canClaimMore
+
+  // 2. Si ya usó su cupo de 24h, nada más está disponible
+  if (!misionesLimits.value.canClaimMore) return false
+
+  // 3. Solo puede participar en la misión de menor recompensa
+  const menorValor = parseFloat(misionMenorRecompensa.value?.valor ?? 0)
+  return parseFloat(mision.valor) === menorValor
 }
 
 const hoursUntilNextMission = computed(() => {
@@ -685,12 +695,13 @@ const fetchMisionesEspeciales = async () => {
   try {
     const res = await $api(`/misiones/especial?id_usuario=${auth.user.id_usuario}`)
     if (res.success) {
-      misionesEspeciales.value = res.data
+      const sortedMisiones = (res.data || []).sort((a, b) => parseFloat(a.valor || 0) - parseFloat(b.valor || 0))
+      misionesEspeciales.value = sortedMisiones
       if (res.limits) {
         misionesLimits.value = res.limits
       }
       // Inicializar respuestas si no existen
-      res.data.forEach(m => {
+      sortedMisiones.forEach(m => {
         if (!respuestasMisiones.value[m.id_mision]) {
           respuestasMisiones.value[m.id_mision] = ''
         }

@@ -22,18 +22,27 @@ export const usePushNotifications = () => {
     }
 
     const urlBase64ToUint8Array = (base64String) => {
-        const padding = '='.repeat((4 - base64String.length % 4) % 4);
-        const base64 = (base64String + padding)
-            .replace(/\-/g, '+')
-            .replace(/_/g, '/');
-
-        const rawData = window.atob(base64);
-        const outputArray = new Uint8Array(rawData.length);
-
-        for (let i = 0; i < rawData.length; ++i) {
-            outputArray[i] = rawData.charCodeAt(i);
+        if (!base64String || typeof base64String !== 'string') {
+            console.error('Clave VAPID inválida recibida:', base64String);
+            throw new Error('La clave VAPID no es válida o está vacía.');
         }
-        return outputArray;
+        try {
+            const padding = '='.repeat((4 - base64String.length % 4) % 4);
+            const base64 = (base64String + padding)
+                .replace(/\-/g, '+')
+                .replace(/_/g, '/');
+
+            const rawData = window.atob(base64);
+            const outputArray = new Uint8Array(rawData.length);
+
+            for (let i = 0; i < rawData.length; ++i) {
+                outputArray[i] = rawData.charCodeAt(i);
+            }
+            return outputArray;
+        } catch (error) {
+            console.error('Error al decodificar la clave VAPID base64:', error);
+            throw new Error('Error al procesar la clave VAPID.');
+        }
     };
 
     const checkSubscription = async () => {
