@@ -602,14 +602,33 @@ const viewedPostIds = ref(new Set())
 let viewObserver = null
 const viewTimers = {}
 
+const fetchAlreadyViewedPosts = async () => {
+  if (!auth.user?.id_usuario) return
+  try {
+    // Get the user's already viewed posts from our new endpoint
+    const res = await $api(`/interacciones/vistas/${auth.user.id_usuario}`)
+    if (res && res.success && res.data) {
+      res.data.forEach(i => {
+        if (i.id_publicacion) {
+          viewedPostIds.value.add(i.id_publicacion)
+        }
+      })
+    }
+  } catch (e) {
+    console.warn('Error fetching viewed posts:', e)
+  }
+}
+
 const registerView = async (postId) => {
   if (viewedPostIds.value.has(postId)) return
   viewedPostIds.value.add(postId)
   try {
-    await $api(`/publicaciones/${postId}/vista`, {
+    console.log('Registering view for post:', postId)
+    const res = await $api(`/publicaciones/${postId}/vista`, {
       method: 'POST',
       body: { id_usuario: auth.user.id_usuario }
     })
+    console.log('View registration response:', res)
   } catch (e) {
     console.warn('Error registrando vista:', e)
   }
@@ -1100,7 +1119,8 @@ onMounted(async () => {
     fetchMissionsProgress(),
     fetchMisionesEspeciales(),
     fetchRewardsConfig(),
-    fetchMembershipStatus()
+    fetchMembershipStatus(),
+    fetchAlreadyViewedPosts()
   ])
   
   // 3. Cargar publicaciones frescas (con debounce y paginación)
