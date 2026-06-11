@@ -17,23 +17,33 @@
     
     <VitePwaManifest />
     <UiPushNotificationInvite />
+    <PwaInstallInvite />
     <NuxtPage />
   </div>
 </template>
 
 <script setup>
+import { onMounted } from 'vue';
 import { useIABDetector } from '~/composables/useIABDetector';
 import { useAuthStore } from '~/middleware/auth.store';
+import { useAppPWA } from '~/composables/useAppPWA';
 
 const auth = useAuthStore();
-const { isIAB, isIOS, getExternalBrowserLink } = useIABDetector();
 const route = useRoute();
+const { isInstalled, initPWA } = useAppPWA();
+const { isIAB, isIOS, getExternalBrowserLink } = useIABDetector();
+
+// Inicializar PWA
+onMounted(() => {
+  initPWA();
+});
+
 // SEO and Meta
 useHead({
   title: 'PubliGana',
   meta: [
     { name: 'description', content: 'PubliGana es la plataforma donde compartes y ganas.' },
-    { name: 'viewport', content: 'width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover' }
+    { name: 'viewport', content: 'width=device-width, initial-scale=1.0, user-scalable=no' }
   ]
 })
 </script>

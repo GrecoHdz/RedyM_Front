@@ -27,7 +27,7 @@
       </div>
     </header>
 
-    <main class="pt-24 sm:pt-32 pb-10">
+    <main class="pt-24 sm:pt-32 pb-20">
       <!-- Hero Section -->
       <section class="max-w-7xl mx-auto px-6 text-center">
         <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] sm:text-xs font-bold mb-6 sm:mb-8 animate-fade-in">
@@ -55,7 +55,7 @@
       </section>
 
       <!-- Recompensas -->
-      <section class="max-w-7xl mx-auto px-6 mt-20 sm:mt-32">
+      <section class="max-w-7xl mx-auto px-6 mt-10 sm:mt-16">
         <div class="text-center mb-8 sm:mb-12">
           <h2 class="text-2xl sm:text-3xl md:text-4xl font-black text-white mb-2">Gana por cada interacción</h2>
           <p class="text-gray-400 text-sm sm:text-base">Descubre cuánto ganas por cada acción que realizas en la plataforma</p>
@@ -402,7 +402,8 @@ const triggerSuccess = (msg) => {
 useHead({
   title: 'PubliGana | Monetiza tu tiempo',
   meta: [
-    { name: 'description', content: 'La red social que te paga por interactuar.' }
+    { name: 'description', content: 'La red social que te paga por interactuar.' },
+    { name: 'viewport', content: 'width=device-width, initial-scale=1.0, user-scalable=no' }
   ]
 })
 </script>
