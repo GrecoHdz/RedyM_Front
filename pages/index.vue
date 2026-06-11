@@ -27,7 +27,7 @@
       </div>
     </header>
 
-    <main class="pt-24 sm:pt-32 pb-20">
+    <main class="pt-24 sm:pt-32 pb-10">
       <!-- Hero Section -->
       <section class="max-w-7xl mx-auto px-6 text-center">
         <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] sm:text-xs font-bold mb-6 sm:mb-8 animate-fade-in">
@@ -50,10 +50,6 @@
         <div class="flex flex-col sm:flex-row items-center justify-center gap-4 px-4 sm:px-0">
           <button @click="openRegisterModal" class="w-full sm:w-auto px-6 py-3.5 bg-emerald-500 hover:bg-emerald-400 text-[#070b14] font-black text-base rounded-xl shadow-xl shadow-emerald-500/20 transition-all hover:-translate-y-1 block">
             EMPEZAR A GANAR
-          </button>
-          <button class="w-full sm:w-auto px-8 py-4 border border-white/10 hover:bg-white/5 rounded-2xl font-bold flex items-center justify-center gap-2 transition-all text-white">
-            Descubrir más 
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
           </button>
         </div>
       </section>
@@ -406,8 +402,7 @@ const triggerSuccess = (msg) => {
 useHead({
   title: 'PubliGana | Monetiza tu tiempo',
   meta: [
-    { name: 'description', content: 'La red social que te paga por interactuar.' },
-    { name: 'viewport', content: 'width=device-width, initial-scale=1.0, user-scalable=no' }
+    { name: 'description', content: 'La red social que te paga por interactuar.' }
   ]
 })
 </script>
