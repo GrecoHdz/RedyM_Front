@@ -382,7 +382,16 @@
                             <span class="text-sm font-black text-indigo-600 dark:text-indigo-400">+$ {{ Number(mision.valor).toFixed(2) }}</span>
                           </div>
 
+                          <div v-if="mision.activa === false" class="w-full">
+                            <button 
+                              @click="abrirWinnersModal(mision)"
+                              class="w-full px-5 py-3 rounded-xl font-black text-[11px] uppercase tracking-wider transition-all duration-300 bg-violet-500 hover:bg-violet-600 text-white shadow-lg shadow-violet-500/35 hover:scale-105 active:scale-95"
+                            >
+                              <span>Ver Ganadores 🏆</span>
+                            </button>
+                          </div>
                           <button 
+                            v-else
                             @click="handleClaimSpecialMission(mision)"
                             :disabled="mision.claimStatus === 'pendiente' || mision.claimStatus === 'aprobado' || !canAccessSpecialMission(mision)"
                             class="px-5 py-3 rounded-xl font-black text-[11px] uppercase tracking-wider transition-all duration-300 min-w-[140px]"
@@ -436,6 +445,94 @@
         </div>
       </div>
     </Transition>
+
+    <!-- ====== MODAL GANADORES MISION ESPECIAL ====== -->
+    <Transition name="fade">
+      <div v-if="showWinnersModal" class="fixed inset-0 z-[180] flex items-center justify-center sm:p-4">
+        <div class="absolute inset-0 bg-black/90 backdrop-blur-md" @click="cerrarWinnersModal"></div>
+        <div v-if="winnersData" class="bg-white dark:bg-gray-900 border-t sm:border border-gray-200 dark:border-white/10 rounded-t-[2.5rem] sm:rounded-[2.5rem] p-4 sm:p-6 w-full max-w-2xl relative z-[181] flex flex-col h-[95vh] sm:h-auto sm:max-h-[90vh] mt-auto sm:mt-0">
+          
+          <!-- Header del Modal -->
+          <div class="flex items-center justify-between mb-4 sm:mb-6">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 sm:w-12 sm:h-12 bg-violet-500/10 rounded-xl sm:rounded-2xl flex items-center justify-center">
+                <span class="text-xl sm:text-2xl">{{ winnersData.mision.emoji }}</span>
+              </div>
+              <div>
+                <h3 class="text-xs sm:text-sm font-black text-gray-900 dark:text-white uppercase tracking-widest">Ganadores</h3>
+                <p class="text-[9px] sm:text-[10px] text-gray-500 dark:text-gray-400 font-bold uppercase tracking-widest mt-0.5 truncate max-w-[150px] sm:max-w-none">
+                  {{ winnersData.mision.titulo }}
+                </p>
+              </div>
+            </div>
+            <button @click="cerrarWinnersModal" class="w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl bg-gray-100 dark:bg-white/5 text-gray-500 dark:text-gray-400 flex items-center justify-center hover:text-gray-700 dark:hover:text-white transition-all">
+              <i class="fas fa-times text-xs sm:text-base"></i>
+            </button>
+          </div>
+
+          <!-- Contenido Scrolleable -->
+          <div class="flex-1 overflow-y-auto pr-1 custom-scrollbar space-y-6">
+            
+            <!-- Resumen de Recompensas -->
+            <div class="grid grid-cols-3 gap-2 sm:gap-4">
+              <div class="p-3 sm:p-4 bg-violet-500/5 border border-violet-500/10 rounded-xl sm:rounded-2xl text-center">
+                <p class="text-[7px] sm:text-[9px] font-black text-violet-500/50 uppercase tracking-widest mb-1">Total</p>
+                <p class="text-base sm:text-xl font-black text-violet-600 dark:text-violet-400">${{ parseFloat(winnersData.valorTotal).toFixed(2) }}</p>
+              </div>
+              <div class="p-3 sm:p-4 bg-emerald-500/5 border border-emerald-500/10 rounded-xl sm:rounded-2xl text-center">
+                <p class="text-[7px] sm:text-[9px] font-black text-emerald-500/50 uppercase tracking-widest mb-1">Ganadores</p>
+                <p class="text-base sm:text-xl font-black text-emerald-600 dark:text-emerald-400">{{ winnersData.totalGanadores }}</p>
+              </div>
+              <div class="p-3 sm:p-4 bg-amber-500/5 border border-amber-500/10 rounded-xl sm:rounded-2xl text-center">
+                <p class="text-[7px] sm:text-[9px] font-black text-amber-500/50 uppercase tracking-widest mb-1">Por Ganador</p>
+                <p class="text-base sm:text-xl font-black text-amber-600 dark:text-amber-400">${{ parseFloat(winnersData.recompensaPorGanador).toFixed(2) }}</p>
+              </div>
+            </div>
+
+            <!-- Lista de Ganadores -->
+            <div class="space-y-3" v-if="winnersData.totalGanadores > 0">
+              <h4 class="text-[8px] sm:text-[9px] font-black text-gray-500 uppercase tracking-widest ml-2">Lista de Ganadores</h4>
+              <div class="space-y-2">
+                <div v-for="(ganador, index) in winnersData.ganadores" :key="ganador.id_reclamo" 
+                     class="p-3 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/5 rounded-xl flex items-center justify-between group transition-all">
+                  
+                  <div class="flex items-center gap-3 min-w-0">
+                    <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center flex-shrink-0">
+                      <span class="text-xs font-black text-white">#{{ index + 1 }}</span>
+                    </div>
+                    <div class="flex items-center gap-3">
+                      <div class="w-8 h-8 rounded-lg bg-gray-200 dark:bg-white/10 overflow-hidden flex-shrink-0">
+                        <img v-if="ganador.usuario?.imagen_url" :src="ganador.usuario.imagen_url" class="w-full h-full object-cover">
+                        <div v-else class="w-full h-full flex items-center justify-center text-[10px] text-gray-500 font-bold uppercase">
+                          {{ ganador.usuario?.nombre?.charAt(0) || 'U' }}
+                        </div>
+                      </div>
+                      <div class="min-w-0">
+                        <p class="text-[10px] sm:text-[11px] font-bold text-gray-900 dark:text-white truncate">{{ ganador.usuario?.nombre || 'Usuario' }}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="text-right flex-shrink-0 ml-2">
+                    <span class="text-[9px] sm:text-[10px] font-black text-violet-600 dark:text-violet-400 tracking-widest">
+                      +${{ parseFloat(ganador.monto_otorgado || ganador.monto).toFixed(2) }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Mensaje si no hay ganadores -->
+            <div v-else class="text-center py-8">
+              <div class="w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i class="fas fa-trophy text-gray-400 dark:text-gray-500 text-2xl"></i>
+              </div>
+              <p class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">No hay ganadores para esta misión</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </Transition>
   </div>
 </template>
 
@@ -473,6 +570,11 @@ const showSpecialModal = ref(false)
 // Media viewer state
 const showMediaViewer = ref(false)
 const mediaToView = ref(null)
+
+// Winners modal state
+const showWinnersModal = ref(false)
+const winnersData = ref(null)
+const isLoadingWinners = ref(false)
 
 // View tracking
 const viewedPostIds = ref(new Set())
@@ -725,6 +827,37 @@ const abrirVisor = (item) => {
 const cerrarVisor = () => {
   showMediaViewer.value = false
   mediaToView.value = null
+}
+
+const abrirWinnersModal = async (mision) => {
+  isLoadingWinners.value = true
+  try {
+    const res = await $api(`/misiones/especial/${mision.id_mision}/ganadores`)
+    if (res.success) {
+      winnersData.value = res.data
+      showWinnersModal.value = true
+    } else {
+      showToast(res.error || 'No se pudo cargar la lista de ganadores', 'error')
+    }
+  } catch (e) {
+    console.error('Error al cargar ganadores:', e)
+    let errorMsg = 'Error al cargar los ganadores'
+    if (e.response?.status === 404) {
+      errorMsg = 'No se encontró la información de ganadores'
+    } else if (e.response?.status === 403) {
+      errorMsg = 'No tienes permisos para ver los ganadores'
+    }
+    showToast(errorMsg, 'error')
+  } finally {
+    isLoadingWinners.value = false
+  }
+}
+
+const cerrarWinnersModal = () => {
+  showWinnersModal.value = false
+  setTimeout(() => {
+    winnersData.value = null
+  }, 300)
 }
 
 const stories = [

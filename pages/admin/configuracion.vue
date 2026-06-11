@@ -366,6 +366,18 @@
                           title="Elegir Respuesta Correcta">
                     <i class="fas fa-check-double text-[10px]"></i>
                   </button>
+                  <button v-if="mision.tipo_respuesta === 'escrita' && mision.activa" 
+                          @click="abrirModalFinalizarEscrita(mision)" 
+                          class="w-7 h-7 rounded-lg bg-emerald-500/10 text-emerald-500 flex items-center justify-center hover:bg-emerald-500 transition-all hover:text-white"
+                          title="Finalizar Misión">
+                    <i class="fas fa-flag-checkered text-[10px]"></i>
+                  </button>
+                  <button v-if="!mision.activa" 
+                          @click="verGanadoresMision(mision)" 
+                          class="w-7 h-7 rounded-lg bg-violet-500/10 text-violet-500 flex items-center justify-center hover:bg-violet-500 transition-all hover:text-white"
+                          title="Ver Ganadores">
+                    <i class="fas fa-trophy text-[10px]"></i>
+                  </button>
                   <button @click="verEstadisticasMision(mision)" 
                           class="w-7 h-7 rounded-lg bg-amber-500/10 text-amber-500 flex items-center justify-center hover:bg-amber-500 transition-all hover:text-white"
                           title="Ver Estadísticas">
@@ -1192,6 +1204,130 @@
       </div>
     </Transition>
 
+    <!-- Modal: Ganadores de la Misión Especial -->
+    <Transition name="fade">
+      <div v-if="mostrarModalGanadores" class="fixed inset-0 z-50 flex items-center justify-center sm:p-4">
+        <div class="absolute inset-0 bg-[#070b14]/90 backdrop-blur-md" @click="cerrarModalGanadores"></div>
+        <div v-if="misionGanadores" class="bg-[#0d121f] border-t sm:border border-white/10 rounded-t-[2.5rem] sm:rounded-[2.5rem] p-4 sm:p-6 w-full max-w-2xl relative z-10 flex flex-col h-[95vh] sm:h-auto sm:max-h-[90vh] mt-auto sm:mt-0">
+          
+          <!-- Header del Modal -->
+          <div class="flex items-center justify-between mb-4 sm:mb-6">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 sm:w-12 sm:h-12 bg-violet-500/10 rounded-xl sm:rounded-2xl flex items-center justify-center">
+                <span class="text-xl sm:text-2xl">{{ misionGanadores.mision.emoji }}</span>
+              </div>
+              <div>
+                <h3 class="text-xs sm:text-sm font-black text-white uppercase tracking-widest">Ganadores</h3>
+                <p class="text-[9px] sm:text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-0.5 truncate max-w-[150px] sm:max-w-none">
+                  {{ misionGanadores.mision.titulo }}
+                </p>
+              </div>
+            </div>
+            <button @click="cerrarModalGanadores" class="w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl bg-white/5 text-gray-400 flex items-center justify-center hover:text-white transition-all">
+              <i class="fas fa-times text-xs sm:text-base"></i>
+            </button>
+          </div>
+
+          <!-- Contenido Scrolleable -->
+          <div class="flex-1 overflow-y-auto pr-1 custom-scrollbar space-y-6">
+            
+            <!-- Resumen de Recompensas -->
+            <div class="grid grid-cols-3 gap-2 sm:gap-4">
+              <div class="p-3 sm:p-4 bg-violet-500/5 border border-violet-500/10 rounded-xl sm:rounded-2xl text-center">
+                <p class="text-[7px] sm:text-[9px] font-black text-violet-500/50 uppercase tracking-widest mb-1">Total</p>
+                <p class="text-base sm:text-xl font-black text-violet-400">${{ parseFloat(misionGanadores.valorTotal).toFixed(2) }}</p>
+              </div>
+              <div class="p-3 sm:p-4 bg-emerald-500/5 border border-emerald-500/10 rounded-xl sm:rounded-2xl text-center">
+                <p class="text-[7px] sm:text-[9px] font-black text-emerald-500/50 uppercase tracking-widest mb-1">Ganadores</p>
+                <p class="text-base sm:text-xl font-black text-emerald-400">{{ misionGanadores.totalGanadores }}</p>
+              </div>
+              <div class="p-3 sm:p-4 bg-amber-500/5 border border-amber-500/10 rounded-xl sm:rounded-2xl text-center">
+                <p class="text-[7px] sm:text-[9px] font-black text-amber-500/50 uppercase tracking-widest mb-1">Por Ganador</p>
+                <p class="text-base sm:text-xl font-black text-amber-400">${{ parseFloat(misionGanadores.recompensaPorGanador).toFixed(2) }}</p>
+              </div>
+            </div>
+
+            <!-- Lista de Ganadores -->
+            <div class="space-y-3" v-if="misionGanadores.totalGanadores > 0">
+              <h4 class="text-[8px] sm:text-[9px] font-black text-gray-500 uppercase tracking-widest ml-2">Lista de Ganadores</h4>
+              <div class="space-y-2">
+                <div v-for="(ganador, index) in misionGanadores.ganadores" :key="ganador.id_reclamo" 
+                     class="p-3 bg-white/5 border border-white/5 rounded-xl flex items-center justify-between group transition-all">
+                  
+                  <div class="flex items-center gap-3 min-w-0">
+                    <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center flex-shrink-0">
+                      <span class="text-xs font-black text-white">#{{ index + 1 }}</span>
+                    </div>
+                    <div class="flex items-center gap-3">
+                      <div class="w-8 h-8 rounded-lg bg-white/10 overflow-hidden flex-shrink-0">
+                        <img v-if="ganador.usuario?.imagen_url" :src="ganador.usuario.imagen_url" class="w-full h-full object-cover">
+                        <div v-else class="w-full h-full flex items-center justify-center text-[10px] text-gray-500 font-bold uppercase">
+                          {{ ganador.usuario?.nombre?.charAt(0) || 'U' }}
+                        </div>
+                      </div>
+                      <div class="min-w-0">
+                        <p class="text-[10px] sm:text-[11px] font-bold text-white truncate">{{ ganador.usuario?.nombre || 'Usuario' }}</p>
+                        <p class="text-[8px] sm:text-[9px] text-gray-500 truncate">{{ ganador.usuario?.email || '' }}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="text-right flex-shrink-0 ml-2">
+                    <div class="flex flex-col items-end gap-1">
+                      <span class="text-[9px] sm:text-[10px] font-black text-violet-400 tracking-widest">
+                        +${{ parseFloat(ganador.monto_otorgado || ganador.monto).toFixed(2) }}
+                      </span>
+                      <span v-if="ganador.respuesta" class="text-[7px] sm:text-[8px] text-gray-500 font-bold">
+                        R: {{ ganador.respuesta }}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Mensaje si no hay ganadores -->
+            <div v-else class="text-center py-8">
+              <div class="w-16 h-16 bg-gray-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i class="fas fa-trophy text-gray-500 text-2xl"></i>
+              </div>
+              <p class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">No hay ganadores para esta misión</p>
+            </div>
+
+            <!-- Lista de Perdedores (opcional) -->
+            <div class="space-y-3" v-if="misionGanadores.totalPerdedores > 0">
+              <h4 class="text-[8px] sm:text-[9px] font-black text-gray-500 uppercase tracking-widest ml-2">
+                Participantes no premiados ({{ misionGanadores.totalPerdedores }})
+              </h4>
+              <div class="space-y-2">
+                <div v-for="perdedor in misionGanadores.perdedores" :key="perdedor.id_reclamo" 
+                     class="p-2 bg-white/2 border border-white/3 rounded-lg flex items-center justify-between opacity-60">
+                  
+                  <div class="flex items-center gap-2 min-w-0">
+                    <div class="w-6 h-6 rounded-md bg-white/10 overflow-hidden flex-shrink-0">
+                      <img v-if="perdedor.usuario?.imagen_url" :src="perdedor.usuario.imagen_url" class="w-full h-full object-cover">
+                      <div v-else class="w-full h-full flex items-center justify-center text-[9px] text-gray-500 font-bold uppercase">
+                        {{ perdedor.usuario?.nombre?.charAt(0) || 'U' }}
+                      </div>
+                    </div>
+                    <div class="min-w-0">
+                      <p class="text-[9px] font-bold text-gray-400 truncate">{{ perdedor.usuario?.nombre || 'Usuario' }}</p>
+                    </div>
+                  </div>
+
+                  <div class="text-right flex-shrink-0 ml-2">
+                    <span class="text-[7px] text-gray-600 font-bold">
+                      R: {{ perdedor.respuesta }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </Transition>
+
     <BottomNav />
   </div>
 </template>
@@ -1800,6 +1936,11 @@ const isProcessingBulk = ref(false)
 const mostrarModalConfirmBulk = ref(false)
 const bulkActionType = ref('') // 'aprobado' o 'rechazado'
 
+// Modal de Ganadores
+const mostrarModalGanadores = ref(false)
+const misionGanadores = ref(null)
+const isLoadingGanadores = ref(false)
+
 const allSelected = computed(() => {
   if (!misionStats.value?.reclamos?.length) return false
   const pendientes = misionStats.value.reclamos.filter(r => r.estado === 'pendiente')
@@ -1987,12 +2128,15 @@ const cerrarModalFinalizar = () => {
 const confirmarFinalizarMision = async () => {
   if (!misionAFinalizar.value || !respuestaCorrectaSeleccionada.value) return
   
+  // Store the mission ID before closing the modal
+  const missionId = misionAFinalizar.value.id_mision
+  
   isFinalizingMision.value = true
   try {
     const res = await $api('/misiones/admin/especiales/finalizar', {
       method: 'POST',
       body: {
-        id_mision: misionAFinalizar.value.id_mision,
+        id_mision: missionId,
         respuesta_correcta: respuestaCorrectaSeleccionada.value
       }
     })
@@ -2001,6 +2145,14 @@ const confirmarFinalizarMision = async () => {
       showToast(res.message || 'Misión finalizada y usuarios premiados')
       cerrarModalFinalizar()
       await cargarMisionesEspeciales()
+      
+      // Show the winners modal automatically
+      if (res.data && res.data.totalGanadores >= 0) {
+        // Wait a bit for the mission to update, then fetch winners
+        setTimeout(async () => {
+          await verGanadoresMision({ id_mision: missionId })
+        }, 500)
+      }
     } else {
       showToast(res.error || 'Error al finalizar misión', 'error')
     }
@@ -2037,6 +2189,37 @@ const cerrarModalStats = () => {
     paginaStats.value = 1
     totalReclamosStats.value = 0
     reclamosSeleccionados.value = []
+  }, 300)
+}
+
+const verGanadoresMision = async (mision) => {
+  isLoadingGanadores.value = true
+  try {
+    const res = await $api(`/misiones/admin/especiales/${mision.id_mision}/ganadores`)
+    if (res.success) {
+      misionGanadores.value = res.data
+      mostrarModalGanadores.value = true
+    } else {
+      showToast(res.error || 'No se pudo cargar la lista de ganadores', 'error')
+    }
+  } catch (e) {
+    console.error('Error cargando ganadores:', e)
+    let errorMsg = 'Error al cargar la lista de ganadores'
+    if (e.response?.status === 404) {
+      errorMsg = 'No se encontró la información de ganadores. Intente recargar la página.'
+    } else if (e.response?.status === 403) {
+      errorMsg = 'No tienes permisos para ver los ganadores'
+    }
+    showToast(errorMsg, 'error')
+  } finally {
+    isLoadingGanadores.value = false
+  }
+}
+
+const cerrarModalGanadores = () => {
+  mostrarModalGanadores.value = false
+  setTimeout(() => {
+    misionGanadores.value = null
   }, 300)
 }
 

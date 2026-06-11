@@ -54,14 +54,19 @@
                         (Acertaste)
                       </span>
                     </p>
-                    <p v-if="item.respuesta" class="text-[8px] text-gray-400 font-medium italic truncate">Tu respuesta: {{ item.respuesta }}</p>
+                    <p v-if="item.respuesta" class="text-[8px] text-gray-400 font-medium italic truncate">
+                      Tu respuesta: {{ item.respuesta }}
+                      <span v-if="item.tipo === 'mision_especial' && item.total_ganadores_mision !== null" class="ml-1 text-violet-400">
+                        ({{ item.total_ganadores_mision }} ganador{{ item.total_ganadores_mision === 1 ? '' : 'es' }})
+                      </span>
+                    </p>
                     <p class="text-[8px] text-gray-500 font-medium">{{ formatDate(item.fecha) }}</p>
                   </div>
                 </div>
 
                 <div class="text-right flex-shrink-0">
                   <template v-if="item.estado === 'aprobado'">
-                    <span class="text-xs font-black text-emerald-400">+${{ item.monto.toFixed(2) }}</span>
+                    <span class="text-xs font-black text-emerald-400">+${{ (item.monto_otorgado || item.monto).toFixed(2) }}</span>
                     <p class="text-[7px] text-gray-500 font-bold uppercase">GANADO</p>
                   </template>
                   <template v-else-if="item.estado === 'pendiente'">
