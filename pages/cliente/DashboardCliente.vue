@@ -421,7 +421,17 @@
 
     <!-- ====== VISOR DE MEDIOS (Lightbox) ====== -->
     <Transition name="fade">
-      <div v-if="showMediaViewer" class="fixed inset-0 z-[200] bg-black/95 backdrop-blur-xl flex flex-col items-center justify-center p-4 cursor-pointer" @click="cerrarVisor">
+      <div v-if="showMediaViewer" class="fixed inset-0 z-[200] bg-black/95 backdrop-blur-xl flex flex-col items-center justify-center p-4">
+        
+        <!-- Close Button -->
+        <button 
+          @click="cerrarVisor"
+          class="absolute top-4 right-4 z-30 w-12 h-12 rounded-full bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center text-white active:scale-90 transition-all"
+        >
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
         
         <!-- Media Container -->
         <div class="w-full h-full flex items-center justify-center overflow-hidden">
@@ -430,15 +440,12 @@
             class="max-w-[95vw] max-h-[85vh] object-contain animate-modal-in shadow-2xl rounded-lg"
           >
           <video v-else-if="mediaToView?.type === 'video'" 
+            ref="fullscreenVideoRef"
             :src="mediaToView.url" 
             controls autoplay 
             class="max-w-[95vw] max-h-[85vh] rounded-2xl animate-modal-in shadow-2xl"
+            @click.stop="toggleFullscreenVideo"
           ></video>
-        </div>
-
-        <!-- Info/Instructions -->
-        <div class="absolute bottom-10 text-white/40 text-[10px] font-bold uppercase tracking-widest pointer-events-none">
-          Toca en cualquier parte para cerrar
         </div>
       </div>
     </Transition>
@@ -571,6 +578,17 @@ const showSpecialModal = ref(false)
 // Media viewer state
 const showMediaViewer = ref(false)
 const mediaToView = ref(null)
+const fullscreenVideoRef = ref(null)
+
+const toggleFullscreenVideo = () => {
+  if (fullscreenVideoRef.value) {
+    if (fullscreenVideoRef.value.paused) {
+      fullscreenVideoRef.value.play()
+    } else {
+      fullscreenVideoRef.value.pause()
+    }
+  }
+}
 
 // Winners modal state
 const showWinnersModal = ref(false)
@@ -955,7 +973,10 @@ const handleShare = async (post) => {
   // Record time to validate mission on return
   lastShareAttempt.value = { id: post.id, time: Date.now() }
   
-  // Registrar interaccion share
+  // Abrir WhatsApp primero
+  window.open(whatsappUrl, '_blank')
+  
+  // Luego registrar interaccion share
   const res = await registerInteraction(post.id, 'share')
   if (res && res.success) {
     const gainValue = rewardsConfig.value.valor_compartir * earningsMultiplier.value
@@ -965,9 +986,6 @@ const handleShare = async (post) => {
   } else if (res && res.already_done) {
     showToast('Ya has compartido esta publicación anteriormente (Sola una recompensa permitida).', 'info')
   }
-  
-  // Abrir WhatsApp
-  window.open(whatsappUrl, '_blank')
 }
 
 const handlePoll = (post) => {
@@ -1010,7 +1028,10 @@ const handleLink = async (post) => {
     finalUrl = 'https://' + url
   }
 
-  // Registrar interaccion visita_web
+  // Abrir enlace primero
+  window.open(finalUrl, '_blank')
+
+  // Luego registrar interaccion visita_web
   const res = await registerInteraction(post.id, 'visita_web')
   if (res && res.success) {
     const gainValue = rewardsConfig.value.valor_visita_web * earningsMultiplier.value
@@ -1020,8 +1041,6 @@ const handleLink = async (post) => {
   } else if (res && res.already_done) {
     showToast('Ya has visitado este enlace anteriormente.', 'info')
   }
-
-  window.open(finalUrl, '_blank')
 }
 
 const handleWhatsApp = async (post) => {
@@ -1029,8 +1048,16 @@ const handleWhatsApp = async (post) => {
     showToast('Este usuario no tiene un número vinculado', 'error')
     return
   }
+
+  const cleanPhone = post.phone.replace(/[^0-9]/g, '')
+  const message = `Hola, vi tu publicación en RedYMercadeo y me gustaría más información.`
+  const encodedMessage = encodeURIComponent(message)
+  const whatsappUrl = `https://wa.me/${cleanPhone}?text=${encodedMessage}`
   
-  // Registrar interaccion visita_whatsapp
+  // Abrir WhatsApp primero
+  window.open(whatsappUrl, '_blank')
+
+  // Luego registrar interaccion visita_whatsapp
   const res = await registerInteraction(post.id, 'visita_whatsapp')
   if (res && res.success) {
     const gainValue = rewardsConfig.value.valor_visita_whatsapp * earningsMultiplier.value
@@ -1040,12 +1067,6 @@ const handleWhatsApp = async (post) => {
   } else if (res && res.already_done) {
     showToast('Ya has contactado a este vendedor anteriormente.', 'info')
   }
-
-  const cleanPhone = post.phone.replace(/[^0-9]/g, '')
-  const message = `Hola, vi tu publicación en RedYMercadeo y me gustaría más información.`
-  const encodedMessage = encodeURIComponent(message)
-  const whatsappUrl = `https://wa.me/${cleanPhone}?text=${encodedMessage}`
-  window.open(whatsappUrl, '_blank')
 }
 
 const toggleFollow = (post) => {

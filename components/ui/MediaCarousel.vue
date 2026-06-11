@@ -44,7 +44,7 @@
             ></video>
             
             <!-- Play Overlay -->
-            <div v-if="videoStates[index]?.paused" class="absolute inset-0 flex items-center justify-center bg-black/20 pointer-events-none">
+            <div v-if="videoStates[index]?.paused" class="absolute inset-0 flex items-center justify-center bg-black/20 cursor-pointer z-20" @click="handlePlayOverlayClick($event, item)">
               <div class="w-16 h-16 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/30">
                 <svg class="w-8 h-8 text-white fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
               </div>
@@ -209,10 +209,18 @@ const pauseVideoByIndex = (index) => {
 }
 
 const handleVideoClick = (e, item) => {
-  // En móvil, un toque reproduce/pausa. 
-  // NO emitimos media-click aquí para evitar dual playback.
-  // El media-click se maneja desde el botón o área dedicada.
-  togglePlay(e)
+  // Si es video, abrir directamente en pantalla completa
+  if (item.type === 'video') {
+    pauseAllVideos()
+    emit('media-click', item)
+  }
+}
+
+const handlePlayOverlayClick = (e, item) => {
+  // Cuando se hace clic en el overlay de play, abrir en pantalla completa
+  e.stopPropagation()
+  pauseAllVideos()
+  emit('media-click', item)
 }
 
 const handleFullscreenClick = (e, item) => {
