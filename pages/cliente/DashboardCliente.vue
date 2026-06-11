@@ -603,20 +603,16 @@ let viewObserver = null
 const viewTimers = {}
 
 const fetchAlreadyViewedPosts = async () => {
-  console.log('🔍 [fetchAlreadyViewedPosts] Starting to fetch viewed posts for user:', auth.user?.id_usuario)
   if (!auth.user?.id_usuario) return
   try {
     // Get the user's already viewed posts from our new endpoint
     const res = await $api(`/interacciones/vistas/${auth.user.id_usuario}`)
-    console.log('🔍 [fetchAlreadyViewedPosts] API response:', res)
     if (res && res.success && res.data) {
-      console.log('🔍 [fetchAlreadyViewedPosts] Found', res.data.length, 'already viewed posts')
       res.data.forEach(i => {
         if (i.id_publicacion) {
           viewedPostIds.value.add(i.id_publicacion)
         }
       })
-      console.log('🔍 [fetchAlreadyViewedPosts] viewedPostIds now has:', [...viewedPostIds.value])
     }
   } catch (e) {
     console.warn('Error fetching viewed posts:', e)
@@ -624,21 +620,15 @@ const fetchAlreadyViewedPosts = async () => {
 }
 
 const registerView = async (postId) => {
-  console.log('🔍 [registerView] Called for post #', postId, 'Already in set?', viewedPostIds.value.has(postId))
-  if (viewedPostIds.value.has(postId)) {
-    console.log('🔍 [registerView] Post #', postId, 'already viewed - skipping')
-    return
-  }
+  if (viewedPostIds.value.has(postId)) return
   viewedPostIds.value.add(postId)
   try {
-    console.log('🔍 [registerView] Sending API request to register view for post #', postId)
-    const res = await $api(`/publicaciones/${postId}/vista`, {
+    await $api(`/publicaciones/${postId}/vista`, {
       method: 'POST',
       body: { id_usuario: auth.user.id_usuario }
     })
-    console.log('🔍 [registerView] API response:', res)
   } catch (e) {
-    console.warn('🔍 [registerView] Error registering view:', e)
+    console.warn('Error registrando vista:', e)
   }
 }
 
@@ -1148,35 +1138,23 @@ onMounted(async () => {
   isLoading.value = false
 
   // Setup IntersectionObserver para contar vistas
-  console.log('🔍 [ViewObserver] Initializing observer...')
   await nextTick()
-  const observerElements = document.querySelectorAll('.post-observer')
-  console.log(`🔍 [ViewObserver] Found ${observerElements.length} post elements to observe`, observerElements)
   
   viewObserver = new IntersectionObserver((entries) => {
-    console.log(`🔍 [ViewObserver] Observer triggered with ${entries.length} entries`)
     entries.forEach(entry => {
       const postId = parseInt(entry.target.dataset.postId)
-      console.log(`🔍 [ViewObserver] Entry for post #${postId}`, {
-        isIntersecting: entry.isIntersecting,
-        intersectionRatio: entry.intersectionRatio
-      })
-      
       if (!postId) return
       
       if (entry.isIntersecting) {
         // Iniciar timer: si permanece visible 0.5 segundos, contamos la vista
         if (!viewTimers[postId]) {
-          console.log(`🔍 [ViewObserver] Starting timer for post #${postId}`)
           viewTimers[postId] = setTimeout(() => {
-            console.log(`🔍 [ViewObserver] Timer completed for post #${postId}, registering view`)
             registerView(postId)
           }, 500)
         }
       } else {
         // Salió del viewport, cancelar timer si no se completó
         if (viewTimers[postId]) {
-          console.log(`🔍 [ViewObserver] Post #${postId} left viewport, clearing timer`)
           clearTimeout(viewTimers[postId])
           delete viewTimers[postId]
         }
@@ -1184,8 +1162,7 @@ onMounted(async () => {
     })
   }, { threshold: 0.5 })
 
-  observerElements.forEach(el => {
-    console.log(`🔍 [ViewObserver] Observing element:`, el)
+  document.querySelectorAll('.post-observer').forEach(el => {
     viewObserver.observe(el)
   })
 })

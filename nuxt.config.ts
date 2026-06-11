@@ -58,21 +58,34 @@ export default defineNuxtConfig({
     ]
   },
 
+    // Configuración de impresión
   app: {
     head: {
-      title: 'PubliGana - Gana por interactuar',
+        title: 'PubliGana - Monetiza tu Tiempo y Gana por interactuar',
       meta: [
+       //s { name: 'google-site-verification', content: 'GEPuBsyW3v_JTl_akiNBfF4DILNI3EVLggqEsYawrNM' },
         { charset: 'utf-8' },
         { name: 'viewport', content: 'width=device-width, initial-scale=1' },
-        { name: 'description', content: 'La red social que te recompensa por tu tiempo y participación. Únete a la comunidad.' },
-        { name: 'theme-color', content: '#10b981' }
+        { name: 'description', content: 'Monetiza tu Tiempo y Gana por interactuar.' },
+        { name: 'theme-color', content: '#2563eb' },
+        { name: 'mobile-web-app-capable', content: 'yes' },
+        { name: 'apple-mobile-web-app-capable', content: 'yes' },
+        { name: 'apple-mobile-web-app-status-bar-style', content: 'default' },
+        // Open Graph
+        { property: 'og:title', content: 'PubliGana - Monetiza tu Tiempo y Gana por interactuar.' },
+        { property: 'og:description', content: 'Monetiza tu Tiempo y Gana por interactuar.' },
+        { property: 'og:type', content: 'website' },
+        { property: 'og:url', content: 'https://publigana.vercel.app/' },
+        { property: 'og:image', content: 'https://publigana.vercel.app/favicon.ico' },
+        { property: 'og:site_name', content: 'PubliGana' },
       ],
+
       link: [
         { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' },
+        { rel: 'apple-touch-icon', href: '/favicon.ico' },
         { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
         { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' },
-        { rel: 'stylesheet', href: 'https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap' },
-        { rel: 'stylesheet', href: 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css' }
+        { rel: 'stylesheet', href: 'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap' }
       ]
     }
   },
@@ -85,7 +98,7 @@ export default defineNuxtConfig({
   runtimeConfig: {
     public: {
       appName: 'PubliGana',
-      appVersion: '1.0.1',
+      appVersion: '1.0.2',
       apiBase: process.env.NUXT_PUBLIC_API_URL
     }
   }

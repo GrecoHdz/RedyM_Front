@@ -22,7 +22,7 @@
             <div class="relative flex flex-col items-start space-y-3">
               <div class="w-10 h-10 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-xl flex items-center justify-center shadow-lg shadow-emerald-500/20">
                 <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0 a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h2a2 2 0 01-2-2z" />
                 </svg>
               </div>
               <div class="text-left">
@@ -72,7 +72,8 @@
         <!-- Card-Based Feed -->
         <div class="space-y-6 px-2">
           <article v-for="post in feedPosts" :key="post.id" 
-                   class="bg-white dark:bg-gray-800 rounded-[2.5rem] overflow-hidden border border-gray-100 dark:border-gray-700 shadow-xl shadow-gray-200/50 dark:shadow-none">
+                   :data-post-id="post.id"
+                   class="bg-white dark:bg-gray-800 rounded-[2.5rem] overflow-hidden border border-gray-100 dark:border-gray-700 shadow-xl shadow-gray-200/50 dark:shadow-none post-observer">
             
             <!-- Simplified Post Header -->
             <div class="p-3 flex items-center gap-3">
@@ -384,6 +385,41 @@ const rewardsConfig = ref({
 const hasMembership = ref(false)
 const earningsMultiplier = computed(() => hasMembership.value ? 2 : 1)
 
+// --- View Tracking ---
+const viewedPostIds = ref(new Set())
+let viewObserver = null
+const viewTimers = {}
+
+const fetchAlreadyViewedPosts = async () => {
+  if (!auth.user?.id_usuario) return
+  try {
+    const res = await $api(`/interacciones/vistas/${auth.user.id_usuario}`)
+    if (res && res.success && res.data) {
+      res.data.forEach(i => {
+        if (i.id_publicacion) {
+          viewedPostIds.value.add(i.id_publicacion)
+        }
+      })
+    }
+  } catch (e) {
+    console.warn('Error fetching viewed posts:', e)
+  }
+}
+
+const registerView = async (postId) => {
+  if (viewedPostIds.value.has(postId)) return
+  viewedPostIds.value.add(postId)
+  try {
+    await $api(`/publicaciones/${postId}/vista`, {
+      method: 'POST',
+      body: { id_usuario: auth.user.id_usuario }
+    })
+  } catch (e) {
+    console.warn('Error registrando vista:', e)
+  }
+}
+// --------------------------
+
 // --- Actividad Reciente ---
 const modalActividad = ref({ show: false })
 const recentActivities = ref([])
@@ -614,6 +650,12 @@ const setupInfiniteScroll = () => {
   infiniteObserver = new IntersectionObserver(async (entries) => {
     if (entries[0].isIntersecting && hasMore.value && !isPostsLoading.value) {
       await fetchPosts(false, rewardsConfig.value)
+      // Re-observe new posts for the view counter
+      nextTick(() => {
+        document.querySelectorAll('.post-observer').forEach(el => {
+          viewObserver.observe(el)
+        })
+      })
     }
   }, { threshold: 0.1, rootMargin: '200px' })
 
@@ -816,13 +858,40 @@ onMounted(async () => {
   await Promise.all([
     fetchRewardsConfig(),
     fetchMembershipStatus(),
-    updateUnreadCount()
+    updateUnreadCount(),
+    fetchAlreadyViewedPosts()
   ])
   
   // 3. Cargar publicaciones frescas (con debounce y paginación)
   await fetchPosts(true, rewardsConfig.value)
   
-  // 4. Setup Infinite Scroll
+  // 4. Setup Intersection Observer for View Tracking
+  await nextTick()
+  viewObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      const postId = parseInt(entry.target.dataset.postId)
+      if (!postId) return
+      
+      if (entry.isIntersecting) {
+        if (!viewTimers[postId]) {
+          viewTimers[postId] = setTimeout(() => {
+            registerView(postId)
+          }, 500)
+        }
+      } else {
+        if (viewTimers[postId]) {
+          clearTimeout(viewTimers[postId])
+          delete viewTimers[postId]
+        }
+      }
+    })
+  }, { threshold: 0.5 })
+  
+  document.querySelectorAll('.post-observer').forEach(el => {
+    viewObserver.observe(el)
+  })
+  
+  // 5. Setup Infinite Scroll
   setupInfiniteScroll()
   
   // Fetch real earnings for header
@@ -840,6 +909,8 @@ onUnmounted(() => {
   document.removeEventListener('visibilitychange', handlePageShow)
   window.removeEventListener('focus', handlePageShow)
   if (infiniteObserver) infiniteObserver.disconnect()
+  if (viewObserver) viewObserver.disconnect()
+  Object.values(viewTimers).forEach(t => clearTimeout(t))
 })
 
 useHead({
@@ -904,4 +975,3 @@ useHead({
   animation: gradient-xy 3s ease infinite;
 }
 </style>
-
