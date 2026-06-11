@@ -395,7 +395,7 @@ useHead({
   title: 'PubliGana | Monetiza tu tiempo',
   meta: [
     { name: 'description', content: 'La red social que te paga por interactuar.' },
-    { name: 'viewport', content: 'width=device-width, initial-scale=0.9, user-scalable=no' }
+    { name: 'viewport', content: 'width=device-width, initial-scale=1.0, user-scalable=no' }
   ]
 })
 </script>
