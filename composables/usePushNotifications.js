@@ -98,6 +98,27 @@ export const usePushNotifications = () => {
                 isSubscribed.value = status;
                 localStorage.setItem('push_subscribed_status', status.toString());
                 console.log('📱 [Push] Subscription check:', status);
+
+                // Si la suscripción existe en el navegador y el usuario está autenticado,
+                // nos aseguramos de que esté registrada en el servidor para este usuario.
+                // Esto previene que notificaciones no lleguen si la BD se limpia o si cambió el id_usuario.
+                if (status && auth.user && auth.user.id_usuario) {
+                    console.log('📱 [Push] Subscription exists in browser, syncing with server...');
+                    try {
+                        await $api('/notificaciones/suscripcion', {
+                            method: 'POST',
+                            body: {
+                                endpoint: subscription.endpoint,
+                                keys: subscription.toJSON().keys,
+                                user_agent: navigator.userAgent,
+                                id_usuario: auth.user.id_usuario
+                            }
+                        });
+                        console.log('📱 [Push] Sync completed successfully');
+                    } catch (syncError) {
+                        console.error('📱 [Push] Error syncing subscription with server:', syncError);
+                    }
+                }
             }
         } catch (error) {
             console.error('📱 [Push] Error verificando suscripción:', error);

@@ -1489,7 +1489,12 @@ onMounted(async () => {
   ])
   // Check for withdraw redirect
   if (route.query.withdraw === 'true') {
-    isWithdrawalModalOpen.value = true
+    if (!authStore.user?.verificado) {
+      showMsg('Debes estar verificado para solicitar un retiro', 'error')
+      navigateTo('/cliente/red')
+    } else {
+      isWithdrawalModalOpen.value = true
+    }
   }
   isLoading.value = false
 })

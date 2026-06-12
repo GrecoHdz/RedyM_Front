@@ -1,5 +1,26 @@
 self.addEventListener('push', (event) => {
-    const data = event.data ? event.data.json() : {};
+    console.log('📱 [Service Worker] Push event received:', event);
+    let data = {};
+    
+    try {
+        if (event.data) {
+            data = event.data.json();
+        }
+    } catch (e) {
+        console.warn('📱 [Service Worker] Push payload is not JSON, treating as text:', e);
+        try {
+            data = {
+                title: 'Nueva notificación',
+                body: event.data ? event.data.text() : 'Tienes un nuevo mensaje'
+            };
+        } catch (textErr) {
+            data = {
+                title: 'Nueva notificación',
+                body: 'Tienes un nuevo mensaje'
+            };
+        }
+    }
+
     const title = data.title || 'Nueva notificación';
     const options = {
         body: data.body || '',

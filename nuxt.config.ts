@@ -99,7 +99,7 @@ export default defineNuxtConfig({
   runtimeConfig: {
     public: {
       appName: 'PubliGana',
-      appVersion: '1.0.4',
+      appVersion: '1.0.5',
       apiBase: process.env.NUXT_PUBLIC_API_URL
     }
   }

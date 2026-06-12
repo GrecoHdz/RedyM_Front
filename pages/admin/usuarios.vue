@@ -278,7 +278,7 @@
                 :class="selectedUser.estado === 'activo' ? 'bg-red-500/10 text-red-500 border-red-500/20' : 'bg-green-500/10 text-green-500 border-green-500/20'"
               >
                 <i :class="selectedUser.estado === 'activo' ? 'fas fa-user-slash' : 'fas fa-user-check'"></i>
-                {{ selectedUser.estado === 'activo' ? 'Suspender' : 'Reactivar' }}
+                Editar
               </button>
             </div>
             <!-- Cambiar Contraseña + Eliminar -->

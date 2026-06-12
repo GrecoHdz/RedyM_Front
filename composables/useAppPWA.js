@@ -1,13 +1,15 @@
 import { ref } from 'vue'
 
-// Usamos refs locales en lugar de globales para que funcionen correctamente con múltiples instancias
+// Usamos refs de ámbito global en este módulo para que compartan el mismo estado 
+// y detector de eventos entre todos los componentes que usen este composable.
+const installPrompt = ref(null)
+const isInstalled = ref(false)
+const isIOS = ref(false)
+const canInstall = ref(false)
+const isMobile = ref(false)
+const initialized = ref(false)
+
 export const useAppPWA = () => {
-  const installPrompt = ref(null)
-  const isInstalled = ref(false)
-  const isIOS = ref(false)
-  const canInstall = ref(false)
-  const isMobile = ref(false)
-  const initialized = ref(false)
 
   const checkInstallState = () => {
     if (!process.client) return

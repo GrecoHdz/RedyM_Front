@@ -32,13 +32,13 @@
               <label class="text-[10px] font-black text-gray-500 uppercase tracking-widest">
                 Presupuesto ($){{ (auth.user?.role === 'sa' || auth.user?.role === 'admin') ? ' (Opcional)' : '' }}
               </label>
-              <span v-if="!(auth.user?.role === 'sa' || auth.user?.role === 'admin')" class="text-[9px] text-emerald-500 font-black">Mín. $ 50</span>
+              <span v-if="!(auth.user?.role === 'sa' || auth.user?.role === 'admin')" class="text-[9px] text-emerald-500 font-black">Mín. $ 10</span>
               <span v-else class="text-[9px] text-violet-500 font-black uppercase">Admin · Ilimitado</span>
             </div>
             <div class="relative">
               <span class="absolute left-5 top-1/2 -translate-y-1/2 text-emerald-400 font-black text-sm pointer-events-none">$</span>
               <input 
-                v-model.number="post.presupuesto" type="number" :min="(auth.user?.role === 'sa' || auth.user?.role === 'admin') ? 0 : 50" step="10"
+                v-model.number="post.presupuesto" type="number" :min="(auth.user?.role === 'sa' || auth.user?.role === 'admin') ? 0 : 10" step="10"
                 class="w-full pl-10 pr-5 py-4 bg-[#0d121f] border border-white/10 rounded-3xl focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500 outline-none transition-all text-white font-black text-xl"
                 placeholder="200"
               >
@@ -714,7 +714,7 @@ const toast = ref({ show: false, message: '', type: 'info' })
 const canSubmit = computed(() => {
   const contentOk = post.value.content.trim().length > 0 || selectedFiles.value.length > 0
   const isAdmin = auth.user?.role === 'sa' || auth.user?.role === 'admin'
-  const budgetOk = isAdmin ? true : post.value.presupuesto >= 50
+  const budgetOk = isAdmin ? true : post.value.presupuesto >= 10
   const whatsappOk = !post.value.whatsapp_active || (post.value.whatsapp_number && post.value.whatsapp_number.length >= 8)
   
   if (showPoll.value) {

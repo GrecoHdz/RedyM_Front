@@ -8,7 +8,7 @@
 
     <!-- Content Container with max-w-2xl to match copy.vue -->
     <div class="max-w-2xl mx-auto bg-gray-50 dark:bg-gray-900 min-h-screen relative">
-      <main class="pt-16 pb-4">
+      <main class="pt-16 pb-12">
         <!-- Missions Section (Daily + Special) -->
         <section :class="['px-2 pt-1 pb-4 grid gap-3', misionesEspeciales.length > 0 ? 'grid-cols-2' : 'grid-cols-1']">
           <!-- Daily Missions Launcher -->
