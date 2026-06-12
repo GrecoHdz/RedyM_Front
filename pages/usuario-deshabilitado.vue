@@ -33,7 +33,7 @@
 
       <!-- Footer -->
       <p class="text-[9px] text-gray-700 font-bold uppercase tracking-widest mt-10">
-        RedPlus © {{ new Date().getFullYear() }}
+        PubliGana © {{ new Date().getFullYear() }}
       </p>
     </div>
   </div>
@@ -73,7 +73,7 @@ watch(() => auth.user, () => {
 }, { deep: true })
 
 useHead({
-  title: 'Cuenta Deshabilitada | RedPlus',
+  title: 'Cuenta Deshabilitada | PubliGana',
   meta: [{ name: 'robots', content: 'noindex' }]
 })
 </script>
