@@ -1101,12 +1101,14 @@ const toggleFollow = (post) => {
 
 onMounted(async () => {
   console.log('🔗 [Dashboard] Initializing dashboard...')
-  
-  // Reset scroll position immediately to prevent browser scroll restoration
-  // from hiding the missions section at the top
+
+  // Disable browser scroll restoration so it doesn't jump past the missions section
+  // when navigating back to this page (especially in PWA/mobile)
+  if ('scrollRestoration' in history) {
+    history.scrollRestoration = 'manual'
+  }
   window.scrollTo({ top: 0, behavior: 'instant' })
 
-  
   // Initialize external navigation handler FIRST
   initExternalNavigation()
   
@@ -1116,6 +1118,9 @@ onMounted(async () => {
   
   // 1. Cargar desde caché para respuesta inmediata
   loadFromCache()
+  // After cache renders, force scroll back to top before browser can restore position
+  await nextTick()
+  window.scrollTo({ top: 0, behavior: 'instant' })
   
   // 2. Cargar datos necesarios en paralelo
   await Promise.all([
@@ -1178,6 +1183,10 @@ onUnmounted(() => {
   if (viewObserver) viewObserver.disconnect()
   if (infiniteObserver) infiniteObserver.disconnect()
   Object.values(viewTimers).forEach(t => clearTimeout(t))
+  // Restore scroll restoration when leaving the page
+  if ('scrollRestoration' in history) {
+    history.scrollRestoration = 'auto'
+  }
 })
 
 // SEO and Meta
