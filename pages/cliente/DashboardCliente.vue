@@ -1102,6 +1102,11 @@ const toggleFollow = (post) => {
 onMounted(async () => {
   console.log('🔗 [Dashboard] Initializing dashboard...')
   
+  // Reset scroll position immediately to prevent browser scroll restoration
+  // from hiding the missions section at the top
+  window.scrollTo({ top: 0, behavior: 'instant' })
+
+  
   // Initialize external navigation handler FIRST
   initExternalNavigation()
   

@@ -102,5 +102,5 @@ export default defineNuxtConfig({
       appVersion: '1.0.5',
       apiBase: process.env.NUXT_PUBLIC_API_URL
     }
-  }
+  },
 })
