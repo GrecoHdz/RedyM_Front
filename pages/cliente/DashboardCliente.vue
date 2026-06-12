@@ -278,7 +278,7 @@
                 >
                   <span v-if="rewardClaimed">Recompensa Reclamada ✅</span>
                   <span v-else-if="isMissionsCompleted">Reclamar $ {{ rewardsConfig.valor_mision }} 💰</span>
-                  <span v-else>Completa las misiones para reclamar</span>
+                  <span v-else>Recompensa ${{ rewardsConfig.valor_mision }} 💰</span>
                 </button>
               </div>
             </div>

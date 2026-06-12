@@ -2388,8 +2388,8 @@ const buscarUsuarios = debounce(async () => {
   }
   buscandoUsuarios.value = true
   try {
-    const res = await $api(`/usuarios/${encodeURIComponent(terminoBusquedaUsuario.value)}`)
-    usuariosEncontrados.value = Array.isArray(res) ? res : [res]
+    const res = await $api(`/usuarios?search=${encodeURIComponent(terminoBusquedaUsuario.value)}`)
+    usuariosEncontrados.value = res.success ? res.data : []
   } catch (error) {
     console.error(error)
     usuariosEncontrados.value = []

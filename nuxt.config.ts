@@ -58,10 +58,10 @@ export default defineNuxtConfig({
     ]
   },
 
-    // Configuración de impresión
+  // Configuración de impresión
   app: {
     head: {
-        title: 'PubliGana - Monetiza tu Tiempo y Gana por interactuar',
+      title: 'PubliGana - Monetiza tu Tiempo y Gana por interactuar',
       meta: [
         { name: 'google-site-verification', content: 'jawMv21uEyAiqAfxTatonHuFH3oJsiNdhQiko8kJvwo' },
         { charset: 'utf-8' },
@@ -99,7 +99,7 @@ export default defineNuxtConfig({
   runtimeConfig: {
     public: {
       appName: 'PubliGana',
-      appVersion: '1.0.3',
+      appVersion: '1.0.4',
       apiBase: process.env.NUXT_PUBLIC_API_URL
     }
   }
