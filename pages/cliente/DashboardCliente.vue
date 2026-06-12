@@ -1073,7 +1073,7 @@ const handleWhatsApp = async (post) => {
   }
 
   const cleanPhone = post.phone.replace(/[^0-9]/g, '')
-  const message = `Hola, vi tu publicación en RedYMercadeo y me gustaría más información.`
+  const message = `Hola, vi tu publicación en PubliGana y me gustaría más información.`
   const encodedMessage = encodeURIComponent(message)
   const whatsappUrl = `https://wa.me/${cleanPhone}?text=${encodedMessage}`
   

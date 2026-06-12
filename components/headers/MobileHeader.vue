@@ -3,9 +3,9 @@
     <header class="fixed top-0 left-0 right-0 z-50 bg-[#070b14]/80 backdrop-blur-xl border-b border-white/5 px-4 h-16 flex items-center justify-between">
       <div class="flex items-center gap-3">
         <div class="w-9 h-9 bg-gradient-to-tr from-emerald-500 to-teal-400 rounded-xl flex items-center justify-center shadow-lg shadow-emerald-500/20">
-          <span class="text-white font-black text-lg">R</span>
+          <span class="text-white font-black text-lg">P</span>
         </div>
-        <h1 class="font-black text-lg tracking-tight text-white">REDY</h1>
+        <h1 class="font-black text-lg tracking-tight text-white">PubliGana</h1>
       </div>
 
       <div class="flex items-center gap-2">

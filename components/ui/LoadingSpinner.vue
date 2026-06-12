@@ -12,7 +12,7 @@
           <!-- Inner Layer: App Logo -->
           <div class="absolute inset-4 flex items-center justify-center">
             <div class="w-10 h-10 bg-gradient-to-tr from-emerald-500 to-teal-400 rounded-xl flex items-center justify-center shadow-lg shadow-emerald-500/30 animate-pulse">
-              <span class="text-white font-black text-xl">R</span>
+              <span class="text-white font-black text-xl">P</span>
             </div>
           </div>
         </div>
