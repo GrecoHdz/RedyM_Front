@@ -642,7 +642,7 @@
                 <div class="flex items-center gap-1.5 min-w-0">
                   <span class="text-white select-all truncate max-w-[120px]" :title="selectedAccountObject.num_cuenta">{{ selectedAccountObject.num_cuenta }}</span>
                   <button
-                    @click="copyToClipboard(selectedAccountObject.num_cuenta).then(() => { copiedAccount = true; setTimeout(() => copiedAccount = false, 1500) })"
+                    @click="copyToClipboard(selectedAccountObject.num_cuenta).then((ok) => { if(ok){ copiedAccount = true; setTimeout(() => copiedAccount = false, 1500); showMsg('✅ ¡N° de cuenta copiado!', 'success') } })"
                     class="shrink-0 text-gray-400 hover:text-emerald-400 active:scale-90 transition-all"
                   >
                     <svg v-if="!copiedAccount" class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -885,6 +885,7 @@ const copyLink = async () => {
     if (success) {
       copied.value = true
       setTimeout(() => copied.value = false, 2000)
+      showMsg('✅ ¡Link copiado al portapapeles!', 'success')
     }
   }
 }
