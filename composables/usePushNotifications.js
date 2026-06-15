@@ -89,26 +89,29 @@ export const usePushNotifications = () => {
 
         try {
             isChecking.value = true;
-            console.log('📱 [Push] Starting checkSubscription...');
             
             // Verificar si serviceWorker está disponible
             if ('serviceWorker' in navigator && 'PushManager' in window) {
-                console.log('📱 [Push] Waiting for serviceWorker.ready...');
-                const registration = await navigator.serviceWorker.ready;
-                console.log('📱 [Push] SW ready, getting subscription...');
+                // Timeout de 5 segundos para evitar que se quede colgado si el SW
+                // nunca activa (puede ocurrir en desarrollo o con caché corrupta)
+                const swReadyTimeout = new Promise((_, reject) =>
+                    setTimeout(() => reject(new Error('SW ready timeout after 5s')), 5000)
+                );
+                const registration = await Promise.race([
+                    navigator.serviceWorker.ready,
+                    swReadyTimeout
+                ]);
+
                 const subscription = await registration.pushManager.getSubscription();
                 const status = !!subscription;
                 isSubscribed.value = status;
                 localStorage.setItem('push_subscribed_status', status.toString());
-                console.log('📱 [Push] Subscription check result:', status, subscription);
 
                 // Si la suscripción existe en el navegador y el usuario está autenticado,
                 // nos aseguramos de que esté registrada en el servidor para este usuario.
-                // Esto previene que notificaciones no lleguen si la BD se limpia o si cambió el id_usuario.
                 if (status && auth.user && auth.user.id_usuario) {
-                    console.log('📱 [Push] Subscription exists in browser, syncing with server...');
                     try {
-                        const syncResponse = await $api('/notificaciones/suscripcion', {
+                        await $api('/notificaciones/suscripcion', {
                             method: 'POST',
                             body: {
                                 endpoint: subscription.endpoint,
@@ -117,18 +120,20 @@ export const usePushNotifications = () => {
                                 id_usuario: auth.user.id_usuario
                             }
                         });
-                        console.log('📱 [Push] Sync completed successfully:', syncResponse);
                     } catch (syncError) {
-                        console.error('📱 [Push] Error syncing subscription with server:', syncError);
+                        console.error('Error syncing subscription with server:', syncError);
                     }
-                } else if (status) {
-                    console.log('📱 [Push] Subscription exists, but no user authenticated. Skipping sync.');
                 }
             } else {
-                console.log('📱 [Push] ServiceWorker or PushManager not supported in this browser.');
+                isSubscribed.value = false;
             }
         } catch (error) {
-            console.error('📱 [Push] Error verificando suscripción:', error);
+            if (error.message?.includes('timeout')) {
+                console.warn('SW took too long to activate. Assuming not subscribed.');
+                isSubscribed.value = false;
+            } else {
+                console.error('Error verificando suscripción:', error);
+            }
         } finally {
             isChecking.value = false;
         }
@@ -136,52 +141,59 @@ export const usePushNotifications = () => {
 
     const subscribe = async () => {
         if (!('Notification' in window)) {
-            console.log('📱 [Push] Notifications not supported');
             return { success: false, error: 'supported' };
         }
 
         try {
-            console.log('📱 [Push] Requesting permission...');
             const result = await Notification.requestPermission();
             permission.value = result;
             
             if (result !== 'granted') {
-                console.log('📱 [Push] Permission denied');
                 return { success: false, error: 'denied' };
             }
 
             // Para iOS, incluso sin serviceWorker, podemos marcar como suscrito
             if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
-                console.log('📱 [Push] ServiceWorker/PushManager not available, but permission granted');
                 isSubscribed.value = true;
                 localStorage.setItem('push_subscribed_status', 'true');
                 return { success: true };
             }
 
-            console.log('📱 [Push] Getting VAPID key...');
             const response = await $api('/notificaciones/vapid-key');
             const vapidPublicKey = response.key;
             if (!vapidPublicKey) throw new Error('No VAPID key');
 
-            console.log('📱 [Push] Getting service worker registration...');
             const registration = await navigator.serviceWorker.ready;
-            console.log('📱 [Push] SW ready, getting active subscription...');
-            let subscription = await registration.pushManager.getSubscription();
 
-            if (!subscription) {
-                console.log('📱 [Push] No active subscription, subscribing to PushManager...');
-                subscription = await registration.pushManager.subscribe({
-                    userVisibleOnly: true,
-                    applicationServerKey: urlBase64ToUint8Array(vapidPublicKey)
-                });
-                console.log('📱 [Push] Created new PushManager subscription:', subscription);
-            } else {
-                console.log('📱 [Push] Found existing PushManager subscription:', subscription);
+            let subscription = await registration.pushManager.getSubscription();
+            
+            if (subscription) {
+                // Ya existe en navegador, sincronizamos con el backend por seguridad
+                if (auth.user && auth.user.id_usuario) {
+                    await $api('/notificaciones/suscripcion', {
+                        method: 'POST',
+                        body: {
+                            endpoint: subscription.endpoint,
+                            keys: subscription.toJSON().keys,
+                            user_agent: navigator.userAgent,
+                            id_usuario: auth.user.id_usuario
+                        }
+                    });
+                }
+                isSubscribed.value = true;
+                localStorage.setItem('push_subscribed_status', 'true');
+                return { success: true };
             }
 
+            // No existe, creamos una nueva
+            subscription = await registration.pushManager.subscribe({
+                userVisibleOnly: true,
+                applicationServerKey: urlBase64ToUint8Array(vapidPublicKey)
+            });
+
+            // Guardar en backend
             if (auth.user && auth.user.id_usuario) {
-                console.log('📱 [Push] Sending subscription to server...');
-                const saveResponse = await $api('/notificaciones/suscripcion', {
+                await $api('/notificaciones/suscripcion', {
                     method: 'POST',
                     body: {
                         endpoint: subscription.endpoint,
@@ -190,44 +202,47 @@ export const usePushNotifications = () => {
                         id_usuario: auth.user.id_usuario
                     }
                 });
+            }
 
-                isSubscribed.value = true;
-                localStorage.setItem('push_subscribed_status', 'true');
-                console.log('📱 [Push] Successfully subscribed! Server response:', saveResponse);
-                return { success: true };
-            } else {
-                throw new Error('No user authenticated');
-            }
+            isSubscribed.value = true;
+            localStorage.setItem('push_subscribed_status', 'true');
+            return { success: true };
         } catch (error) {
-            console.error('📱 [Push] Error al suscribirse a push:', error);
-            // Incluso si hay error, si el permiso está granted, marcamos como suscrito para UX
-            if (permission.value === 'granted') {
-                isSubscribed.value = true;
-                localStorage.setItem('push_subscribed_status', 'true');
-                return { success: true };
-            }
             return { success: false, error: error.message };
         }
     };
 
     const unsubscribe = async () => {
-        try {
-            if ('serviceWorker' in navigator && 'PushManager' in window) {
-                const registration = await navigator.serviceWorker.ready;
-                const subscription = await registration.pushManager.getSubscription();
-                if (subscription) await subscription.unsubscribe();
-            }
-
-            if (auth.user) {
-                await $api(`/notificaciones/suscripcion?id_usuario=${auth.user.id_usuario}`, {
-                    method: 'DELETE'
-                });
-            }
-
+        if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
             isSubscribed.value = false;
             localStorage.setItem('push_subscribed_status', 'false');
+            return { success: true };
+        }
+
+        try {
+            const registration = await navigator.serviceWorker.ready;
+            const subscription = await registration.pushManager.getSubscription();
+
+            if (subscription) {
+                // Eliminar del backend
+                if (auth.user && auth.user.id_usuario) {
+                    try {
+                        await $api(`/notificaciones/suscripcion?id_usuario=${auth.user.id_usuario}`, {
+                            method: 'DELETE'
+                        });
+                    } catch (e) {
+                        // Silencioso
+                    }
+                }
+
+                // Desuscribir en navegador
+                await subscription.unsubscribe();
+                isSubscribed.value = false;
+                localStorage.setItem('push_subscribed_status', 'false');
+                return { success: true };
+            }
+            return { success: true };
         } catch (error) {
-            console.error('Error al desactivar push:', error);
             throw error;
         }
     };

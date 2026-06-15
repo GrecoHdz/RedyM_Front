@@ -354,12 +354,12 @@
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-4">
               <div class="w-12 h-12 rounded-2xl flex items-center justify-center text-2xl" :class="pushIsSubscribed ? 'bg-emerald-500/10' : 'bg-white/5'">
-                {{ pushIsSubscribed ? '🔔' : '🕕' }}
+                {{ pushIsSubscribed ? '🔔' : '🔕' }}
               </div>
               <div>
                 <h3 class="text-sm font-black text-white uppercase tracking-tight">Alertas en este dispositivo</h3>
                 <p class="text-[9px] font-bold uppercase tracking-widest mt-0.5" :class="pushIsSubscribed ? 'text-emerald-400' : 'text-gray-500'">
-                  {{ pushIsChecking ? 'Verificando registro...' : (pushIsSubscribed ? 'Activo · Registrado en base de datos' : 'Inactivo · Sin registro en BD') }}
+                  {{ pushIsSubscribed ? 'Activas · Registrado en servidor' : 'Desactivadas · Sin registro' }}
                 </p>
               </div>
             </div>
@@ -367,7 +367,7 @@
             <button
               v-if="pushIsSupported"
               @click="handleAdminTogglePush"
-              :disabled="pushPermission === 'denied' || isTogglingAdminPush || pushIsChecking"
+              :disabled="pushPermission === 'denied' || isTogglingAdminPush"
               class="relative inline-flex h-8 w-14 items-center rounded-full transition-colors focus:outline-none disabled:opacity-40"
               :class="pushIsSubscribed ? 'bg-emerald-500' : 'bg-white/10'"
             >
@@ -387,7 +387,7 @@
           </p>
 
           <div v-if="!pushIsSubscribed && pushPermission !== 'denied' && pushIsSupported" class="text-[9px] text-gray-500 font-bold uppercase tracking-widest text-center">
-            Activa las alertas para recibir notificaciones del sistema en este navegador.
+            Activa las alertas para recibir notificaciones del sistema.
           </div>
         </div>
       </section>
@@ -2595,6 +2595,10 @@ onMounted(() => {
   cargarCuentas()
   cargarNotificaciones()
   cargarMisionesEspeciales()
+
+  // Check push subscription status — must be called explicitly since each
+  // composable call creates a fresh instance with isChecking = true
+  pushCheckSubscription()
 })
 
 useHead({
