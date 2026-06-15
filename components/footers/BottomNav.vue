@@ -7,6 +7,12 @@
         <div class="relative">
           <div v-html="item.icon" class="w-6 h-6 transition-transform" :class="{ 'scale-110 text-emerald-400': route.path === item.path }"></div>
           <div v-if="route.path === item.path" class="absolute -bottom-2 left-1/2 -translate-x-1/2 w-1 h-1 bg-emerald-400 rounded-full shadow-[0_0_8px_#10b981]"></div>
+          
+          <!-- Badge -->
+          <div v-if="badges && badges[item.path] > 0" 
+            class="absolute -top-1.5 -right-2 min-w-[16px] h-[16px] px-1 rounded-full bg-red-500 text-white text-[9px] font-black flex items-center justify-center border-2 border-[#070b14] shadow-lg animate-pulse">
+            {{ badges[item.path] > 99 ? '99+' : badges[item.path] }}
+          </div>
         </div>
         <span class="text-[10px] font-bold uppercase tracking-[0.05em] mt-0.5">{{ item.label }}</span>
       </NuxtLink>
@@ -16,6 +22,13 @@
 
 <script setup>
 import { useAuthStore } from '~/middleware/auth.store'
+
+const props = defineProps({
+  badges: {
+    type: Object,
+    default: () => ({})
+  }
+})
 
 const route = useRoute()
 const auth = useAuthStore()

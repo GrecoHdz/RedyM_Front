@@ -810,7 +810,7 @@
       </div>
     </Transition>
 
-    <BottomNav />
+    <BottomNav :badges="{ '/admin/membresias': totalPendingCount }" />
   </div>
 </template>
 
@@ -848,6 +848,11 @@ const estadisticas = ref({ total: 0, pendientes: 0, aprobados: 0 })
 const activeMembershipTab = ref('pendiente')
 const activeLevelTab = ref('pendiente')
 const activeIdentityTab = ref('pendiente')
+
+// Total pending count for BottomNav
+const totalPendingCount = computed(() => {
+  return Object.values(pendingCounts.value).reduce((a, b) => a + b, 0)
+})
 const activeWithdrawTab = ref('pendiente')
 
 const mainSections = [
@@ -1143,10 +1148,7 @@ const processAction = async () => {
   }
 }
 
-const viewFullImage = (url) => {
-  fullImageUrl.value = url
-}
-
+// Trigger HMR update
 const formatDate = (dateString) => {
   const d = new Date(dateString)
   return d.toLocaleDateString('es-HN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })

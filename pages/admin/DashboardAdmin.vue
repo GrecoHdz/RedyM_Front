@@ -91,6 +91,7 @@
               <MediaCarousel 
                 :media="post.media" 
                 @video-complete="handleVideoComplete(post)"
+                @media-click="(item) => abrirVisor(item)"
               />
             </div>
 
@@ -243,6 +244,72 @@
        </div>
     </Transition>
 
+    <!-- ====== VISOR DE MEDIOS (Lightbox) ====== -->
+    <Transition name="fade">
+      <div 
+        v-if="showMediaViewer" 
+        class="fixed inset-0 z-[200] bg-black/95 backdrop-blur-xl flex flex-col items-center justify-center"
+        @click.self="handleViewerBackdropClick"
+      >
+        
+        <!-- Close Button -->
+        <button 
+          @click="cerrarVisor"
+          class="absolute top-4 right-4 z-30 w-12 h-12 rounded-full bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center text-white active:scale-90 transition-all"
+        >
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
+        
+        <!-- Media Container -->
+        <div 
+          class="relative w-full h-full flex items-center justify-center overflow-hidden p-4"
+          @click.self="handleViewerBackdropClick"
+        >
+          <img v-if="mediaToView?.type === 'image'" 
+            :src="mediaToView.url" 
+            class="max-w-[95vw] max-h-[85vh] object-contain animate-modal-in shadow-2xl rounded-lg"
+            @click.stop
+          >
+          
+          <!-- Video container: click outside video pauses and closes modal -->
+          <div v-else-if="mediaToView?.type === 'video'" class="relative animate-modal-in" @click.stop>
+            <video 
+              ref="fullscreenVideoRef"
+              :src="mediaToView.url + '#t=0.1'"
+              class="max-w-[95vw] max-h-[85vh] rounded-2xl shadow-2xl block"
+              playsinline
+              preload="metadata"
+              @ended="onFullscreenVideoEnded"
+              @click.stop
+            ></video>
+            
+            <!-- Custom Play/Pause overlay for fullscreen video -->
+            <div 
+              class="absolute inset-0 flex items-center justify-center rounded-2xl cursor-pointer"
+              :class="{ 'bg-black/30': fullscreenVideoPaused }"
+              @click.stop="toggleFullscreenVideo"
+            >
+              <Transition name="fade-quick">
+                <div v-if="fullscreenVideoPaused" class="w-20 h-20 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/40 shadow-xl">
+                  <svg class="w-10 h-10 text-white fill-current ml-1" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                </div>
+              </Transition>
+            </div>
+
+            <!-- Progress bar -->
+            <div class="absolute bottom-0 left-0 right-0 h-1 bg-white/20 rounded-b-2xl">
+              <div 
+                class="h-full bg-emerald-500 transition-all duration-100 rounded-b-2xl"
+                :style="{ width: fullscreenVideoProgress + '%' }"
+              ></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </Transition>
+
     <!-- Modal: Actividad Reciente -->
     <Transition name="bottom-sheet">
       <div v-if="modalActividad.show" class="fixed inset-0 z-[120] flex flex-col justify-end isolate">
@@ -375,6 +442,65 @@ const shortName = computed(() => auth.user?.nombre?.split(' ')[0] || 'Usuario')
 
 const toast = ref({ show: false, message: '', type: 'success' })
 const pollModal = ref({ show: false, post: null })
+
+// Media viewer state
+const showMediaViewer = ref(false)
+const mediaToView = ref(null)
+const fullscreenVideoRef = ref(null)
+const fullscreenVideoPaused = ref(true)
+const fullscreenVideoProgress = ref(0)
+let fullscreenProgressInterval = null
+
+const abrirVisor = (mediaItem) => {
+  mediaToView.value = mediaItem
+  showMediaViewer.value = true
+  fullscreenVideoPaused.value = true
+  fullscreenVideoProgress.value = 0
+}
+
+const cerrarVisor = () => {
+  showMediaViewer.value = false
+  setTimeout(() => {
+    mediaToView.value = null
+  }, 300)
+}
+
+const toggleFullscreenVideo = () => {
+  const video = fullscreenVideoRef.value
+  if (!video) return
+  if (video.paused) {
+    video.play()
+    fullscreenVideoPaused.value = false
+    // Start progress tracking
+    fullscreenProgressInterval = setInterval(() => {
+      if (video.duration) {
+        fullscreenVideoProgress.value = (video.currentTime / video.duration) * 100
+      }
+    }, 200)
+  } else {
+    video.pause()
+    fullscreenVideoPaused.value = true
+    clearInterval(fullscreenProgressInterval)
+  }
+}
+
+const onFullscreenVideoEnded = () => {
+  fullscreenVideoPaused.value = true
+  fullscreenVideoProgress.value = 100
+  clearInterval(fullscreenProgressInterval)
+}
+
+const handleViewerBackdropClick = () => {
+  // Pause the video and close the modal
+  const video = fullscreenVideoRef.value
+  if (video && !video.paused) {
+    video.pause()
+    fullscreenVideoPaused.value = true
+    clearInterval(fullscreenProgressInterval)
+  }
+  cerrarVisor()
+}
+
 const totalEarnings = ref(0.00) // Will be updated from DB
 const rewardsConfig = ref({
   valor_like: 0.05,
@@ -974,4 +1100,13 @@ useHead({
 .animate-gradient-xy {
   animation: gradient-xy 3s ease infinite;
 }
+
+/* Visor de medios animations */
+.fade-quick-enter-active, .fade-quick-leave-active { transition: opacity 0.2s ease; }
+.fade-quick-enter-from, .fade-quick-leave-to { opacity: 0; }
+@keyframes modal-in {
+  from { opacity: 0; transform: scale(0.95) translateY(10px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+.animate-modal-in { animation: modal-in 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
 </style>
