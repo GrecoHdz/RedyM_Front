@@ -422,7 +422,11 @@
 
     <!-- ====== VISOR DE MEDIOS (Lightbox) ====== -->
     <Transition name="fade">
-      <div v-if="showMediaViewer" class="fixed inset-0 z-[200] bg-black/95 backdrop-blur-xl flex flex-col items-center justify-center p-4">
+      <div 
+        v-if="showMediaViewer" 
+        class="fixed inset-0 z-[200] bg-black/95 backdrop-blur-xl flex flex-col items-center justify-center"
+        @click.self="handleViewerBackdropClick"
+      >
         
         <!-- Close Button -->
         <button 
@@ -435,18 +439,49 @@
         </button>
         
         <!-- Media Container -->
-        <div class="w-full h-full flex items-center justify-center overflow-hidden">
+        <div 
+          class="relative w-full h-full flex items-center justify-center overflow-hidden p-4"
+          @click.self="handleViewerBackdropClick"
+        >
           <img v-if="mediaToView?.type === 'image'" 
             :src="mediaToView.url" 
             class="max-w-[95vw] max-h-[85vh] object-contain animate-modal-in shadow-2xl rounded-lg"
+            @click.stop
           >
-          <video v-else-if="mediaToView?.type === 'video'" 
-            ref="fullscreenVideoRef"
-            :src="mediaToView.url" 
-            controls autoplay 
-            class="max-w-[95vw] max-h-[85vh] rounded-2xl animate-modal-in shadow-2xl"
-            @click.stop="toggleFullscreenVideo"
-          ></video>
+          
+          <!-- Video container: click outside video pauses and closes modal -->
+          <div v-else-if="mediaToView?.type === 'video'" class="relative animate-modal-in" @click.stop>
+            <video 
+              ref="fullscreenVideoRef"
+              :src="mediaToView.url + '#t=0.1'"
+              class="max-w-[95vw] max-h-[85vh] rounded-2xl shadow-2xl block"
+              playsinline
+              preload="metadata"
+              @ended="onFullscreenVideoEnded"
+              @click.stop
+            ></video>
+            
+            <!-- Custom Play/Pause overlay for fullscreen video -->
+            <div 
+              class="absolute inset-0 flex items-center justify-center rounded-2xl cursor-pointer"
+              :class="{ 'bg-black/30': fullscreenVideoPaused }"
+              @click.stop="toggleFullscreenVideo"
+            >
+              <Transition name="fade-quick">
+                <div v-if="fullscreenVideoPaused" class="w-20 h-20 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/40 shadow-xl">
+                  <svg class="w-10 h-10 text-white fill-current ml-1" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                </div>
+              </Transition>
+            </div>
+
+            <!-- Progress bar -->
+            <div class="absolute bottom-0 left-0 right-0 h-1 bg-white/20 rounded-b-2xl">
+              <div 
+                class="h-full bg-emerald-500 transition-all duration-100 rounded-b-2xl"
+                :style="{ width: fullscreenVideoProgress + '%' }"
+              ></div>
+            </div>
+          </div>
         </div>
       </div>
     </Transition>
@@ -582,15 +617,44 @@ const showSpecialModal = ref(false)
 const showMediaViewer = ref(false)
 const mediaToView = ref(null)
 const fullscreenVideoRef = ref(null)
+const fullscreenVideoPaused = ref(true)
+const fullscreenVideoProgress = ref(0)
+let fullscreenProgressInterval = null
 
 const toggleFullscreenVideo = () => {
-  if (fullscreenVideoRef.value) {
-    if (fullscreenVideoRef.value.paused) {
-      fullscreenVideoRef.value.play()
-    } else {
-      fullscreenVideoRef.value.pause()
-    }
+  const video = fullscreenVideoRef.value
+  if (!video) return
+  if (video.paused) {
+    video.play()
+    fullscreenVideoPaused.value = false
+    // Start progress tracking
+    fullscreenProgressInterval = setInterval(() => {
+      if (video.duration) {
+        fullscreenVideoProgress.value = (video.currentTime / video.duration) * 100
+      }
+    }, 200)
+  } else {
+    video.pause()
+    fullscreenVideoPaused.value = true
+    clearInterval(fullscreenProgressInterval)
   }
+}
+
+const onFullscreenVideoEnded = () => {
+  fullscreenVideoPaused.value = true
+  fullscreenVideoProgress.value = 100
+  clearInterval(fullscreenProgressInterval)
+}
+
+const handleViewerBackdropClick = () => {
+  // Pause the video and close the modal
+  const video = fullscreenVideoRef.value
+  if (video && !video.paused) {
+    video.pause()
+    fullscreenVideoPaused.value = true
+    clearInterval(fullscreenProgressInterval)
+  }
+  cerrarVisor()
 }
 
 // Winners modal state
@@ -872,10 +936,21 @@ const setupInfiniteScroll = () => {
 const abrirVisor = (item) => {
   mediaToView.value = item
   showMediaViewer.value = true
-  // MediaCarousel already handles pausing videos when the fullscreen button is clicked
+  fullscreenVideoPaused.value = true
+  fullscreenVideoProgress.value = 0
+  clearInterval(fullscreenProgressInterval)
+  // Video starts paused — user must press play
 }
 
 const cerrarVisor = () => {
+  // Pause and reset the fullscreen video
+  if (fullscreenVideoRef.value) {
+    fullscreenVideoRef.value.pause()
+    fullscreenVideoRef.value.currentTime = 0
+    clearInterval(fullscreenProgressInterval)
+  }
+  fullscreenVideoPaused.value = true
+  fullscreenVideoProgress.value = 0
   showMediaViewer.value = false
   mediaToView.value = null
 }
@@ -1251,6 +1326,16 @@ useHead({
 
 .animate-gradient-xy {
   animation: gradient-xy 3s ease infinite;
+}
+
+/* Modal video button quick fade */
+.fade-quick-enter-active,
+.fade-quick-leave-active {
+  transition: opacity 0.15s ease-out;
+}
+.fade-quick-enter-from,
+.fade-quick-leave-to {
+  opacity: 0;
 }
 </style>
 

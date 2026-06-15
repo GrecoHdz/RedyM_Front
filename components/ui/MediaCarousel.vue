@@ -31,31 +31,28 @@
           
           <!-- Video Render -->
           <div v-else-if="item.type === 'video'" class="w-full h-full relative z-10">
+            <!-- Video element with #t=0.1 to show first frame as thumbnail -->
             <video 
-              ref="videoRefs"
-              :src="item.url"
-              class="w-full h-full object-cover cursor-pointer"
+              :ref="el => { if (el) videoEls[index] = el }"
+              :src="item.url + '#t=0.1'"
+              class="w-full h-full object-cover"
               playsinline
               preload="metadata"
-              @timeupdate="updateProgress($event, index)"
-              @ended="onVideoEnded(index)"
-              @click="handleVideoClick($event, item)"
+              muted
               @loadeddata="handleMediaLoad"
             ></video>
             
-            <!-- Play Overlay -->
-            <div v-if="videoStates[index]?.paused" class="absolute inset-0 flex items-center justify-center bg-black/20 cursor-pointer z-20" @click="handlePlayOverlayClick($event, item)">
-              <div class="w-16 h-16 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/30">
-                <svg class="w-8 h-8 text-white fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+            <!-- Full-size Play Overlay (always shown since videos are never played inline) -->
+            <div 
+              class="absolute inset-0 flex items-center justify-center cursor-pointer z-20"
+              @click="handlePlayOverlayClick($event, item)"
+            >
+              <!-- Subtle dark gradient at bottom -->
+              <div class="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent pointer-events-none"></div>
+              <!-- Play button -->
+              <div class="relative w-18 h-18 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/40 shadow-xl transition-transform active:scale-90" style="width:4.5rem;height:4.5rem">
+                <svg class="w-9 h-9 text-white fill-current ml-1" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
               </div>
-            </div>
-            
-            <!-- Individual Video Progress Bar (TikTok style) -->
-            <div class="absolute bottom-0 left-0 right-0 h-1 bg-white/20">
-              <div 
-                class="h-full bg-emerald-500 transition-all duration-100"
-                :style="{ width: (videoStates[index]?.progress || 0) + '%' }"
-              ></div>
             </div>
           </div>
           
@@ -113,7 +110,7 @@ const props = defineProps({
 const emit = defineEmits(['video-complete', 'index-change', 'media-click'])
 
 const scrollContainer = ref(null)
-const videoRefs = ref([])
+const videoEls = ref({})
 const currentIndex = ref(0)
 const videoStates = ref([])
 let observer = null
@@ -128,33 +125,8 @@ watch(() => props.media, (newMedia) => {
 }, { immediate: true })
 
 onMounted(() => {
-  // Setup Intersection Observer to pause video when not in viewport (Vertical Scroll)
-  observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      const video = entry.target
-      if (!entry.isIntersecting) {
-        video.pause()
-      } else {
-        // If it's the current active item in the carousel, we could play it
-        // but it's safer to just let the user click or handle it via handleScroll
-      }
-    })
-  }, { threshold: 0.5 })
-
-  videoRefs.value.forEach(video => {
-    if (video) observer.observe(video)
-  })
+  // No inline playback — videos are played in modal only
 })
-
-// Update observers when video refs change
-watch(videoRefs, (newRefs) => {
-  if (observer) {
-    observer.disconnect()
-    newRefs.forEach(video => {
-      if (video) observer.observe(video)
-    })
-  }
-}, { deep: true })
 
 onUnmounted(() => {
   if (observer) observer.disconnect()
@@ -175,12 +147,7 @@ const handleScroll = (e) => {
 }
 
 const updateProgress = (e, index) => {
-  const video = e.target
-  if (videoStates.value[index]) {
-    const progress = (video.currentTime / video.duration) * 100
-    videoStates.value[index].progress = progress
-    videoStates.value[index].paused = video.paused
-  }
+  // Not used for inline playback — kept for API compatibility
 }
 
 const onVideoEnded = (index) => {
@@ -190,42 +157,32 @@ const onVideoEnded = (index) => {
   }
 }
 
-const togglePlay = (e) => {
-  const video = e.target
-  if (video.paused) video.play()
-  else video.pause()
-}
-
 const pauseAllVideos = () => {
-  videoRefs.value.forEach(v => {
-    if (v) v.pause()
+  Object.values(videoEls.value).forEach(v => {
+    if (v && !v.paused) v.pause()
   })
 }
 
 const pauseVideoByIndex = (index) => {
-  if (videoRefs.value[index]) {
-    videoRefs.value[index].pause()
+  if (videoEls.value[index] && !videoEls.value[index].paused) {
+    videoEls.value[index].pause()
   }
 }
 
 const handleVideoClick = (e, item) => {
-  // Si es video, abrir directamente en pantalla completa
+  // Videos only play in the fullscreen modal
   if (item.type === 'video') {
-    pauseAllVideos()
     emit('media-click', item)
   }
 }
 
 const handlePlayOverlayClick = (e, item) => {
-  // Cuando se hace clic en el overlay de play, abrir en pantalla completa
+  // Open fullscreen modal on play button click
   e.stopPropagation()
-  pauseAllVideos()
   emit('media-click', item)
 }
 
 const handleFullscreenClick = (e, item) => {
-  // Pause all videos before emitting the media-click event
-  pauseAllVideos()
   emit('media-click', item)
 }
 

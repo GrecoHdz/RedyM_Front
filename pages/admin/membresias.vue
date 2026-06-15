@@ -285,9 +285,14 @@
                   <div v-for="(mediaItem, idx) in pub.media" :key="idx" 
                        class="shrink-0 w-10 h-10 sm:w-12 sm:h-12 rounded-lg overflow-hidden bg-black/40 border border-white/10 cursor-pointer active:scale-95 transition-transform"
                        :class="mediaItem.type === 'image' ? 'cursor-zoom-in' : ''"
-                       @click="mediaItem.type === 'image' && viewFullImage(mediaItem.url)">
+                       @click.stop="mediaItem.type === 'image' ? viewFullImage(mediaItem.url) : viewFullVideo(mediaItem.url)">
                     <img v-if="mediaItem.type === 'image'" :src="mediaItem.url" class="w-full h-full object-cover">
-                    <div v-else class="w-full h-full flex items-center justify-center text-[10px] sm:text-sm">🎥</div>
+                    <div v-else class="relative w-full h-full bg-black">
+                      <video :src="mediaItem.url + '#t=0.1'" class="w-full h-full object-cover pointer-events-none" preload="metadata" muted></video>
+                      <div class="absolute inset-0 flex items-center justify-center bg-black/30">
+                        <span class="text-[10px] sm:text-sm">🎥</span>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -676,8 +681,18 @@
     <!-- Full Image Viewer Modal -->
     <Transition name="fade">
       <div v-if="fullImageUrl" @click="fullImageUrl = null" class="fixed inset-0 z-[200] bg-black/95 flex items-center justify-center p-4">
-        <img :src="fullImageUrl" class="max-w-full max-h-full object-contain rounded-xl">
-        <button class="absolute top-6 right-6 w-12 h-12 rounded-full bg-white/10 text-white flex items-center justify-center text-2xl">
+        <img :src="fullImageUrl" class="max-w-full max-h-full object-contain rounded-xl shadow-2xl">
+        <button class="absolute top-6 right-6 w-12 h-12 rounded-full bg-white/10 text-white flex items-center justify-center text-2xl active:scale-90 transition-transform">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+    </Transition>
+
+    <!-- Full Video Viewer Modal -->
+    <Transition name="fade">
+      <div v-if="fullVideoUrl" @click.self="fullVideoUrl = null" class="fixed inset-0 z-[200] bg-black/95 flex items-center justify-center p-4">
+        <video :src="fullVideoUrl" controls autoplay class="max-w-[95vw] max-h-[85vh] object-contain rounded-xl shadow-2xl"></video>
+        <button @click="fullVideoUrl = null" class="absolute top-6 right-6 z-30 w-12 h-12 rounded-full bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center text-white active:scale-90 transition-transform">
           <i class="fas fa-times"></i>
         </button>
       </div>
@@ -723,10 +738,17 @@
               <p class="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">Contenido Multimedia</p>
               <div class="grid grid-cols-2 gap-3">
                 <div v-for="(mediaItem, idx) in selectedPubDetail.media" :key="idx" 
-                     class="aspect-square rounded-2xl overflow-hidden bg-black/40 border border-white/10 cursor-pointer group"
-                     @click="mediaItem.type === 'image' && viewFullImage(mediaItem.url)">
+                     class="aspect-square rounded-2xl overflow-hidden bg-black/40 border border-white/10 cursor-pointer group relative"
+                     @click.stop="mediaItem.type === 'image' ? viewFullImage(mediaItem.url) : viewFullVideo(mediaItem.url)">
                   <img v-if="mediaItem.type === 'image'" :src="mediaItem.url" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
-                  <div v-else class="w-full h-full flex items-center justify-center text-3xl">🎥</div>
+                  <div v-else class="relative w-full h-full bg-black">
+                    <video :src="mediaItem.url + '#t=0.1'" class="w-full h-full object-cover pointer-events-none" preload="metadata" muted></video>
+                    <div class="absolute inset-0 flex items-center justify-center bg-black/30 group-hover:bg-black/10 transition-colors">
+                      <div class="w-12 h-12 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/40 shadow-xl group-hover:scale-110 transition-transform">
+                        <svg class="w-6 h-6 text-white fill-current ml-1" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -908,6 +930,10 @@ const verEstadisticas = async (pub) => {
 const toast = ref({ show: false, message: '', type: 'info' })
 const modal = ref({ show: false, title: '', type: '', item: null, category: '' })
 const fullImageUrl = ref(null)
+const fullVideoUrl = ref(null)
+
+const viewFullImage = (url) => { fullImageUrl.value = url }
+const viewFullVideo = (url) => { fullVideoUrl.value = url }
 
 // --- COMPUTED ---
 const sectionTitle = computed(() => {
