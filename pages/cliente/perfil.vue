@@ -223,31 +223,39 @@
       </section>
 
       <!-- Push Notifications -->
-      <section v-if="isSupported" class="bg-white/5 border border-white/10 rounded-2xl p-4 mb-4 backdrop-blur-sm">
+      <section class="bg-white/5 border border-white/10 rounded-2xl p-4 mb-4 backdrop-blur-sm">
         <div class="flex items-center justify-between">
           <div class="flex items-center gap-3">
-            <div class="w-8 h-8 bg-emerald-500/10 rounded-lg flex items-center justify-center text-base">
-              🔔
+            <div class="w-8 h-8 rounded-lg flex items-center justify-center text-base" :class="isSubscribed ? 'bg-emerald-500/10' : 'bg-white/5'">
+              {{ isSubscribed ? '🔔' : '🔕' }}
             </div>
             <div>
-              <h3 class="text-xs font-black text-white uppercase tracking-tight">Notificaciones</h3>
-              <p class="text-[8px] text-gray-500 font-bold uppercase tracking-widest">Alertas en tiempo real</p>
+              <h3 class="text-xs font-black text-white uppercase tracking-tight">Notificaciones Push</h3>
+              <p class="text-[8px] font-bold uppercase tracking-widest" :class="isSubscribed ? 'text-emerald-400' : 'text-gray-500'">
+                {{ isChecking ? 'Verificando...' : (isSubscribed ? 'Activas · Registrado en servidor' : 'Desactivadas · Sin registro') }}
+              </p>
             </div>
           </div>
           
+          <!-- Toggle -->
           <button 
+            v-if="isSupported"
             @click="handleToggleNotifications"
-            :disabled="permission === 'denied'"
-            class="relative inline-flex h-7 w-12 items-center rounded-full transition-colors focus:outline-none"
+            :disabled="permission === 'denied' || isTogglingPush || isChecking"
+            class="relative inline-flex h-7 w-12 items-center rounded-full transition-colors focus:outline-none disabled:opacity-50"
             :class="isSubscribed ? 'bg-emerald-500' : 'bg-white/10'"
           >
-            <span
+            <span v-if="isTogglingPush" class="absolute inset-0 flex items-center justify-center">
+              <i class="fas fa-circle-notch fa-spin text-[10px] text-white"></i>
+            </span>
+            <span v-else
               class="inline-block h-5 w-5 transform rounded-full bg-white transition-transform shadow-lg"
               :class="isSubscribed ? 'translate-x-6' : 'translate-x-1'"
             />
           </button>
+          <span v-else class="text-[9px] text-gray-600 font-bold uppercase">No soportado</span>
         </div>
-        <p v-if="permission === 'denied'" class="mt-4 text-[10px] text-red-400 font-bold uppercase text-center bg-red-400/10 py-2 rounded-lg border border-red-400/20">
+        <p v-if="permission === 'denied'" class="mt-3 text-[10px] text-red-400 font-bold uppercase text-center bg-red-400/10 py-2 rounded-lg border border-red-400/20">
           ⚠️ Permisos bloqueados. Habilítalos en los ajustes de tu navegador.
         </p>
       </section>
@@ -626,7 +634,7 @@ import { useInteractionHistory } from '~/composables/useInteractionHistory'
 const auth = useAuthStore()
 const config = useRuntimeConfig()
 const { $api } = useNuxtApp()
-const { subscribe, unsubscribe, isSubscribed, checkSubscription, isSupported, permission } = usePushNotifications()
+const { subscribe, unsubscribe, isSubscribed, checkSubscription, isSupported, permission, isChecking } = usePushNotifications()
 
 // --- ESTADOS ---
 const isLoading = ref(true)
@@ -972,23 +980,42 @@ const deleteIdentityImage = async () => {
 
 
 
+const isTogglingPush = ref(false)
+
 const handleToggleNotifications = async () => {
   if (isSubscribed.value) {
     showUnsubscribeModal.value = true
   } else {
+    if (permission.value === 'denied') return
+    isTogglingPush.value = true
     try {
       const res = await subscribe()
-      if (res.success) showMsg('¡Notificaciones activas!', 'success')
+      if (res?.success) {
+        showMsg('¡Notificaciones activadas! Recibirás alertas en tiempo real.', 'success')
+      } else if (res?.error === 'denied') {
+        showMsg('Permisos denegados. Actívalos desde los ajustes del navegador.', 'error')
+      } else {
+        showMsg('No se pudieron activar las notificaciones.', 'error')
+      }
     } catch (e) {
-      showMsg('Error al activar alertas', 'error')
+      showMsg('Error al activar notificaciones.', 'error')
+    } finally {
+      isTogglingPush.value = false
     }
   }
 }
 
 const confirmUnsubscribe = async () => {
-  await unsubscribe()
   showUnsubscribeModal.value = false
-  showMsg('Notificaciones desactivadas', 'info')
+  isTogglingPush.value = true
+  try {
+    await unsubscribe()
+    showMsg('Notificaciones desactivadas. Tu registro fue eliminado.', 'info')
+  } catch (e) {
+    showMsg('Error al desactivar notificaciones.', 'error')
+  } finally {
+    isTogglingPush.value = false
+  }
 }
 
 const handleLogout = () => {

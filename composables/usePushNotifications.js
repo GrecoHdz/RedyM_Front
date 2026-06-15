@@ -89,15 +89,18 @@ export const usePushNotifications = () => {
 
         try {
             isChecking.value = true;
+            console.log('📱 [Push] Starting checkSubscription...');
             
             // Verificar si serviceWorker está disponible
             if ('serviceWorker' in navigator && 'PushManager' in window) {
+                console.log('📱 [Push] Waiting for serviceWorker.ready...');
                 const registration = await navigator.serviceWorker.ready;
+                console.log('📱 [Push] SW ready, getting subscription...');
                 const subscription = await registration.pushManager.getSubscription();
                 const status = !!subscription;
                 isSubscribed.value = status;
                 localStorage.setItem('push_subscribed_status', status.toString());
-                console.log('📱 [Push] Subscription check:', status);
+                console.log('📱 [Push] Subscription check result:', status, subscription);
 
                 // Si la suscripción existe en el navegador y el usuario está autenticado,
                 // nos aseguramos de que esté registrada en el servidor para este usuario.
@@ -105,7 +108,7 @@ export const usePushNotifications = () => {
                 if (status && auth.user && auth.user.id_usuario) {
                     console.log('📱 [Push] Subscription exists in browser, syncing with server...');
                     try {
-                        await $api('/notificaciones/suscripcion', {
+                        const syncResponse = await $api('/notificaciones/suscripcion', {
                             method: 'POST',
                             body: {
                                 endpoint: subscription.endpoint,
@@ -114,11 +117,15 @@ export const usePushNotifications = () => {
                                 id_usuario: auth.user.id_usuario
                             }
                         });
-                        console.log('📱 [Push] Sync completed successfully');
+                        console.log('📱 [Push] Sync completed successfully:', syncResponse);
                     } catch (syncError) {
                         console.error('📱 [Push] Error syncing subscription with server:', syncError);
                     }
+                } else if (status) {
+                    console.log('📱 [Push] Subscription exists, but no user authenticated. Skipping sync.');
                 }
+            } else {
+                console.log('📱 [Push] ServiceWorker or PushManager not supported in this browser.');
             }
         } catch (error) {
             console.error('📱 [Push] Error verificando suscripción:', error);
@@ -158,19 +165,23 @@ export const usePushNotifications = () => {
 
             console.log('📱 [Push] Getting service worker registration...');
             const registration = await navigator.serviceWorker.ready;
+            console.log('📱 [Push] SW ready, getting active subscription...');
             let subscription = await registration.pushManager.getSubscription();
 
             if (!subscription) {
-                console.log('📱 [Push] Subscribing...');
+                console.log('📱 [Push] No active subscription, subscribing to PushManager...');
                 subscription = await registration.pushManager.subscribe({
                     userVisibleOnly: true,
                     applicationServerKey: urlBase64ToUint8Array(vapidPublicKey)
                 });
+                console.log('📱 [Push] Created new PushManager subscription:', subscription);
+            } else {
+                console.log('📱 [Push] Found existing PushManager subscription:', subscription);
             }
 
             if (auth.user && auth.user.id_usuario) {
                 console.log('📱 [Push] Sending subscription to server...');
-                await $api('/notificaciones/suscripcion', {
+                const saveResponse = await $api('/notificaciones/suscripcion', {
                     method: 'POST',
                     body: {
                         endpoint: subscription.endpoint,
@@ -182,7 +193,7 @@ export const usePushNotifications = () => {
 
                 isSubscribed.value = true;
                 localStorage.setItem('push_subscribed_status', 'true');
-                console.log('📱 [Push] Successfully subscribed!');
+                console.log('📱 [Push] Successfully subscribed! Server response:', saveResponse);
                 return { success: true };
             } else {
                 throw new Error('No user authenticated');

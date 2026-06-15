@@ -343,7 +343,56 @@
         </div>
       </section>
 
-      <!-- Section 5: Gestión de Misión Especial -->
+      <!-- Section 5: Notificaciones Push (Admin) -->
+      <section class="border-t border-white/5 pt-8">
+        <div class="mb-6">
+          <h2 class="text-sm font-black text-emerald-500 uppercase tracking-widest">Notificaciones Push</h2>
+          <p class="text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-1">Recibe alertas push en este dispositivo</p>
+        </div>
+
+        <div class="bg-white/5 border border-white/10 rounded-[2rem] p-6 space-y-4">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-4">
+              <div class="w-12 h-12 rounded-2xl flex items-center justify-center text-2xl" :class="pushIsSubscribed ? 'bg-emerald-500/10' : 'bg-white/5'">
+                {{ pushIsSubscribed ? '🔔' : '🕕' }}
+              </div>
+              <div>
+                <h3 class="text-sm font-black text-white uppercase tracking-tight">Alertas en este dispositivo</h3>
+                <p class="text-[9px] font-bold uppercase tracking-widest mt-0.5" :class="pushIsSubscribed ? 'text-emerald-400' : 'text-gray-500'">
+                  {{ pushIsChecking ? 'Verificando registro...' : (pushIsSubscribed ? 'Activo · Registrado en base de datos' : 'Inactivo · Sin registro en BD') }}
+                </p>
+              </div>
+            </div>
+
+            <button
+              v-if="pushIsSupported"
+              @click="handleAdminTogglePush"
+              :disabled="pushPermission === 'denied' || isTogglingAdminPush || pushIsChecking"
+              class="relative inline-flex h-8 w-14 items-center rounded-full transition-colors focus:outline-none disabled:opacity-40"
+              :class="pushIsSubscribed ? 'bg-emerald-500' : 'bg-white/10'"
+            >
+              <span v-if="isTogglingAdminPush" class="absolute inset-0 flex items-center justify-center">
+                <i class="fas fa-circle-notch fa-spin text-[11px] text-white"></i>
+              </span>
+              <span v-else
+                class="inline-block h-6 w-6 transform rounded-full bg-white shadow-lg transition-transform"
+                :class="pushIsSubscribed ? 'translate-x-7' : 'translate-x-1'"
+              />
+            </button>
+            <span v-else class="text-[9px] text-red-400 font-bold uppercase bg-red-500/10 px-3 py-1 rounded-lg">No soportado</span>
+          </div>
+
+          <p v-if="pushPermission === 'denied'" class="text-[10px] text-red-400 font-bold uppercase text-center bg-red-400/10 py-2 rounded-lg border border-red-400/20">
+            ⚠️ Permisos bloqueados. Habilítalos en ajustes del navegador.
+          </p>
+
+          <div v-if="!pushIsSubscribed && pushPermission !== 'denied' && pushIsSupported" class="text-[9px] text-gray-500 font-bold uppercase tracking-widest text-center">
+            Activa las alertas para recibir notificaciones del sistema en este navegador.
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 6: Misión Especial -->
       <section class="border-t border-white/5 pt-8">
         <div class="mb-8 p-6 bg-gradient-to-br from-violet-500/10 to-purple-500/10 border border-violet-500/20 rounded-[2.5rem] relative overflow-hidden">
           <div class="absolute -top-12 -right-12 w-32 h-32 bg-violet-500/10 rounded-full blur-3xl"></div>
@@ -1347,11 +1396,56 @@ import LoadingSpinner from '~/components/ui/LoadingSpinner.vue'
 import BottomNav from '~/components/footers/BottomNav.vue'
 import Multiselect from 'vue-multiselect'
 import { useAuthStore } from '~/middleware/auth.store'
+import { usePushNotifications } from '~/composables/usePushNotifications'
 
 const { $api } = useNuxtApp()
 const auth = useAuthStore()
 const config = useRuntimeConfig()
 const appVersion = config.public.appVersion || '1.0.0'
+
+// Push notifications state for admin device
+const {
+  subscribe: pushSubscribe,
+  unsubscribe: pushUnsubscribe,
+  isSubscribed: pushIsSubscribed,
+  isChecking: pushIsChecking,
+  isSupported: pushIsSupported,
+  permission: pushPermission,
+  checkSubscription: pushCheckSubscription
+} = usePushNotifications()
+
+const isTogglingAdminPush = ref(false)
+
+const handleAdminTogglePush = async () => {
+  if (pushIsSubscribed.value) {
+    isTogglingAdminPush.value = true
+    try {
+      await pushUnsubscribe()
+      showToast('Notificaciones desactivadas. Registro eliminado de BD.', 'info')
+    } catch (e) {
+      showToast('Error al desactivar notificaciones.', 'error')
+    } finally {
+      isTogglingAdminPush.value = false
+    }
+  } else {
+    if (pushPermission.value === 'denied') return
+    isTogglingAdminPush.value = true
+    try {
+      const res = await pushSubscribe()
+      if (res?.success) {
+        showToast('¡Notificaciones activadas y registradas en BD!', 'success')
+      } else if (res?.error === 'denied') {
+        showToast('Permisos denegados. Actívalos en los ajustes del navegador.', 'error')
+      } else {
+        showToast('No se pudieron activar las notificaciones.', 'error')
+      }
+    } catch (e) {
+      showToast('Error al activar notificaciones.', 'error')
+    } finally {
+      isTogglingAdminPush.value = false
+    }
+  }
+}
 
 const handleLogout = async () => {
   await auth.logout()

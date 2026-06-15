@@ -17,7 +17,6 @@
     
     <VitePwaManifest />
     <UiPushNotificationInvite />
-    <PwaInstallInvite />
     <NuxtPage />
   </div>
 </template>

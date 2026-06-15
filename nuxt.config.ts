@@ -42,10 +42,12 @@ export default defineNuxtConfig({
       navigateFallback: '/',
       importScripts: ['/sw-push.js'],
       globPatterns: ['**/*.{js,css,html,png,jpg,jpeg,svg,json,woff2,woff}'],
+      cleanupOutdatedCaches: true
     },
     devOptions: {
       enabled: true,
-      type: 'module'
+      type: 'module',
+      suppressWarnings: true
     }
 
   },
