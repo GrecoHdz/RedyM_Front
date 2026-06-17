@@ -13,10 +13,15 @@ export const usePostsLoader = (options = {}) => {
   const error = ref(null)
   const isLocked = ref(false)
   
-  const CACHE_KEY = `posts_cache_${auth.user?.id_usuario || 'guest'}`
   const CACHE_EXPIRATION = 1000 * 60 * 5 // 5 minutos
 
+  // La clave de caché se evalúa dinámicamente para evitar problemas de timing
+  // cuando auth.user aún es null al momento de crear el composable (arranque PWA)
+  const getCacheKey = () => `posts_cache_${auth.user?.id_usuario || 'guest'}`
+
   const loadFromCache = () => {
+    if (typeof localStorage === 'undefined') return false
+    const CACHE_KEY = getCacheKey()
     const cached = localStorage.getItem(CACHE_KEY)
     if (cached) {
       try {
@@ -33,6 +38,8 @@ export const usePostsLoader = (options = {}) => {
   }
 
   const saveToCache = (data) => {
+    if (typeof localStorage === 'undefined') return
+    const CACHE_KEY = getCacheKey()
     try {
       localStorage.setItem(CACHE_KEY, JSON.stringify({
         data,

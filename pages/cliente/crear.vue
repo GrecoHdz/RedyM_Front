@@ -239,7 +239,7 @@
                 <span class="text-[8px] font-black text-gray-500 uppercase tracking-widest">Añadir</span>
               </button>
             </div>
-            <p class="text-[9px] text-gray-600 font-bold uppercase tracking-widest text-center mt-2">Límite total: 10MB • Máximo 5 archivos</p>
+            <p class="text-[9px] text-gray-600 font-bold uppercase tracking-widest text-center mt-2">Límite total: 50MB • Máximo 5 archivos</p>
           </div>
 
           <input type="file" ref="fileInput" class="hidden" accept="image/*,video/*" multiple @change="handleFileSelect">
@@ -963,7 +963,7 @@ const handleFileSelect = (e) => {
   if (selectedFiles.value.length + files.length > 5) { showMsg('Máximo 5 archivos', 'error'); return }
   files.forEach(file => {
     const currentSize = selectedFiles.value.reduce((a, f) => a + f.file.size, 0)
-    if (currentSize + file.size > 10 * 1024 * 1024) { showMsg('Límite de 10MB superado', 'error'); return }
+    if (currentSize + file.size > 50 * 1024 * 1024) { showMsg('Límite de 50MB superado', 'error'); return }
     const reader = new FileReader()
     reader.onload = (ev) => selectedFiles.value.push({ file, preview: file.type.startsWith('image/') ? ev.target.result : null, type: file.type })
     reader.readAsDataURL(file)

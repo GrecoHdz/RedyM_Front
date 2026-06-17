@@ -43,20 +43,42 @@ self.addEventListener('push', (event) => {
 self.addEventListener('notificationclick', (event) => {
     event.notification.close();
 
-    const urlToOpen = event.notification.data.url || '/';
+    const targetUrl = event.notification.data.url || '/';
 
     event.waitUntil(
         clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windowClients) => {
-            // Check if there is already a window/tab open with the target URL
-            for (let i = 0; i < windowClients.length; i++) {
-                const client = windowClients[i];
-                if (client.url === urlToOpen && 'focus' in client) {
-                    return client.focus();
+            // 1. Si ya hay una ventana abierta de la app, intentar usarla y navegar ahí
+            const appClients = windowClients.filter(c => {
+                try {
+                    const url = new URL(c.url);
+                    return url.origin === self.location.origin;
+                } catch {
+                    return false;
                 }
+            });
+
+            if (appClients.length > 0) {
+                const client = appClients[0];
+                // Enviar mensaje al cliente para que refresque la sesión y navegue
+                client.postMessage({
+                    type: 'PUSH_NOTIFICATION_NAVIGATE',
+                    url: targetUrl
+                });
+                return client.focus();
             }
-            // If not, open a new window
+
+            // 2. No hay ventana abierta: abrir siempre desde '/' con redirect param
+            // Esto garantiza que el middleware puede restaurar la sesión PWA
+            // via pwa_refresh_token (localStorage) antes de navegar al destino.
             if (clients.openWindow) {
-                return clients.openWindow(urlToOpen);
+                // Si el destino ya es '/', abrirlo directamente
+                if (targetUrl === '/' || targetUrl === '') {
+                    return clients.openWindow('/');
+                }
+                // Si es una ruta profunda, redirigir a '/?pwa_redirect=<url>'
+                // El middleware en '/' detectará el pwa_refresh_token y restaurará la sesión
+                const redirectUrl = `/?pwa_redirect=${encodeURIComponent(targetUrl)}`;
+                return clients.openWindow(redirectUrl);
             }
         })
     );

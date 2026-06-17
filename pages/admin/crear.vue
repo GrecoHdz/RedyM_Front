@@ -239,7 +239,7 @@
                 <span class="text-[8px] font-black text-gray-500 uppercase tracking-widest">Añadir</span>
               </button>
             </div>
-            <p class="text-[9px] text-gray-600 font-bold uppercase tracking-widest text-center mt-2">Límite total: 10MB • Máximo 5 archivos</p>
+            <p class="text-[9px] text-gray-600 font-bold uppercase tracking-widest text-center mt-2">Límite total: 50MB • Máximo 5 archivos</p>
           </div>
 
           <input type="file" ref="fileInput" class="hidden" accept="image/*,video/*" multiple @change="handleFileSelect">

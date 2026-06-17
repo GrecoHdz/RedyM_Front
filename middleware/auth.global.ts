@@ -63,8 +63,10 @@ export default defineNuxtRouteMiddleware(async (to) => {
 
       if (auth.user) {
         const userRole = (auth.user?.role?.toLowerCase() as UserRole) || 'usuario';
-        const targetDashboard = getDashboardPath(userRole);
-        console.log(`🚀 [Middleware] Redirigiendo a dashboard: ${targetDashboard} (Rol: ${userRole})`);
+        // Respetar pwa_redirect si viene de una notificación push
+        const pwaRedirect = process.client ? new URLSearchParams(window.location.search).get('pwa_redirect') : null;
+        const targetDashboard = pwaRedirect || getDashboardPath(userRole);
+        console.log(`🚀 [Middleware] Redirigiendo a: ${targetDashboard} (Rol: ${userRole})`);
         if (targetDashboard !== '/') {
           return navigateTo(targetDashboard, { replace: true });
         }
@@ -90,7 +92,9 @@ export default defineNuxtRouteMiddleware(async (to) => {
           const refreshed = await auth.refreshToken();
           if (refreshed && auth.user) {
             const userRole = (auth.user?.role?.toLowerCase() as UserRole) || 'usuario';
-            const targetDashboard = getDashboardPath(userRole);
+            // 📱 PWA Push: si viene con pwa_redirect, navegar al destino original
+            const pwaRedirect = process.client ? new URLSearchParams(window.location.search).get('pwa_redirect') : null;
+            const targetDashboard = pwaRedirect || getDashboardPath(userRole);
             console.log(`🚀 [Middleware] Sesión restaurada, redirigiendo a: ${targetDashboard}`);
             if (targetDashboard !== '/') {
               return navigateTo(targetDashboard, { replace: true });
@@ -111,8 +115,37 @@ export default defineNuxtRouteMiddleware(async (to) => {
   const isAuthenticated = await auth.checkAuth();
 
   if (!isAuthenticated) {
-    console.warn('❌ [Middleware] Sesión no válida. Redirigiendo a login.');
-    return navigateTo('/', { replace: true });
+    // 📱 PWA: Antes de redirigir al login, intentar recuperar sesión con el
+    // refresh token almacenado en localStorage (necesario cuando se abre la
+    // app desde una notificación push y la cookie refreshToken ya expiró/no se envió)
+    if (process.client) {
+      const hasPWAToken = !!localStorage.getItem('pwa_refresh_token');
+      const justLoggedOut = localStorage.getItem('just_logged_out') === 'true';
+
+      if (hasPWAToken && !justLoggedOut) {
+        console.log('📱 [Middleware] Sin sesión en ruta protegida pero hay pwa_refresh_token. Intentando restaurar...');
+        try {
+          const refreshed = await auth.refreshToken();
+          if (refreshed && auth.user) {
+            console.log('✅ [Middleware] Sesión restaurada vía pwa_refresh_token. Continuando...');
+            // No redirigir, dejar pasar al usuario a la ruta solicitada
+            // (el resto del middleware validará roles)
+          } else {
+            console.warn('❌ [Middleware] Recuperación PWA fallida. Redirigiendo a login.');
+            return navigateTo('/', { replace: true });
+          }
+        } catch (e) {
+          console.error('❌ [Middleware] Error en recuperación PWA:', e);
+          return navigateTo('/', { replace: true });
+        }
+      } else {
+        console.warn('❌ [Middleware] Sesión no válida. Redirigiendo a login.');
+        return navigateTo('/', { replace: true });
+      }
+    } else {
+      console.warn('❌ [Middleware] Sesión no válida (SSR). Redirigiendo a login.');
+      return navigateTo('/', { replace: true });
+    }
   }
 
   // 4. Si no hay usuario o los datos son de cookie (no fetched), intentar cargarlos

@@ -1198,30 +1198,38 @@ onMounted(async () => {
   await nextTick()
   window.scrollTo({ top: 0, behavior: 'instant' })
   
-  // 2. Cargar datos necesarios en paralelo
-  await Promise.all([
-    fetchMissionsProgress(),
-    fetchMisionesEspeciales(),
-    fetchRewardsConfig(),
-    fetchMembershipStatus(),
-    fetchAlreadyViewedPosts()
-  ])
-  
-  // 3. Cargar publicaciones frescas (con debounce y paginación)
-  await fetchPosts(true, rewardsConfig.value)
-  
-  // 4. Setup Infinite Scroll
-  setupInfiniteScroll()
-  
-  // Fetch real earnings for header
   try {
-    const cData = await $api(`/credito/usuario/${auth.user.id_usuario}`)
-    if (cData && cData.success) {
-       totalEarnings.value = parseFloat(cData.data.monto_credito || 0)
+    // 2. Cargar datos necesarios en paralelo
+    await Promise.all([
+      fetchMissionsProgress(),
+      fetchMisionesEspeciales(),
+      fetchRewardsConfig(),
+      fetchMembershipStatus(),
+      fetchAlreadyViewedPosts()
+    ])
+    
+    // 3. Cargar publicaciones frescas (con debounce y paginación)
+    await fetchPosts(true, rewardsConfig.value)
+    
+    // 4. Setup Infinite Scroll
+    setupInfiniteScroll()
+    
+    // Fetch real earnings for header
+    if (auth.user?.id_usuario) {
+      try {
+        const cData = await $api(`/credito/usuario/${auth.user.id_usuario}`)
+        if (cData && cData.success) {
+           totalEarnings.value = parseFloat(cData.data.monto_credito || 0)
+        }
+      } catch (e) {
+        console.warn('Error fetching credit data:', e)
+      }
     }
-  } catch (e) {}
-  
-  isLoading.value = false
+  } catch (error) {
+    console.error('Error durante la inicialización del dashboard cliente:', error)
+  } finally {
+    isLoading.value = false
+  }
 
   // Setup IntersectionObserver para contar vistas
   await nextTick()
