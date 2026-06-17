@@ -756,6 +756,7 @@ const fetchRewardsConfig = async () => {
 }
 
 const fetchMembershipStatus = async () => {
+  if (!auth.user?.id_usuario) return
   try {
     const res = await $api(`/membresia/${auth.user.id_usuario}`)
     if (res && res.status === 'success' && res.data) {
@@ -980,55 +981,63 @@ onMounted(async () => {
   // 1. Cargar desde caché para respuesta inmediata
   loadFromCache()
   
-  // 2. Cargar datos necesarios en paralelo
-  await Promise.all([
-    fetchRewardsConfig(),
-    fetchMembershipStatus(),
-    updateUnreadCount(),
-    fetchAlreadyViewedPosts()
-  ])
-  
-  // 3. Cargar publicaciones frescas (con debounce y paginación)
-  await fetchPosts(true, rewardsConfig.value)
-  
-  // 4. Setup Intersection Observer for View Tracking
-  await nextTick()
-  viewObserver = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      const postId = parseInt(entry.target.dataset.postId)
-      if (!postId) return
-      
-      if (entry.isIntersecting) {
-        if (!viewTimers[postId]) {
-          viewTimers[postId] = setTimeout(() => {
-            registerView(postId)
-          }, 500)
-        }
-      } else {
-        if (viewTimers[postId]) {
-          clearTimeout(viewTimers[postId])
-          delete viewTimers[postId]
-        }
-      }
-    })
-  }, { threshold: 0.5 })
-  
-  document.querySelectorAll('.post-observer').forEach(el => {
-    viewObserver.observe(el)
-  })
-  
-  // 5. Setup Infinite Scroll
-  setupInfiniteScroll()
-  
-  // Fetch real earnings for header
   try {
-    const cData = await $api(`/credito/usuario/${auth.user.id_usuario}`)
-    if (cData && cData.success) {
-       totalEarnings.value = parseFloat(cData.data.monto_credito || 0)
+    // 2. Cargar datos necesarios en paralelo
+    await Promise.all([
+      fetchRewardsConfig(),
+      fetchMembershipStatus(),
+      updateUnreadCount(),
+      fetchAlreadyViewedPosts()
+    ])
+    
+    // 3. Cargar publicaciones frescas (con debounce y paginación)
+    await fetchPosts(true, rewardsConfig.value)
+    
+    // 4. Setup Intersection Observer for View Tracking
+    await nextTick()
+    viewObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        const postId = parseInt(entry.target.dataset.postId)
+        if (!postId) return
+        
+        if (entry.isIntersecting) {
+          if (!viewTimers[postId]) {
+            viewTimers[postId] = setTimeout(() => {
+              registerView(postId)
+            }, 500)
+          }
+        } else {
+          if (viewTimers[postId]) {
+            clearTimeout(viewTimers[postId])
+            delete viewTimers[postId]
+          }
+        }
+      })
+    }, { threshold: 0.5 })
+    
+    document.querySelectorAll('.post-observer').forEach(el => {
+      viewObserver.observe(el)
+    })
+    
+    // 5. Setup Infinite Scroll
+    setupInfiniteScroll()
+    
+    // Fetch real earnings for header
+    if (auth.user?.id_usuario) {
+      try {
+        const cData = await $api(`/credito/usuario/${auth.user.id_usuario}`)
+        if (cData && cData.success) {
+           totalEarnings.value = parseFloat(cData.data.monto_credito || 0)
+         }
+      } catch (e) {
+        console.warn('Error fetching credit data:', e)
+      }
     }
-  } catch (e) {}
-  
-  isLoading.value = false
+  } catch (error) {
+    console.error('Error durante la inicialización del dashboard:', error)
+  } finally {
+    isLoading.value = false
+  }
 })
 
 onUnmounted(() => {

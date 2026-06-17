@@ -877,7 +877,7 @@ const handleFileSelect = (e) => {
   if (selectedFiles.value.length + files.length > 5) { showMsg('Máximo 5 archivos', 'error'); return }
   files.forEach(file => {
     const currentSize = selectedFiles.value.reduce((a, f) => a + f.file.size, 0)
-    if (currentSize + file.size > 10 * 1024 * 1024) { showMsg('Límite de 10MB superado', 'error'); return }
+    if (currentSize + file.size > 35 * 1024 * 1024) { showMsg('Límite de 35MB superado', 'error'); return }
     const reader = new FileReader()
     reader.onload = (ev) => selectedFiles.value.push({ file, preview: file.type.startsWith('image/') ? ev.target.result : null, type: file.type })
     reader.readAsDataURL(file)
