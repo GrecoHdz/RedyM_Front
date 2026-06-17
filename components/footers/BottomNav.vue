@@ -9,9 +9,9 @@
           <div v-if="route.path === item.path" class="absolute -bottom-2 left-1/2 -translate-x-1/2 w-1 h-1 bg-emerald-400 rounded-full shadow-[0_0_8px_#10b981]"></div>
           
           <!-- Badge -->
-          <div v-if="badges && badges[item.path] > 0" 
+          <div v-if="getBadgeValue(item.path) > 0" 
             class="absolute -top-1.5 -right-2 min-w-[16px] h-[16px] px-1 rounded-full bg-red-500 text-white text-[9px] font-black flex items-center justify-center border-2 border-[#070b14] shadow-lg animate-pulse">
-            {{ badges[item.path] > 99 ? '99+' : badges[item.path] }}
+            {{ getBadgeValue(item.path) > 99 ? '99+' : getBadgeValue(item.path) }}
           </div>
         </div>
         <span class="text-[10px] font-bold uppercase tracking-[0.05em] mt-0.5">{{ item.label }}</span>
@@ -21,6 +21,7 @@
 </template>
 
 <script setup>
+import { ref, computed, watch } from 'vue'
 import { useAuthStore } from '~/middleware/auth.store'
 
 const props = defineProps({
@@ -32,11 +33,40 @@ const props = defineProps({
 
 const route = useRoute()
 const auth = useAuthStore()
+const { $api } = useNuxtApp()
+const localPendingCount = ref(0)
 
 const isAdmin = computed(() => {
   const role = auth.user?.role?.toLowerCase()
   return role === 'admin' || role === 'sa'
 })
+
+const getBadgeValue = (path) => {
+  if (props.badges && props.badges[path] !== undefined && props.badges[path] > 0) {
+    return props.badges[path]
+  }
+  if (path === '/admin/membresias' && isAdmin.value) {
+    return localPendingCount.value
+  }
+  return 0
+}
+
+const fetchPendingCounts = async () => {
+  if (!isAdmin.value) return
+  try {
+    const res = await $api('/estadisticas/pendientes')
+    if (res && res.success && res.data) {
+      localPendingCount.value = res.data.total || 0
+    }
+  } catch (error) {
+    console.error('Error fetching pending counts in BottomNav:', error)
+  }
+}
+
+// Actualizar cada vez que se navega
+watch(() => route.path, () => {
+  fetchPendingCounts()
+}, { immediate: true })
 
 const clientItems = [
   { 
@@ -89,7 +119,6 @@ const adminItems = [
   },
 ]
 
-
 const currentNavItems = computed(() => isAdmin.value ? adminItems : clientItems)
 </script>
 
@@ -98,4 +127,3 @@ const currentNavItems = computed(() => isAdmin.value ? adminItems : clientItems)
   padding-bottom: env(safe-area-inset-bottom);
 }
 </style>
-

@@ -404,12 +404,19 @@ export const useAuthStore = defineStore('auth', () => {
         }
 
         return false;
-      } catch (err) {
-        if (!isPWAMode()) {
-          clearAuthState();
-        } else {
-          clearAuthState();
-          savePWARefreshToken(null); // RT inválido, limpiar también
+      } catch (err: any) {
+        const status = err?.response?.status || err?.statusCode || err?.status;
+        console.error('❌ [AuthStore] Error al refrescar token, status:', status, err);
+
+        // Solo limpiar sesión si es un error de autenticación explícito (400, 401, 403)
+        // Omitir limpieza para errores de red (status undefined/0), timeouts o 500
+        if (status === 400 || status === 401 || status === 403) {
+          if (!isPWAMode()) {
+            clearAuthState();
+          } else {
+            clearAuthState();
+            savePWARefreshToken(null); // RT inválido, limpiar también
+          }
         }
         return false;
       } finally {
