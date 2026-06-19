@@ -89,7 +89,7 @@ export const usePostsLoader = (options = {}) => {
       poll: poll,
       link: p.external_url,
       whatsapp_active: p.whatsapp_active,
-      phone: p.usuario?.telefono,
+      phone: p.whatsapp_number || p.usuario?.telefono,
       hasVideo: p.media?.some(m => m.type === 'video'),
       videoCompleted: p.videoCompleted || false
     }
