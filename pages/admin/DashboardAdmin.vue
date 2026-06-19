@@ -884,26 +884,58 @@ const handleLike = async (post) => {
 }
 
 const handleShare = async (post) => {
-  const message = `¡Mira esta publicación de ${post.author} en Red Y Mercadeo!\n\n"${post.content}"\n\nÚnete aquí: ${window.location.origin}`
-  const encodedMessage = encodeURIComponent(message)
-  const whatsappUrl = `https://wa.me/?text=${encodedMessage}`
-  
   // Record time to validate mission on return
   lastShareAttempt.value = { id: post.id, time: Date.now() }
-  
-  // Abrir WhatsApp de forma segura primero
-  openExternal(whatsappUrl, {
-    onOpen: () => console.log('🔗 [AdminDashboard] WhatsApp opened successfully')
-  })
-  
-  // Registrar interaccion share
+
+  const shareText = `¡Mira esta publicación de ${post.author} en Red Y Mercadeo!\n\n"${post.content}"\n\nÚnete aquí: ${window.location.origin}`
+
+  // Intentar Web Share API con imagen adjunta (funciona en móvil)
+  if (navigator.share) {
+    try {
+      let shareData = { text: shareText }
+
+      // Adjuntar imagen o miniatura de video si hay media
+      if (post.media && post.media.length > 0) {
+        const mediaItem = post.media[0]
+        const previewUrl = getMediaPreviewUrl(mediaItem)
+        if (previewUrl) {
+          try {
+            const resp = await fetch(previewUrl)
+            const blob = await resp.blob()
+            const ext = blob.type.includes('video') ? 'jpg' : (blob.type.split('/')[1] || 'jpg')
+            const file = new File([blob], `publicacion.${ext}`, { type: blob.type || 'image/jpeg' })
+            if (navigator.canShare && navigator.canShare({ files: [file] })) {
+              shareData.files = [file]
+            }
+          } catch (fetchErr) {
+            console.warn('No se pudo descargar la imagen para compartir:', fetchErr)
+          }
+        }
+      }
+
+      await navigator.share(shareData)
+    } catch (err) {
+      // El usuario canceló o no soportado — fallback a wa.me
+      if (err.name !== 'AbortError') {
+        openExternal(`https://wa.me/?text=${encodeURIComponent(shareText)}`, {
+          onOpen: () => console.log('🔗 [AdminDashboard] WhatsApp share fallback')
+        })
+      }
+    }
+  } else {
+    // Fallback para navegadores sin Web Share API (escritorio)
+    openExternal(`https://wa.me/?text=${encodeURIComponent(shareText)}`, {
+      onOpen: () => console.log('🔗 [AdminDashboard] WhatsApp opened successfully')
+    })
+  }
+
+  // Registrar interacción share
   const res = await registerInteraction(post.id, 'share')
   if (res && res.success) {
     markAsStale()
   }
-  
-  // Feedback visual
-  showToast('Abriendo WhatsApp... Completa el envío y regresa para ganar. 📱', 'success')
+
+  showToast('¡Contenido compartido! 📱', 'success')
 }
 
 const handlePoll = (post) => {
@@ -949,6 +981,20 @@ const handleLink = (url) => {
   })
 }
 
+// Genera URL de imagen directa (o miniatura del primer frame para videos de Cloudinary)
+const getMediaPreviewUrl = (mediaItem) => {
+  if (!mediaItem?.url) return null
+  if (mediaItem.type === 'image') return mediaItem.url
+  // Para videos de Cloudinary: extrae el primer frame como JPEG
+  // Transforma: /video/upload/... → /video/upload/so_0,f_jpg/...
+  if (mediaItem.type === 'video') {
+    return mediaItem.url
+      .replace('/video/upload/', '/video/upload/so_0,f_jpg/')
+      .replace(/\.(mp4|webm|mov|avi|mkv)(\?.*)?$/i, '.jpg')
+  }
+  return mediaItem.url
+}
+
 const handleWhatsApp = (post) => {
   if (!post.phone) {
     showToast('Este usuario no tiene un número vinculado', 'error')
@@ -965,8 +1011,12 @@ const handleWhatsApp = (post) => {
   if (truncatedContent) {
     message += `\n\nPublicación: "${truncatedContent}"`
   }
-  if (post.media && post.media.length > 0 && post.media[0]?.url) {
-    message += `\n\nVer archivo adjunto: ${post.media[0].url}`
+  if (post.media && post.media.length > 0) {
+    const previewUrl = getMediaPreviewUrl(post.media[0])
+    if (previewUrl) {
+      const label = post.media[0].type === 'video' ? 'Vista previa del video' : 'Ver imagen'
+      message += `\n\n${label}: ${previewUrl}`
+    }
   }
 
   const encodedMessage = encodeURIComponent(message)
