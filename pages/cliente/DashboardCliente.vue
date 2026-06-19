@@ -1149,7 +1149,19 @@ const handleWhatsApp = async (post) => {
   }
 
   const cleanPhone = post.phone.replace(/[^0-9]/g, '')
-  const message = `Hola, vi tu publicación en PubliGana y me gustaría más información.`
+  
+  const truncatedContent = post.content && post.content.trim() 
+    ? (post.content.length > 60 ? post.content.substring(0, 60).trim() + '...' : post.content)
+    : ''
+  
+  let message = `Hola, vi tu publicación en PubliGana y me gustaría más información.`
+  if (truncatedContent) {
+    message += `\n\nPublicación: "${truncatedContent}"`
+  }
+  if (post.media && post.media.length > 0 && post.media[0]?.url) {
+    message += `\n\nVer archivo adjunto: ${post.media[0].url}`
+  }
+
   const encodedMessage = encodeURIComponent(message)
   const whatsappUrl = `https://wa.me/${cleanPhone}?text=${encodedMessage}`
   
