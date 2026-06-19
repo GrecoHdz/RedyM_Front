@@ -981,6 +981,14 @@ onMounted(async () => {
   // 1. Cargar desde caché para respuesta inmediata
   loadFromCache()
   
+  // Safety timeout to dismiss loader if API calls hang due to network/disconnection
+  const safetyTimeout = setTimeout(() => {
+    if (isLoading.value) {
+      console.warn('⚠️ [Dashboard] Safety timeout reached. Dismissing loader to show cached content.');
+      isLoading.value = false
+    }
+  }, 4000)
+  
   try {
     // 2. Cargar datos necesarios en paralelo
     await Promise.all([
@@ -1036,6 +1044,7 @@ onMounted(async () => {
   } catch (error) {
     console.error('Error durante la inicialización del dashboard:', error)
   } finally {
+    clearTimeout(safetyTimeout)
     isLoading.value = false
   }
 })

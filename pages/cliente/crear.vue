@@ -89,7 +89,7 @@
                       v-model="post.whatsapp_number"
                       type="tel"
                       placeholder="Ej: 50499887766"
-                      @input="post.whatsapp_number = post.whatsapp_number.replace(/[^0-9+\s()]/g, '')"
+                      @input="handleWhatsappInput"
                       class="flex-1 bg-transparent outline-none text-white font-bold text-sm placeholder-gray-600"
                     >
                   </div>
@@ -972,6 +972,12 @@ const handleFileSelect = (e) => {
 }
 
 const removeFile = (index) => { selectedFiles.value.splice(index, 1) }
+
+const handleWhatsappInput = (e) => {
+  const cleaned = e.target.value.replace(/[^0-9+\s()]/g, '')
+  post.value.whatsapp_number = cleaned
+  e.target.value = cleaned
+}
 
 // --- POLL HELPERS ---
 const addOption = () => {
