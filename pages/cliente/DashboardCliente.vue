@@ -1064,7 +1064,7 @@ const handleShare = async (post) => {
   // Record time to validate mission on return
   lastShareAttempt.value = { id: post.id, time: Date.now() }
 
-  const shareText = `¡Mira esta publicación de ${post.author} en Red Y Mercadeo!\n\n"${post.content}"\n\nÚnete aquí: ${window.location.origin}`
+  const shareText = `¡Mira esta publicación de ${post.author} en PubliGana!\n\n"${post.content}"\n\nÚnete gratis aquí: ${window.location.origin}`
 
   // Intentar Web Share API con imagen adjunta (funciona en móvil)
   if (navigator.share) {

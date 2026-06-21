@@ -1034,6 +1034,13 @@ const toggleFollow = (post) => {
 onMounted(async () => {
   console.log('🔗 [AdminDashboard] Initializing admin dashboard...')
   
+  // Disable browser scroll restoration so it doesn't jump past the content
+  // when navigating back to this page (especially in PWA/mobile)
+  if ('scrollRestoration' in history) {
+    history.scrollRestoration = 'manual'
+  }
+  window.scrollTo({ top: 0, behavior: 'instant' })
+
   // Initialize external navigation handler FIRST
   initExternalNavigation()
   
@@ -1042,6 +1049,9 @@ onMounted(async () => {
   
   // 1. Cargar desde caché para respuesta inmediata
   loadFromCache()
+  // After cache renders, force scroll back to top before browser can restore position
+  await nextTick()
+  window.scrollTo({ top: 0, behavior: 'instant' })
   
   // Safety timeout to dismiss loader if API calls hang due to network/disconnection
   const safetyTimeout = setTimeout(() => {
@@ -1117,6 +1127,10 @@ onUnmounted(() => {
   if (infiniteObserver) infiniteObserver.disconnect()
   if (viewObserver) viewObserver.disconnect()
   Object.values(viewTimers).forEach(t => clearTimeout(t))
+  // Restore scroll restoration when leaving the page
+  if ('scrollRestoration' in history) {
+    history.scrollRestoration = 'auto'
+  }
 })
 
 useHead({

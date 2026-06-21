@@ -1,5 +1,5 @@
 <template>
-  <transition name="fade">
+  <Transition name="fade">
     <div v-if="loading || success || error" class="fixed inset-0 flex items-center justify-center z-[999] bg-[#070b14] pointer-events-auto">
       
       <div class="relative transform scale-110">
@@ -33,7 +33,7 @@
       </div>
       
     </div>
-  </transition>
+  </Transition>
 </template>
 
 <script setup>
