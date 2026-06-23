@@ -1381,8 +1381,8 @@ const sendWhatsAppMessage = async (amount, receiptNumber, membershipId, bankName
 const fetchEmpresaPhoneNumber = async () => {
   try {
     const response = await $api('/config/valor/numero_empresa', { method: 'GET' });
-    if (response && response.valor) {
-      empresaPhoneNumber.value = response.valor;
+    if (response && response.success && response.data && response.data.valor) {
+      empresaPhoneNumber.value = response.data.valor;
     } else {
       empresaPhoneNumber.value = '94517811';
     }
