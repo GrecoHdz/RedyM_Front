@@ -1128,7 +1128,7 @@
                           <i class="fas fa-check text-[8px]"></i>
                         </button>
                       </div>
-                      <p v-else class="text-[7px] text-gray-600 mt-1 uppercase font-bold">{{ formatearFecha(reclamo.fecha) }}</p>
+                      <p class="text-[7px] text-gray-600 mt-1 uppercase font-bold">{{ formatearFecha(reclamo.fecha) }}</p>
                     </div>
                   </div>
                 </div>

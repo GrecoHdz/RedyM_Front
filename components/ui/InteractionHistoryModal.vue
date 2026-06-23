@@ -50,9 +50,6 @@
                   <div class="flex flex-col gap-0.5 mt-0.5">
                     <p class="text-[8px] font-bold uppercase tracking-tighter text-emerald-400">
                       {{ estadoLabel(item.estado) }}
-                      <span v-if="item.tipo === 'mision_especial'" class="ml-1">
-                        (Acertaste)
-                      </span>
                     </p>
                     <p v-if="item.respuesta" class="text-[8px] text-gray-400 font-medium italic truncate">
                       Tu respuesta: {{ item.respuesta }}
