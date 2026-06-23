@@ -116,8 +116,8 @@
                     <p class="text-[10px] sm:text-xs font-black text-white">${{ Number(item.monto || 0).toFixed(2) }}</p>
                   </div>
                   <div class="space-y-1">
-                    <span class="text-[7px] sm:text-[8px] font-black text-gray-500 uppercase tracking-widest block">ID Usuario</span>
-                    <p class="text-[10px] sm:text-xs font-black text-gray-400">#{{ item.usuario.id_usuario }}</p>
+                    <span class="text-[7px] sm:text-[8px] font-black text-gray-500 uppercase tracking-widest block">N° Comprobante</span>
+                    <p class="text-[10px] sm:text-xs font-black text-gray-400">#{{ item.num_comprobante }}</p>
                   </div>
                 </div>
               </div>
