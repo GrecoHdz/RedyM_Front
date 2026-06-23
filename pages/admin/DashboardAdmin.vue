@@ -340,6 +340,24 @@
             </button>
           </div>
 
+          <!-- Tab Selector -->
+          <div class="flex border-b border-gray-100 dark:border-white/5 px-6 bg-gray-50/50 dark:bg-white/5">
+            <button 
+              @click="activeTab = 'general'"
+              :class="activeTab === 'general' ? 'border-blue-500 text-blue-500 dark:text-blue-400 font-black' : 'border-transparent text-gray-500 dark:text-gray-400 font-bold'"
+              class="flex-1 py-3 text-[10px] uppercase tracking-wider border-b-2 text-center transition-all"
+            >
+              Logs Generales
+            </button>
+            <button 
+              @click="activeTab = 'red'"
+              :class="activeTab === 'red' ? 'border-emerald-500 text-emerald-500 dark:text-emerald-400 font-black' : 'border-transparent text-gray-500 dark:text-gray-400 font-bold'"
+              class="flex-1 py-3 text-[10px] uppercase tracking-wider border-b-2 text-center transition-all"
+            >
+              Actividad de Red
+            </button>
+          </div>
+
           <!-- Content -->
           <div class="flex-1 overflow-y-auto p-6 no-scrollbar">
             <div v-if="isActivitiesLoading" class="flex flex-col items-center justify-center py-20">
@@ -347,24 +365,25 @@
               <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-4">Cargando actividades...</p>
             </div>
 
-            <div v-else-if="recentActivities.length === 0" class="text-center py-20">
+            <div v-else-if="displayedActivities.length === 0" class="text-center py-20">
               <div class="w-16 h-16 bg-gray-50 dark:bg-white/5 rounded-3xl mx-auto mb-4 flex items-center justify-center">
                 <span class="text-3xl">📭</span>
               </div>
-              <p class="text-xs font-bold text-gray-500 uppercase tracking-widest">No hay actividad registrada hoy</p>
+              <p class="text-xs font-bold text-gray-500 uppercase tracking-widest">No hay actividad registrada en esta sección</p>
             </div>
 
             <div v-else class="space-y-4">
-              <div v-for="activity in recentActivities" :key="activity.id"
+              <div v-for="activity in displayedActivities" :key="activity.id"
                    class="flex items-start gap-4 p-4 bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/5 rounded-3xl group transition-all">
-                <div class="w-11 h-11 rounded-2xl flex items-center justify-center flex-shrink-0 bg-blue-500/10 text-blue-500 group-hover:scale-110 transition-transform">
+                <div class="w-11 h-11 rounded-2xl flex items-center justify-center flex-shrink-0 bg-blue-500/10 text-blue-500 group-hover:scale-110 transition-transform"
+                     :class="{'bg-emerald-500/10 text-emerald-500': activeTab === 'red'}">
                   <span class="text-lg">{{ activity.icon || '📝' }}</span>
                 </div>
                 <div class="flex-1 min-w-0">
                   <div class="flex items-center justify-between mb-1">
                     <div class="flex flex-col">
                       <div class="flex items-center gap-1">
-                        <span class="text-[9px] font-black text-blue-500 uppercase tracking-widest">{{ activity.user || 'Sistema' }}</span>
+                        <span class="text-[9px] font-black uppercase tracking-widest" :class="activeTab === 'red' ? 'text-emerald-500' : 'text-blue-500'">{{ activity.user || 'Sistema' }}</span>
                         <span class="text-[9px] font-black text-gray-400 uppercase tracking-widest">{{ activity.role || 'Usuario' }}</span>
                       </div>
                     </div>
@@ -553,6 +572,20 @@ const isActivitiesLoading = ref(false)
 const currentActivityPage = ref(1)
 const totalActivityPages = ref(1)
 const unreadCount = ref(0)
+const activeTab = ref('general')
+
+const isNetworkNotification = (act) => {
+  const t = act.type || 'General'
+  const title = (act.title || '').toLowerCase()
+  return t === 'financieros' || t === 'membresia' || title.includes('referido') || title.includes('red') || title.includes('regalo') || title.includes('comisión') || title.includes('upgrade')
+}
+
+const displayedActivities = computed(() => {
+  if (activeTab.value === 'general') {
+    return recentActivities.value
+  }
+  return recentActivities.value.filter(isNetworkNotification)
+})
 
 const updateUnreadCount = async () => {
   if (!auth.user?.id_usuario) return
@@ -596,7 +629,7 @@ const getRelativeTime = (fecha) => {
 const loadActivities = async () => {
   isActivitiesLoading.value = true
   try {
-    const res = await $api(`/notificaciones?page=${currentActivityPage.value}&limit=5`)
+    const res = await $api(`/notificaciones?page=${currentActivityPage.value}&limit=20`)
     if (res.success) {
       recentActivities.value = res.data.map(notif => ({
         id: notif.id || Math.random().toString(36).substr(2, 9),

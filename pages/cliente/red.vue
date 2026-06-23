@@ -292,12 +292,18 @@
             </div>
             <!-- Regla de Calificación -->
             <div class="bg-gradient-to-br from-amber-500/10 to-orange-500/5 rounded-[1.5rem] p-5 border border-amber-500/15 relative overflow-hidden">
+              <div v-if="upgradeNotification" class="absolute top-3 right-3 bg-red-500 text-white text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full animate-pulse">
+                ⚠️ ALERTA DE PÉRDIDA
+              </div>
               <div class="flex items-center gap-3 mb-2.5">
                 <span class="w-7 h-7 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center font-black text-xs">⚠️</span>
                 <h4 class="text-xs font-black uppercase text-white tracking-wider">Calificación de Red</h4>
               </div>
               <p class="text-[10.5px] text-gray-400 font-medium leading-relaxed">
                 Para cobrar comisiones de tus Nietos (N2), Bisnietos (N3), etc., tú debes estar en el mismo nivel o superior. Si no lo estás, la comisión se saltará tu posición hacia arriba.
+              </p>
+              <p v-if="upgradeNotification" class="text-[10px] text-red-400 font-bold mt-3 border-t border-red-500/20 pt-2.5">
+                🚨 Tu nivel está lleno pero te faltan <span class="underline">{{ formatCurrency(upgradeNotification.deficit) }}</span> de saldo. Si tus socios de abajo suben de nivel antes de que tú lo hagas, perderás sus comisiones.
               </p>
             </div>
           </div>     
