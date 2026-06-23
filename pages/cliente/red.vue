@@ -1384,11 +1384,11 @@ const fetchEmpresaPhoneNumber = async () => {
     if (response && response.valor) {
       empresaPhoneNumber.value = response.valor;
     } else {
-      empresaPhoneNumber.value = '1234567890';
+      empresaPhoneNumber.value = '94517811';
     }
   } catch (error) {
     console.error('Error al obtener el número de teléfono de la empresa:', error);
-    empresaPhoneNumber.value = '1234567890';
+    empresaPhoneNumber.value = '94517811';
   }
 };
 const confirmRenewal = async () => {
