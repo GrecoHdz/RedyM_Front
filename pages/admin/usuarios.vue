@@ -513,9 +513,20 @@
 
           <!-- Interaction History (Like InteractionHistoryModal) -->
           <div class="mt-8">
-            <p class="text-[9px] font-black text-gray-500 uppercase tracking-widest mb-3 px-1">Historial de Ganancias</p>
+            <div class="flex items-center justify-between mb-3 px-1">
+              <p class="text-[9px] font-black text-gray-500 uppercase tracking-widest">Historial de Ganancias</p>
+              <button 
+                v-if="selectedUser"
+                @click="openHistoryModal(selectedUser)"
+                class="text-[8px] font-black text-emerald-400 hover:underline uppercase"
+              >
+                Ver Detalle
+              </button>
+            </div>
             <div v-if="selectedUser?.stats?.historialInteracciones?.length > 0" class="grid grid-cols-2 gap-2">
-              <div v-for="item in selectedUser.stats.historialInteracciones" :key="item.id_interaccion" class="bg-white/5 border border-white/5 p-2 rounded-2xl flex items-center gap-2 hover:bg-white/10 transition-all group min-w-0">
+              <div v-for="item in selectedUser.stats.historialInteracciones" :key="item.id_interaccion" 
+                   @click="openHistoryModal(selectedUser)"
+                   class="bg-white/5 border border-white/5 p-2 rounded-2xl flex items-center gap-2 hover:bg-white/10 cursor-pointer transition-all group min-w-0">
                 <div class="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center overflow-hidden border border-white/10 flex-shrink-0">
                   <img v-if="item.publicacion?.media?.[0]?.url" :src="item.publicacion.media[0].url" class="w-full h-full object-cover">
                   <div v-else class="text-[10px]">{{ getInteractionIcon(item.tipo) }}</div>
@@ -916,15 +927,25 @@
         </div>
       </div>
     </Transition>
+
+    <!-- Modal de Historial de Interacciones -->
+    <InteractionHistoryModal 
+      :show="historyModal.show"
+      :history="historyModal.data"
+      :loading="historyModal.loading"
+      :total-balance="historyModal.balance"
+      @close="historyModal.show = false"
+    />
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, watch, reactive } from 'vue'
 import { useAuthStore } from '~/middleware/auth.store'
 import BottomNav from '~/components/footers/BottomNav.vue'
 import Toast from '~/components/ui/Toast.vue'
 import LoadingSpinner from '~/components/ui/LoadingSpinner.vue'
+import InteractionHistoryModal from '~/components/ui/InteractionHistoryModal.vue'
 
 const { $api } = useNuxtApp()
 const auth = useAuthStore()
@@ -941,6 +962,14 @@ const showIdentityLarge = ref(false)
 const showAvatarLarge = ref(false)
 const activeDetailModal = ref(null)
 const isUpdatingRed = ref(false)
+
+// Historial Modal State
+const historyModal = reactive({
+  show: false,
+  loading: false,
+  data: [],
+  balance: 0
+})
 
 // State for edit user modal
 const editUserModal = ref({
@@ -1248,6 +1277,22 @@ const openDetails = async (user) => {
     showMsg('Error al obtener detalles del usuario', 'error')
   } finally {
     isLoading.value = false
+  }
+}
+
+const openHistoryModal = async (user) => {
+  historyModal.show = true
+  historyModal.loading = true
+  historyModal.balance = parseFloat(user.credito?.monto_credito || 0)
+  try {
+    const res = await $api(`/interacciones/usuario/${user.id_usuario}?limit=50`)
+    if (res.success) {
+      historyModal.data = res.data
+    }
+  } catch (e) {
+    showMsg('Error al cargar historial', 'error')
+  } finally {
+    historyModal.loading = false
   }
 }
 
