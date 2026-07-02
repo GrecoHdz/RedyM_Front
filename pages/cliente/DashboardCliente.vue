@@ -1301,6 +1301,8 @@ onMounted(async () => {
   } finally {
     clearTimeout(safetyTimeout)
     isLoading.value = false
+    await nextTick()
+    window.scrollTo({ top: 0, behavior: 'instant' })
   }
 
   // Setup IntersectionObserver para contar vistas
