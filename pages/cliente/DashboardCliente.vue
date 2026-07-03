@@ -605,7 +605,7 @@ const {
   loadFromCache 
 } = usePostsLoader({ limit: 10 })
 
-const isLoading = ref(true)
+const isLoading = ref(false)
 const shortName = computed(() => auth.user?.nombre?.split(' ')[0] || 'Usuario')
 
 const toast = ref({ show: false, message: '', type: 'success' })
@@ -1255,11 +1255,17 @@ onMounted(async () => {
   document.addEventListener('visibilitychange', handlePageShow)
   window.addEventListener('focus', handlePageShow)
   
-  // 1. Cargar desde caché para respuesta inmediata
+  // 1. Cargar desde caché para respuesta inmediata (sin spinner)
   loadFromCache()
   // After cache renders, force scroll back to top before browser can restore position
   await nextTick()
   window.scrollTo({ top: 0, behavior: 'instant' })
+
+  // 2. Solo mostrar spinner si no hay contenido cacheado (evita pantalla negra)
+  const hasCache = feedPosts.value && feedPosts.value.length > 0
+  if (!hasCache) {
+    isLoading.value = true
+  }
   
   // Safety timeout to dismiss loader if API calls hang due to network/disconnection
   const safetyTimeout = setTimeout(() => {
@@ -1270,7 +1276,7 @@ onMounted(async () => {
   }, 4000)
   
   try {
-    // 2. Cargar datos necesarios en paralelo
+    // 3. Cargar datos necesarios en paralelo
     await Promise.all([
       fetchMissionsProgress(),
       fetchMisionesEspeciales(),
@@ -1279,10 +1285,10 @@ onMounted(async () => {
       fetchAlreadyViewedPosts()
     ])
     
-    // 3. Cargar publicaciones frescas (con debounce y paginación)
+    // 4. Cargar publicaciones frescas (con debounce y paginación)
     await fetchPosts(true, rewardsConfig.value)
     
-    // 4. Setup Infinite Scroll
+    // 5. Setup Infinite Scroll
     setupInfiniteScroll()
     
     // Fetch real earnings for header

@@ -53,10 +53,14 @@
                     </p>
                     <p v-if="item.respuesta" class="text-[8px] text-gray-400 font-medium italic truncate">
                       Tu respuesta: {{ item.respuesta }}
-                      <span v-if="item.tipo === 'mision_especial' && item.total_ganadores_mision !== null" class="ml-1 text-violet-400">
-                        ({{ item.total_ganadores_mision }} ganador{{ item.total_ganadores_mision === 1 ? '' : 'es' }})
-                      </span>
                     </p>
+                    <!-- Badge de ganadores: visible siempre que el dato esté disponible -->
+                    <span
+                      v-if="item.tipo === 'mision_especial' && item.total_ganadores_mision !== null"
+                      class="inline-flex items-center gap-1 w-fit px-1.5 py-0.5 rounded-md bg-violet-500/15 border border-violet-500/25 text-[7.5px] font-black text-violet-400 uppercase tracking-widest"
+                    >
+                      🏆 {{ item.total_ganadores_mision }} ganador{{ item.total_ganadores_mision === 1 ? '' : 'es' }}
+                    </span>
                     <p class="text-[8px] text-gray-500 font-medium">{{ formatDate(item.fecha) }}</p>
                   </div>
                 </div>

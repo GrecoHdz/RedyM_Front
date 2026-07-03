@@ -456,7 +456,7 @@ const {
   loadFromCache 
 } = usePostsLoader({ limit: 10 })
 
-const isLoading = ref(true)
+const isLoading = ref(false)
 const shortName = computed(() => auth.user?.nombre?.split(' ')[0] || 'Usuario')
 
 const toast = ref({ show: false, message: '', type: 'success' })
@@ -1080,16 +1080,22 @@ onMounted(async () => {
   document.addEventListener('visibilitychange', handlePageShow)
   window.addEventListener('focus', handlePageShow)
   
-  // 1. Cargar desde caché para respuesta inmediata
+  // 1. Cargar desde caché para respuesta inmediata (sin spinner)
   loadFromCache()
   // After cache renders, force scroll back to top before browser can restore position
   await nextTick()
   window.scrollTo({ top: 0, behavior: 'instant' })
+
+  // 2. Solo mostrar spinner si no hay contenido cacheado (evita pantalla negra)
+  const hasCache = feedPosts.value && feedPosts.value.length > 0
+  if (!hasCache) {
+    isLoading.value = true
+  }
   
   // Safety timeout to dismiss loader if API calls hang due to network/disconnection
   const safetyTimeout = setTimeout(() => {
     if (isLoading.value) {
-      console.warn('⚠️ [Dashboard] Safety timeout reached. Dismissing loader to show cached content.');
+      console.warn('⚠️ [AdminDashboard] Safety timeout reached. Dismissing loader to show cached content.');
       isLoading.value = false
     }
   }, 4000)
