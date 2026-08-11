@@ -576,6 +576,20 @@
 
     <!-- Modal de Invitación a Notificaciones Push -->
     <PushNotificationInvite />
+
+    <!-- Video Share Loading Overlay -->
+    <Transition name="fade">
+      <div v-if="isSharingLoading" class="fixed inset-0 z-[250] bg-black/80 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center">
+        <div class="relative w-20 h-20 mb-4 flex items-center justify-center">
+          <div class="absolute inset-0 rounded-full border-4 border-emerald-500/20 border-t-emerald-500 animate-spin"></div>
+          <span class="text-2xl animate-pulse">📥</span>
+        </div>
+        <h3 class="text-sm font-black text-white uppercase tracking-wider mb-2">Preparando Video</h3>
+        <p class="text-xs text-gray-400 max-w-[280px] leading-relaxed">
+          Descargando video en alta calidad para compartir. Por favor, espera un momento...
+        </p>
+      </div>
+    </Transition>
   </div>
 </template>
 
@@ -606,6 +620,7 @@ const {
 } = usePostsLoader({ limit: 10 })
 
 const isLoading = ref(false)
+const isSharingLoading = ref(false)
 const shortName = computed(() => auth.user?.nombre?.split(' ')[0] || 'Usuario')
 
 const toast = ref({ show: false, message: '', type: 'success' })
@@ -1066,26 +1081,60 @@ const handleShare = async (post) => {
 
   const shareText = `¡Mira esta publicación de ${post.author} en PubliGana!\n\n"${post.content}"\n\nÚnete gratis aquí: ${window.location.origin}`
 
-  // Intentar Web Share API con imagen adjunta (funciona en móvil)
+  // Intentar Web Share API con video/imagen adjunta (funciona en móvil)
   if (navigator.share) {
     try {
       let shareData = { text: shareText }
 
-      // Adjuntar imagen o miniatura de video si hay media
       if (post.media && post.media.length > 0) {
         const mediaItem = post.media[0]
-        const previewUrl = getMediaPreviewUrl(mediaItem)
-        if (previewUrl) {
+        
+        if (mediaItem.type === 'video') {
+          // Activar cargador para la descarga del video
+          isSharingLoading.value = true
           try {
-            const resp = await fetch(previewUrl)
+            // Descargar video real
+            const resp = await fetch(mediaItem.url)
             const blob = await resp.blob()
-            const ext = blob.type.includes('video') ? 'jpg' : (blob.type.split('/')[1] || 'jpg')
-            const file = new File([blob], `publicacion.${ext}`, { type: blob.type || 'image/jpeg' })
+            
+            // Determinar extensión y tipo de archivo
+            const ext = blob.type.split('/')[1] || 'mp4'
+            const file = new File([blob], `video_${post.id}.${ext}`, { type: blob.type || 'video/mp4' })
+            
             if (navigator.canShare && navigator.canShare({ files: [file] })) {
               shareData.files = [file]
+            } else {
+              console.warn('El navegador no soporta compartir este tipo de video. Usando fallback de miniatura.')
+              const previewUrl = getMediaPreviewUrl(mediaItem)
+              if (previewUrl) {
+                const previewResp = await fetch(previewUrl)
+                const previewBlob = await previewResp.blob()
+                const previewFile = new File([previewBlob], `preview_${post.id}.jpg`, { type: 'image/jpeg' })
+                if (navigator.canShare && navigator.canShare({ files: [previewFile] })) {
+                  shareData.files = [previewFile]
+                }
+              }
             }
-          } catch (fetchErr) {
-            console.warn('No se pudo descargar la imagen para compartir:', fetchErr)
+          } catch (err) {
+            console.error('Error al descargar el video para compartir:', err)
+          } finally {
+            isSharingLoading.value = false
+          }
+        } else {
+          // Es una imagen, descargar rápido
+          const previewUrl = getMediaPreviewUrl(mediaItem)
+          if (previewUrl) {
+            try {
+              const resp = await fetch(previewUrl)
+              const blob = await resp.blob()
+              const ext = blob.type.split('/')[1] || 'jpg'
+              const file = new File([blob], `publicacion.${ext}`, { type: blob.type || 'image/jpeg' })
+              if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                shareData.files = [file]
+              }
+            } catch (fetchErr) {
+              console.warn('No se pudo descargar la imagen para compartir:', fetchErr)
+            }
           }
         }
       }
@@ -1101,7 +1150,11 @@ const handleShare = async (post) => {
     }
   } else {
     // Fallback para navegadores sin Web Share API (escritorio)
-    openExternal(`https://wa.me/?text=${encodeURIComponent(shareText)}`, {
+    let desktopShareText = shareText
+    if (post.media && post.media.length > 0 && post.media[0].type === 'video') {
+      desktopShareText += `\n\nVer video: ${post.media[0].url}`
+    }
+    openExternal(`https://wa.me/?text=${encodeURIComponent(desktopShareText)}`, {
       onOpen: () => console.log('🔗 [Dashboard] WhatsApp opened successfully')
     })
   }
