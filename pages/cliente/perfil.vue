@@ -404,12 +404,57 @@
               </div>
             </div>
 
-            <!-- Sección Identidad -->
+            <!-- Sección Datos de Verificación (Correo e Identidad) -->
+            <div class="bg-white/5 rounded-3xl p-6 border border-white/5 relative">
+              <div class="flex items-center gap-4 mb-6">
+                <div class="w-12 h-12 rounded-2xl bg-amber-500/10 flex items-center justify-center text-xl border border-amber-500/20">📋</div>
+                <div>
+                  <h4 class="text-sm font-black text-white uppercase tracking-tight">Datos de Verificación</h4>
+                  <p class="text-[10px] text-gray-500 font-bold uppercase">Correo y número de identidad</p>
+                </div>
+              </div>
+
+              <div class="space-y-4">
+                <!-- Correo Electrónico -->
+                <div class="space-y-1">
+                  <label class="block text-[9px] font-black text-gray-500 uppercase tracking-widest ml-1">Correo Electrónico</label>
+                  <input
+                    v-model="user.email"
+                    type="email"
+                    class="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-xl focus:ring-2 focus:ring-amber-500/50 focus:border-amber-500 outline-none transition-all text-white font-bold text-sm"
+                    placeholder="tu@email.com"
+                  >
+                </div>
+
+                <!-- Número de Identidad (DNI) -->
+                <div class="space-y-1">
+                  <label class="block text-[9px] font-black text-gray-500 uppercase tracking-widest ml-1">Número de Identidad (DNI)</label>
+                  <input
+                    v-model="user.identidad"
+                    type="text"
+                    class="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-xl focus:ring-2 focus:ring-amber-500/50 focus:border-amber-500 outline-none transition-all text-white font-bold text-sm"
+                    placeholder="0801XXXXXXXX"
+                  >
+                </div>
+
+                <!-- Botón guardar datos -->
+                <button
+                  @click="saveVerificationData"
+                  :disabled="isSavingVerification"
+                  class="w-full py-2.5 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-white font-black uppercase tracking-widest rounded-xl shadow-lg shadow-amber-900/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-[11px]"
+                >
+                  <i v-if="isSavingVerification" class="fas fa-circle-notch fa-spin"></i>
+                  {{ isSavingVerification ? 'Guardando...' : 'Guardar Datos' }}
+                </button>
+              </div>
+            </div>
+
+            <!-- Sección Identidad (Foto DNI) -->
             <div class="bg-white/5 rounded-3xl p-6 border border-white/5 relative">
               <div class="flex items-center gap-4 mb-6">
                 <div class="w-12 h-12 rounded-2xl bg-blue-500/10 flex items-center justify-center text-xl border border-blue-500/20">🛡️</div>
                 <div>
-                  <h4 class="text-sm font-black text-white uppercase tracking-tight">Identidad (DNI)</h4>
+                  <h4 class="text-sm font-black text-white uppercase tracking-tight">Foto del DNI</h4>
                   <p class="text-[10px] text-gray-500 font-bold uppercase">Para obtener el check verificado</p>
                 </div>
               </div>
@@ -643,6 +688,7 @@ const isSaving = ref(false)
 const isUploading = ref(false)
 const isDeleting = ref(false)
 const isUpdatingPassword = ref(false)
+const isSavingVerification = ref(false)
 
 const totalEarnings = computed(() => Number(user.value.monto_credito || 0))
 const totalReferrals = ref(24)
@@ -854,6 +900,38 @@ const saveProfile = async () => {
     showMsg(errorMessage, 'error')
   } finally {
     isSaving.value = false
+  }
+}
+
+const saveVerificationData = async () => {
+  if (!user.value.email && !user.value.identidad) {
+    showMsg('Completa al menos un campo', 'error')
+    return
+  }
+  if (user.value.identidad && !/^\d+$/.test(user.value.identidad.replace(/-/g, ''))) {
+    showMsg('La identidad debe contener solo números (sin guiones)', 'error')
+    return
+  }
+  isSavingVerification.value = true
+  try {
+    await $api(`/usuarios/${user.value.id_usuario}`, {
+      method: 'PUT',
+      body: {
+        email: user.value.email,
+        identidad: user.value.identidad
+      }
+    })
+    originalUserData.value = { ...user.value }
+    await auth.fetchUser()
+    showMsg('¡Datos guardados!', 'success')
+  } catch (error) {
+    let errorMessage = 'Error al guardar datos'
+    if (error.response && error.response._data) {
+      errorMessage = error.response._data.message || errorMessage
+    }
+    showMsg(errorMessage, 'error')
+  } finally {
+    isSavingVerification.value = false
   }
 }
 
