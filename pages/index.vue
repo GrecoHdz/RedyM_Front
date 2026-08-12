@@ -348,6 +348,9 @@ const handleAuth = async () => {
         showStatusSuccess.value = true
         loading.value = false
         
+        // Copiar el teléfono al campo de identidad para que salga pre-llenado en el login
+        form.value.identidad = form.value.telefono;
+        
         setTimeout(() => {
           showStatusSuccess.value = false
           isLogin.value = true
